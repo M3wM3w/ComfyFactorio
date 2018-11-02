@@ -899,7 +899,11 @@ Darkness is a hazard in the mines, stay near your lamps..
 		end
 
 		global.darkness_threat_level = {}							
-		
+
+		if global.score_columns then
+			table.insert(global.score_columns, {["prop"] = "ore_mined", ["label"] = "Ore Mined"})
+		end
+
 		global.cave_miner_init_done = true						
 	end
 	if player.online_time < 10 then
@@ -1149,7 +1153,14 @@ local function pre_player_mined_item(event)
 		amount_of_stone = math.round(amount * 0.15,0)		
 		
 		global.stats_ores_found = global.stats_ores_found + amount + amount_of_stone
-		
+		if global.score then
+			if global.score[player.force.name].players[player.name].ore_mined then
+				global.score[player.force.name].players[player.name].ore_mined = global.score[player.force.name].players[player.name].ore_mined + amount + amount_of_stone
+			else
+				global.score[player.force.name].players[player.name].ore_mined = amount + amount_of_stone
+			end
+		end
+
 		local mined_loot = global.rock_mining_raffle_table[math.random(1,#global.rock_mining_raffle_table)]
 		if amount > global.ore_spill_cap then
 			surface.spill_item_stack(rock_position,{name = mined_loot, count = global.ore_spill_cap},true)

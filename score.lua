@@ -87,62 +87,51 @@ local function show_score(player)
 	
 	local l = frame.add { type = "label", caption = "---------------------------------------------------------------------------------------------------------------"}
 	l.style.font_color = { r=0.9, g=0.9, b=0.9}
-	
-	local t = frame.add { type = "table", column_count = 5}
+
+	local t = frame.add { type = "table", column_count = #global.score_columns + 1}
 	
 	local l = t.add { type = "label", caption = "Player"}	
 	l.style.font = "default-listbox"			
 	l.style.font_color = { r=0.98, g=0.66, b=0.22}
 	l.style.minimal_width = 140
-	
-	local str = ""
-	if global.score_sort_by[player.name].column == "killscore" then str = sorting_symbol[global.score_sort_by[player.name].method] .. " " end
-	local l = t.add { type = "label", caption = str .. "Killscore", name = "score_killscore"}	
-	l.style.font = "default-listbox"			
-	l.style.font_color = { r=0.98, g=0.66, b=0.22}
-	l.style.minimal_width = 140
-	str = ""
-	if global.score_sort_by[player.name].column == "deaths" then str = sorting_symbol[global.score_sort_by[player.name].method] .. " " end
-	local l = t.add { type = "label", caption = str .. "Deaths", name = "score_deaths"}	
-	l.style.font = "default-listbox"			
-	l.style.font_color = { r=0.98, g=0.66, b=0.22}
-	l.style.minimal_width = 140
-	str = ""
-	if global.score_sort_by[player.name].column == "built_entities" then str = sorting_symbol[global.score_sort_by[player.name].method] .. " " end
-	local l = t.add { type = "label", caption = str .. "Built structures", name = "score_built_entities"}	
-	l.style.font = "default-listbox"			
-	l.style.font_color = { r=0.98, g=0.66, b=0.22}
-	l.style.minimal_width = 140
-	str = ""
-	if global.score_sort_by[player.name].column == "mined_entities" then str = sorting_symbol[global.score_sort_by[player.name].method] .. " " end
-	local l = t.add { type = "label", caption = str .. "Mined entities", name = "score_mined_entities"}	
-	l.style.font = "default-listbox"			
-	l.style.font_color = { r=0.98, g=0.66, b=0.22}
-	l.style.minimal_width = 140
-		
+
+	local function add_label(column, label, id)
+		local str = ""
+		if global.score_sort_by[player.name].column == column then str = sorting_symbol[global.score_sort_by[player.name].method] .. " " end
+		local l = t.add { type = "label", caption = str .. label, name = id}
+		l.style.font = "default-listbox"
+		l.style.font_color = { r=0.98, g=0.66, b=0.22}
+		l.style.minimal_width = 140
+	end
+
+	for _, column in pairs(global.score_columns) do
+		add_label(column.prop, column.label, "score_" .. column.prop)
+	end
+
 	local score_list = {}
 	for _, p in pairs(game.connected_players) do
-		local killscore = 0
-		if score.players[p.name].killscore then killscore = score.players[p.name].killscore end
-		local deaths = 0
-		if score.players[p.name].deaths then deaths = score.players[p.name].deaths end
-		local built_entities = 0
-		if score.players[p.name].built_entities then built_entities = score.players[p.name].built_entities end
-		local mined_entities = 0
-		if score.players[p.name].mined_entities then mined_entities = score.players[p.name].mined_entities end
-		table.insert(score_list, {name = p.name, killscore = killscore, deaths = deaths, built_entities = built_entities, mined_entities = mined_entities})		
+		row = {}
+		row.name = p.name
+		for _, column in pairs(global.score_columns) do
+			if score.players[p.name][column.prop] then
+				row[column.prop] = score.players[p.name][column.prop]
+			else
+				row[column.prop] = 0
+			end
+		end
+		table.insert(score_list, row)
 	end
-	
+
 	if #game.connected_players > 1 then
 		score_list = get_sorted_list(global.score_sort_by[player.name].method, global.score_sort_by[player.name].column, score_list)
-	end	
-	
+	end
+
 	local scroll_pane = frame.add({ type = "scroll-pane", name = "score_scroll_pane", direction = "vertical", horizontal_scroll_policy = "never", vertical_scroll_policy = "auto"})
-	scroll_pane.style.maximal_height = 400	
-	local t = scroll_pane.add { type = "table", column_count = 5}
-	
-	for _, entry in pairs(score_list) do		
-		local l = t.add { type = "label", caption = entry.name}	
+	scroll_pane.style.maximal_height = 400
+	local t = scroll_pane.add { type = "table", column_count = #global.score_columns + 1}
+
+	for _, entry in pairs(score_list) do
+		local l = t.add { type = "label", caption = entry.name}
 		l.style.font = "default"
 		local p = game.players[entry.name]
 		local color = {r = p.color.r * 0.6 + 0.4, g = p.color.g * 0.6 + 0.4, b = p.color.b * 0.6 + 0.4, a = 1}
@@ -150,29 +139,14 @@ local function show_score(player)
 		l.style.minimal_width = 140
 		l.style.maximal_width = 140
 
-		local l = t.add { type = "label", caption = tostring(entry.killscore)}	
-		l.style.font = "default"			
-		l.style.font_color = { r=0.9, g=0.9, b=0.9}
-		l.style.minimal_width = 140
-		l.style.maximal_width = 140
-		
-		local l = t.add { type = "label", caption = tostring(entry.deaths)}	
-		l.style.font = "default"			
-		l.style.font_color = { r=0.9, g=0.9, b=0.9}
-		l.style.minimal_width = 140
-		l.style.maximal_width = 140
-		
-		local l = t.add { type = "label", caption = tostring(entry.built_entities)}	
-		l.style.font = "default"			
-		l.style.font_color = { r=0.9, g=0.9, b=0.9}
-		l.style.minimal_width = 140
-
-		local l = t.add { type = "label", caption = tostring(entry.mined_entities)}	
-		l.style.font = "default"			
-		l.style.font_color = { r=0.9, g=0.9, b=0.9}
-		l.style.minimal_width = 140
-		l.style.maximal_width = 140
-	end	
+		for _, column in pairs(global.score_columns) do
+			local l = t.add { type = "label", caption = tostring(entry[column.prop])}
+			l.style.font = "default"
+			l.style.font_color = { r=0.9, g=0.9, b=0.9}
+			l.style.minimal_width = 140
+			l.style.maximal_width = 140
+		end
+	end
 end
 
 local function refresh_score_full()
@@ -191,40 +165,40 @@ local function refresh_score()
 			local score = global.score[player.force.name]
 			local score_list = {}
 			for _, p in pairs(game.connected_players) do
-				local killscore = 0
-				if score.players[p.name].killscore then killscore = score.players[p.name].killscore end
-				local deaths = 0
-				if score.players[p.name].deaths then deaths = score.players[p.name].deaths end
-				local built_entities = 0
-				if score.players[p.name].built_entities then built_entities = score.players[p.name].built_entities end
-				local mined_entities = 0
-				if score.players[p.name].mined_entities then mined_entities = score.players[p.name].mined_entities end
-				table.insert(score_list, {name = p.name, killscore = killscore, deaths = deaths, built_entities = built_entities, mined_entities = mined_entities})		
+				row = {}
+				row.name = p.name
+				for _, column in pairs(global.score_columns) do
+					if score.players[p.name][column.prop] then
+						row[column.prop] = score.players[p.name][column.prop]
+					else
+						row[column.prop] = 0
+					end
+				end
+				table.insert(score_list, row)
 			end
 			if #game.connected_players > 1 then
 				score_list = get_sorted_list(global.score_sort_by[player.name].method, global.score_sort_by[player.name].column, score_list)
-			end			
-			local index = 1
-			for _, entry in pairs(score_list) do		
-				player.gui.left["score_panel"].children[4].children[1].children[index].caption = entry.name
+			end
+			for i, entry in pairs(score_list) do
+				player.gui.left["score_panel"].children[4].children[1].children[i].caption = entry.name
 				local p = game.players[entry.name]
 				local color = {r = p.color.r * 0.6 + 0.4, g = p.color.g * 0.6 + 0.4, b = p.color.b * 0.6 + 0.4, a = 1}
-				player.gui.left["score_panel"].children[4].children[1].children[index].style.font_color = color				
-				index = index + 1
-				player.gui.left["score_panel"].children[4].children[1].children[index].caption = tostring(entry.killscore)					
-				index = index + 1
-				player.gui.left["score_panel"].children[4].children[1].children[index].caption = tostring(entry.deaths)
-				index = index + 1
-				player.gui.left["score_panel"].children[4].children[1].children[index].caption = tostring(entry.built_entities)
-				index = index + 1
-				player.gui.left["score_panel"].children[4].children[1].children[index].caption = tostring(entry.mined_entities)
-				index = index + 1				
-			end								
+				player.gui.left["score_panel"].children[4].children[1].children[i].style.font_color = color
+				for i, column in pairs(global.score_columns) do
+					player.gui.left["score_panel"].children[4].children[1].children[i + 1].caption = tostring(entry[column.prop])
+				end
+			end
 		end
 	end
 end
 
 local function init_player_table(player)
+	if not global.score_columns then global.score_columns = {
+			{["prop"] = "killscore",      ["label"] = "Killscore"},
+			{["prop"] = "deaths",         ["label"] = "Deaths"},
+			{["prop"] = "built_entities", ["label"] = "Entities Built"},
+			{["prop"] = "mined_entities", ["label"] = "Entities Mined"},}
+	end
 	if not global.score[player.force.name] then global.score[player.force.name] = {} end
 	if not global.score[player.force.name].players then global.score[player.force.name].players = {} end
 	if not global.score[player.force.name].players[player.name] then global.score[player.force.name].players[player.name] = {} end
@@ -275,22 +249,22 @@ local function on_gui_click(event)
 		end
 		return
 	end
-	
+
 	local int_sort_columns = {"score_killscore", "killscore", "score_deaths", "deaths", "score_built_entities", "built_entities", "score_mined_entities", "mined_entities"}
-	for x = 1, #int_sort_columns, 2 do
-		if name == int_sort_columns[x] then			
-			if global.score_sort_by[player.name].column == int_sort_columns[x + 1] then
+	for _, column in pairs(global.score_columns) do
+		if name:sub(-#column.prop) == column.prop then
+			if global.score_sort_by[player.name].column == column.prop then
 				if global.score_sort_by[player.name].method == "ascending" then
 					global.score_sort_by[player.name].method = "descending"
 				else
 					global.score_sort_by[player.name].method = "ascending"
 				end
 			else
-				global.score_sort_by[player.name] = {method = "descending", column = int_sort_columns[x + 1]}
+				global.score_sort_by[player.name] = {method = "descending", column = column.prop}
 			end
 			show_score(player)
 			break
-		end	
+		end
 	end
 end
 
