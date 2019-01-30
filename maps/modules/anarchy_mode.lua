@@ -411,6 +411,8 @@ local function on_console_chat(event)
 		if player.tag ~= "" then return end		 
 	end
 	
+	if event.message == "" then return end --Don't send message if empty
+	
 	local color = {}
 	color = player.color
 	color.r = color.r * 0.6 + 0.35
