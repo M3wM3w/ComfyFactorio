@@ -249,7 +249,7 @@ local function player_list_show(player, sort_by)
 	label.style.bottom_padding = 3
 	label.style.minimal_width = 36
 	label.style.maximal_width = 36
-	label.style.align = "right"
+	label.style.horizontal_align = "right"
 	
 	local str = ""
 	if sort_by == "name_asc" then str = symbol_asc .. " " end
