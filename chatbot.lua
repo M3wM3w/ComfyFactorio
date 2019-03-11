@@ -81,6 +81,7 @@ local function on_console_command(event)
 	for _, p in pairs(game.connected_players) do
 		if p.admin == true and p.name ~= player.name then
 			p.print(player.name .. " did a silent-command: " .. event.parameters, {r=0.22, g=0.99, b=0.99})
+			log(player.name .. " did a silent-command: " .. event.parameters)
 		end
 	end		
 end
