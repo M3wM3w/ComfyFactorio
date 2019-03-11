@@ -1,6 +1,6 @@
 local Event = require 'utils.event'
 local Global = require 'utils.global'
-local Task = require 'utils.Task'
+local Task = require 'utils.task'
 local Game = require 'utils.game'
 local Token = require 'utils.token'
 
