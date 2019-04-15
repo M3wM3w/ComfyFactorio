@@ -1,11 +1,11 @@
 local food_values = {
-	["automation-science-pack"] =	{value = 0.001, name = "automation science"},
-	["logistic-science-pack"] =			{value = 0.00292, name = "logistic science"},
-	["military-science-pack"] =			{value = 0.01225, name = "military science"},
-	["chemical-science-pack"] = 		{value = 0.02392, name = "chemical science"},
-	["production-science-pack"] =	{value = 0.080, name = "production science"},
-	["utility-science-pack"] =			{value = 0.13875, name = "utility science"},
-	["space-science-pack"] = 			{value = 0.420, name = "space science"},
+	["automation-science-pack"] =	{value = 0.0005, name = "automation science"},
+	["logistic-science-pack"] =			{value = 0.002, name = "logistic science"},
+	["military-science-pack"] =			{value = 0.01, name = "military science"},
+	["chemical-science-pack"] = 		{value = 0.03, name = "chemical science"},
+	["production-science-pack"] =	{value = 0.1, name = "production science"},
+	["utility-science-pack"] =			{value = 0.15, name = "utility science"},
+	["space-science-pack"] = 			{value = 0.5, name = "space science"},
 }
 
 local force_translation = {

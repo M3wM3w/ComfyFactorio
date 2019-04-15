@@ -125,7 +125,7 @@ local function create_main_gui(player)
 		frame.add { type = "table", name = "biter_battle_table", column_count = 4 }
 		local t = frame.biter_battle_table
 		local foods = {"automation-science-pack","logistic-science-pack","military-science-pack","chemical-science-pack","production-science-pack","utility-science-pack","space-science-pack","raw-fish"}
-		local food_tooltips = {"1 Mutagen strength","3 Mutagen strength", "12 Mutagen strength", "24 Mutagen strength", "80 Mutagen strength", "138 Mutagen strength", "420 Mutagen strength", "Send spy"}
+		local food_tooltips = {"1 Mutagen strength","4 Mutagen strength", "20 Mutagen strength", "60 Mutagen strength", "200 Mutagen strength", "300 Mutagen strength", "1000 Mutagen strength", "Send spy"}
 		local x = 1
 		for _, f in pairs(foods) do
 			local s = t.add { type = "sprite-button", name = f, sprite = "item/" .. f }
