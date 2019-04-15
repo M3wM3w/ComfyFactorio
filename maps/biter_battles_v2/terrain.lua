@@ -113,10 +113,10 @@ local function generate_circle_spawn(event)
 					surface.create_entity({name = "stone-wall", position = pos, force = "north"})
 				end
 				if distance_to_center + noise < r - 4 and distance_to_center + noise > r - 6 then
-					if math_random(1,150) == 1 then
+					if math_random(1,75) == 1 then
 						if surface.can_place_entity({name = "gun-turret", position = pos}) then
 							local t = surface.create_entity({name = "gun-turret", position = pos, force = "north"})
-							t.insert({name = "firearm-magazine", count = math_random(3,6)})
+							t.insert({name = "firearm-magazine", count = math_random(15,30)})
 						end
 					end
 				end
