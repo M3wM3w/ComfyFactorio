@@ -8,7 +8,7 @@ require "utils.server_commands"
 require "utils.utils"
 require "utils.corpse_util"  --disable for hunger games
 require "utils.session_data"
-require "utils.set_color"
+require "utils.color_data"
 require "chatbot"
 require "commands"
 require "antigrief"
