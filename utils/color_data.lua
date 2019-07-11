@@ -46,8 +46,8 @@ local fetch =
         if value then
             player.color = value.color[1]
             player.chat_color = value.chat[1]
-        else
-            set_data(color_data_set, player.name, {color={player.color},chat={player.chat_color}})
+        --else
+        --    set_data(color_data_set, player.name, {color={player.color},chat={player.chat_color}})
         end
     end
 )
