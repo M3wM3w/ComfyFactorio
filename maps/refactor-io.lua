@@ -12,8 +12,8 @@ global.map_info.text = [[
 	Hello visitor.
 
 	You cannot mine things.
-	You cannot deconstruct things ... the only way to "deconstruct" is your railgun.
-	You cannot destroy things ... except the biters ... and they have been known to hoard railgun darts.
+	You cannot deconstruct things ... except for with your railgun.
+	You cannot destroy things ... except the biters, who have been known to hoard railgun darts in their nests.
 	
 	Have fun <3
 ]]
@@ -43,6 +43,7 @@ end
 local function on_player_respawned(event)  
 	local player = game.players[event.player_index]
     player.insert{name = 'railgun', count = 1}
+    player.insert{name = 'wood', count = 25}
 end
 
 -- decon planner doesn't work
@@ -71,7 +72,7 @@ end
 local function on_entity_died(event)
 	if not event.entity.valid then return end
 	if event.entity.type == "unit-spawner" or event.entity.type == "turret" then
-		event.entity.surface.spill_item_stack({event.entity.position.x, event.entity.position.y + 2}, {name = "railgun-dart", count = math.random(0, 2)}, false)
+		event.entity.surface.spill_item_stack({event.entity.position.x, event.entity.position.y + 2}, {name = "railgun-dart", count = math.random(0, 3)}, false)
 	end	
 end
 
@@ -92,8 +93,8 @@ local function on_init()
 		["iron-ore"] = {frequency = 3.5, size = 0.95, richness = 0.85},
 		["uranium-ore"] = {frequency = 3.5, size = 0.95, richness = 0.85},
 		["crude-oil"] = {frequency = 3, size = 0.85, richness = 1},
-		["trees"] = {frequency = 3, size = 1, richness = 1},
-		["enemy-base"] = {frequency = 5, size = 2.0, richness = 1}	
+		["trees"] = {frequency = 2.5, size = 0.85, richness = 1},
+		["enemy-base"] = {frequency = 8, size = 1.5, richness = 1}	
 	}	
 	local surface = game.create_surface("refactor-io", map_gen_settings)
 	surface.request_to_generate_chunks({0,0}, 5)
@@ -108,3 +109,4 @@ event.add(defines.events.on_entity_damaged, on_entity_damaged)
 event.add(defines.events.on_entity_died, on_entity_died)
 event.add(defines.events.on_marked_for_deconstruction, on_marked_for_deconstruction)
 event.add(defines.events.on_player_joined_game, on_player_joined_game)
+event.add(defines.events.on_player_respawned, on_player_respawned)
