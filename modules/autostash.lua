@@ -150,7 +150,8 @@ local function insert_item_into_chest(player_inventory, chests, filtered_chests,
 	end
 end
 
-local function auto_stash(player)
+local function auto_stash(event)
+	local player = game.players[event.player_index]
 	if not player.character then player.print("It seems that you are not in the realm of the living.", print_color) return end
 	if not player.character.valid then player.print("It seems that you are not in the realm of the living.", print_color) return end
 	local inventory = player.get_inventory(defines.inventory.character_main)
@@ -175,7 +176,10 @@ local function auto_stash(player)
 	
 	for name, count in pairs(inventory.get_contents()) do
 		if not inventory.find_item_stack(name).grid and not hotbar_items[name] then	
-			insert_item_into_chest(inventory, chests, filtered_chests, name, count)			
+			--raw-resources always. Other only if shift is not pressed
+			if game.item_prototypes[name].subgroup.name == "raw-resource" or not event.shift then
+				insert_item_into_chest(inventory, chests, filtered_chests, name, count)	
+			end		
 		end
 	end
 	
@@ -184,7 +188,7 @@ end
 
 local function create_gui_button(player)
 	if player.gui.top.auto_stash then return end
-	local b = player.gui.top.add({type = "sprite-button", sprite = "item/wooden-chest", name = "auto_stash", tooltip = "Sort your inventory into nearby chests,\nexcluding quickbar items."})
+	local b = player.gui.top.add({type = "sprite-button", sprite = "item/wooden-chest", name = "auto_stash", tooltip = "Sort your inventory into nearby chests,\nexcluding quickbar items.\nWith Shift + click only raw material gets sorted."})
 	b.style.font_color = {r=0.11, g=0.8, b=0.44}
 	b.style.font = "heading-1"
 	b.style.minimal_height = 38
@@ -203,7 +207,7 @@ local function on_gui_click(event)
 	if not event.element then return end
 	if not event.element.valid then return end
 	if event.element.name == "auto_stash" then
-		auto_stash(game.players[event.player_index])
+		auto_stash(event)
 	end
 end
 
