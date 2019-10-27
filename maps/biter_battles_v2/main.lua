@@ -46,11 +46,13 @@ local function init_forces()
 	game.create_force("south")
 	game.create_force("south_biters")	
 	game.create_force("spectator")
+	game.create_force("spectator_ghost")
 	
 	local f = game.forces["north"]
 	f.set_spawn_position({0, -32}, surface)
 	f.set_cease_fire('player', true)
 	f.set_friend("spectator", true)
+	f.set_friend("spectator_ghost", true)
 	f.set_friend("south_biters", true)
 	f.share_chart = true
 	
@@ -58,6 +60,7 @@ local function init_forces()
 	f.set_spawn_position({0, 32}, surface)
 	f.set_cease_fire('player', true)
 	f.set_friend("spectator", true)
+	f.set_friend("spectator_ghost", true)
 	f.set_friend("north_biters", true)
 	f.share_chart = true
 	
@@ -67,6 +70,7 @@ local function init_forces()
 	f.set_friend("player", true)
 	--f.set_friend("enemy", true)
 	f.set_friend("spectator", true)
+	f.set_friend("spectator_ghost", true)
 	f.share_chart = false
 		
 	local f = game.forces["south_biters"]
@@ -75,6 +79,7 @@ local function init_forces()
 	f.set_friend("player", true)
 	--f.set_friend("enemy", true)
 	f.set_friend("spectator", true)
+	f.set_friend("spectator_ghost", true)
 	f.share_chart = false
 	
 	--local f = game.forces["enemy"]
@@ -90,12 +95,28 @@ local function init_forces()
 	f.set_cease_fire("south_biters", true)
 	f.set_friend("north", true)
 	f.set_friend("south", true)
+	f.set_cease_fire("spectator_ghost", true)
 	f.set_cease_fire("player", true)
 	f.share_chart = true
+	
+	local f = game.forces["spectator_ghost"]
+	f.set_spawn_position({0,0},surface)
+	f.technologies["toolbelt"].researched=true	
+	f.set_cease_fire("north_biters", true)
+	f.set_cease_fire("south_biters", true)
+	f.set_friend("north", true)
+	f.set_friend("south", true)
+	f.set_cease_fire("spectator", true)
+	f.set_cease_fire("player", true)
+	f.share_chart = false
+	rendering.draw_light{sprite="utility/light_small", scale=999, surface=surface, target={0,0}, forces={f}}
+	local r = 200
+	f.chart(surface, {{r * -1, r * -1}, {r, r}})
 	
 	local f = game.forces["player"]
 	f.set_spawn_position({0,0},surface)
 	f.set_cease_fire('spectator', true)
+	f.set_cease_fire("spectator_ghost", true)
 	f.set_cease_fire("north_biters", true)
 	f.set_cease_fire("south_biters", true)
 	f.set_cease_fire('north', true)

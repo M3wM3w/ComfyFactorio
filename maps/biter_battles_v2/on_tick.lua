@@ -22,10 +22,14 @@ local function spy_fish()
 end
 
 local function reveal_map()
-	for _, f in pairs({"north", "south", "player", "spectator"}) do
+	for _, f in pairs({"north", "south", "player", "spectator", "spectator_ghost"}) do
 		local r = 768
 		game.forces[f].chart(game.surfaces["biter_battles"], {{r * -1, r * -1}, {r, r}})
 	end
+end
+
+local function spectator_ghost_reveal_map()
+	game.forces["spectator_ghost"].rechart()
 end
 
 local function clear_corpses()
@@ -60,6 +64,7 @@ local function on_tick(event)
 
 	if game.tick % 300 ~= 0 then return end
 	spy_fish()
+	spectator_ghost_reveal_map()
 	if global.bb_game_won_by_team then
 		reveal_map()
 		server_restart()

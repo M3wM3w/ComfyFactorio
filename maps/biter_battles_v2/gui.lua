@@ -104,7 +104,7 @@ local function create_main_gui(player)
 		
 	local frame = player.gui.left.add { type = "frame", name = "bb_main_gui", direction = "vertical" }
 
-	if player.force.name ~= "spectator" then			
+	if player.force.name ~= "spectator" and player.force.name ~= "spectator_ghost" then			
 		frame.add { type = "table", name = "biter_battle_table", column_count = 4 }
 		local t = frame.biter_battle_table
 		local foods = {"automation-science-pack","logistic-science-pack","military-science-pack","chemical-science-pack","production-science-pack","utility-science-pack","space-science-pack","raw-fish"}
@@ -173,7 +173,7 @@ local function create_main_gui(player)
 	end
 	
 	local t = frame.add  { type = "table", column_count = 2 }
-	if player.force.name == "spectator" then
+	if player.force.name == "spectator" or player.force.name == "spectator_ghost" then
 		local b = t.add  { type = "sprite-button", name = "bb_leave_spectate", caption = "Join Team" }
 	else
 		local b = t.add  { type = "sprite-button", name = "bb_spectate", caption = "Spectate" }

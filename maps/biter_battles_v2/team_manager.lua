@@ -40,26 +40,33 @@ local function unfreeze_players()
 	end
 end
 
+local function return_player_body(player)
+	if player.character then return end
+	local spawn = player.force.get_spawn_position(player.surface)
+	player.set_controller({type=defines.controllers.god})
+	local pos = player.surface.find_non_colliding_position("character", spawn, 3, 0.5)
+	if pos then
+		player.teleport(pos, player.surface)
+	else
+		player.teleport(spawn, player.surface)
+	end
+	player.create_character()
+end
+
 local function toggle_ghost_spectate(player)
 	if player.character then
+		player.force = "spectator_ghost"
 		player.character.destroy() 
 		player.character = nil
 		player.set_controller({type=defines.controllers.spectator})
 		game.print(player.name .. " has turned into a spectator ghost.")
 	else
-		local spawn = player.force.get_spawn_position(player.surface)
-		player.character = nil
-		player.set_controller({type=defines.controllers.god})
-		local pos = player.surface.find_non_colliding_position("character", spawn, 3, 0.5)
-		if pos then
-			player.teleport(pos, player.surface)
-		else
-			player.teleport(spawn, player.surface)
-		end
-		player.create_character()
+		player.force = "spectator"
+		return_player_body(player)	
 		game.print(player.name .. " has stopped being a spectator ghost.")
 	end	
 end
+
 
 local function leave_corpse(player)
 	if not player.character then return end
@@ -97,6 +104,7 @@ local function switch_force(player_name, force_name)
 	if not game.forces[force_name] then game.print("Team Manager >> Force " .. force_name .. " does not exist.", {r=0.98, g=0.66, b=0.22}) return end
 	
 	local player = game.players[player_name]
+	return_player_body(player)
 	player.force = game.forces[force_name]
 				
 	game.print(player_name .. " has been switched into team " .. force_name .. ".", {r=0.98, g=0.66, b=0.22})
@@ -148,7 +156,11 @@ local function draw_manager_gui(player)
 	local i2 = 1
 	for i = 1, #forces * 2 - 1, 1 do
 		if i % 2 == 1 then
-			local list_box = t.add({type = "list-box", name = "team_manager_list_box_" .. i2, items = get_player_array(forces[i2].name)})
+			local player_list = get_player_array(forces[i2].name)
+			if forces[i2].name == "spectator" then
+				table.add_all(player_list, get_player_array("spectator_ghost"))
+			end
+			local list_box = t.add({type = "list-box", name = "team_manager_list_box_" .. i2, items = player_list})
 			list_box.style.minimal_height = 360
 			list_box.style.minimal_width = 160
 			list_box.style.maximal_height = 480
