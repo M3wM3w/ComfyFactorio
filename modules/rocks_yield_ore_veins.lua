@@ -29,7 +29,7 @@ local size_raffle = {
 		{"giant", 65, 96},
 		{"huge", 33, 64},
 		{"big", 17, 32},
-		{"smol", 9, 16},
+		{"small", 9, 16},
 		{"tiny", 4, 8},
 	}
 
