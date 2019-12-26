@@ -136,24 +136,8 @@ function Public.swarm()
 	table_insert(global.towny.swarms, {group = unit_group, timeout = game.tick + 36000})
 end
 
-function Public.set_evolution()
-	local town_center_count = global.towny.size_of_town_centers
-	if town_center_count == 0 then 
-		game.forces.enemy.evolution_factor = 0
-		return 
-	end
-		
-	local max_research_count = math_floor(#game.technology_prototypes * 0.30)
-	
-	local evo = 0
-	for _, town_center in pairs(global.towny.town_centers) do
-		evo = evo + town_center.research_counter
-	end
-	evo = evo / town_center_count
-	evo = evo / max_research_count
-	if evo > 1 then evo = 1 end
-	
-	game.forces.enemy.evolution_factor = evo
+function Public.set_evolution()	
+	game.forces.enemy.evolution_factor = 0
 end
 
 return Public
