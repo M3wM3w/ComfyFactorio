@@ -48,16 +48,36 @@ end
 local function roll_market()
 	local r_max = 0
 	local town_centers = global.towny.town_centers
+
+	local exponent = 2
+	local threshold_coefficient = 0.2
+
+	-- Determine highest research
+	local highest_research = 0
 	for k, town_center in pairs(town_centers) do
-		r_max = r_max + town_center.research_counter
+		if highest_research < town_center.research_counter then
+			highest_research = town_center.research_counter ^ exponent
+		end
+	end
+	-- Towns with low research will not be attacked
+	local research_threshold = highest_research * threshold_coefficient
+
+	-- Determine total range of RNG
+	for k, town_center in pairs(town_centers) do
+		if town_center.research_counter >= research_threshold then 
+			r_max = r_max + town_center.research_counter ^ exponent
+		end
 	end
 	if r_max == 0 then return end	
 	local r = math_random(0, r_max)
 	
+	-- Choose a town.  
 	local chance = 0
 	for k, town_center in pairs(town_centers) do
-		chance = chance + town_center.research_counter
-		if r <= chance then return town_center end
+		if town_center.research_counter >= research_threshold then 
+			chance = chance + town_center.research_counter ^ exponent
+			if r <= chance then return town_center end
+		end
 	end
 end
 
