@@ -339,7 +339,7 @@ local function generate_river(event)
 end
 
 local function generate_potential_spawn_ore(surface)
-	local r = 130
+	local r = 150
 	local area = {{r * -1, r * -1}, {r, 0}}
 	local ores = {}
 	ores["iron-ore"] = surface.count_entities_filtered({name = "iron-ore", area = area})
@@ -347,7 +347,7 @@ local function generate_potential_spawn_ore(surface)
 	ores["coal"] = surface.count_entities_filtered({name = "coal", area = area})
 	ores["stone"] = surface.count_entities_filtered({name = "stone", area = area})
 	for ore, ore_count in pairs(ores) do
-		if ore_count < 1000 or ore_count == nil then
+		if ore_count < 2400 or ore_count == nil then
 			local pos = {}
 			for a = 1, 32, 1 do
 				pos = {x = -96 + math_random(0, 192), y = -20 - math_random(0, 96)}
@@ -355,7 +355,7 @@ local function generate_potential_spawn_ore(surface)
 					break
 				end
 			end
-			draw_noise_ore_patch(pos, ore, surface, math_random(18, 24), math_random(1500, 2000))
+			draw_noise_ore_patch(pos, ore, surface, 20, 3000)
 		end
 	end
 end
