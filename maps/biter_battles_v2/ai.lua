@@ -6,14 +6,12 @@ local vector_radius = 360
 local attack_vectors = {}
 attack_vectors.north = {}
 attack_vectors.south = {}
-for x = vector_radius * -1, vector_radius, 1 do
-	for y = 0, vector_radius, 1 do
-		local r = math.sqrt(x ^ 2 + y ^ 2)
-		if r < vector_radius and r > vector_radius - 1 then
-			attack_vectors.north[#attack_vectors.north + 1] = {x, y * -1}
-			attack_vectors.south[#attack_vectors.south + 1] = {x, y}
-		end
-	end
+for p = 0.3, 0.71, 0.05 do
+	local a = math.pi * p
+	local x = vector_radius * math.cos(a)
+	local y = vector_radius * math.sin(a)
+	attack_vectors.north[#attack_vectors.north + 1] = {x, y * -1}
+	attack_vectors.south[#attack_vectors.south + 1] = {x, y}
 end
 local size_of_vectors = #attack_vectors.north
 
