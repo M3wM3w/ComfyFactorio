@@ -91,9 +91,21 @@ local function on_entity_damaged(event)
 	entity.health = entity.health + event.final_damage_amount
 end
 
+function prevent_negative_threat()
+	if global.bb_threat["north_biters"] < -100 then
+		global.bb_threat["north_biters"] = global.bb_threat["north_biters"] * -1
+		game.print("North's negative threat is now positive!")
+	end
+	if global.bb_threat["south_biters"] < -100 then
+		global.bb_threat["south_biters"] = global.bb_threat["south_biters"] * -1
+		game.print("South's negative threat is now positive!")
+	end
+end
+
 local tick_minute_functions = {
 	[300 * 1] = Ai.raise_evo,
 	[300 * 2] = Ai.destroy_inactive_biters,
+	[300 * 2 + 30 * 1] = prevent_negative_threat,
 	[300 * 3 + 30 * 0] = Ai.pre_main_attack,		-- setup for main_attack
 	[300 * 3 + 30 * 1] = Ai.perform_main_attack,	-- call perform_main_attack 7 times on different ticks
 	[300 * 3 + 30 * 2] = Ai.perform_main_attack,	-- some of these might do nothing (if there are no wave left)
