@@ -180,7 +180,7 @@ local function draw_east_side(surface, left_top)
 				surface.set_tiles({{name = "out-of-map", position = position}}, true)
 			else
 				if math_random(1, 5000) == 1 and left_top.x > 0 then
-					table_insert(entities, {name = infini_ores[math_random(1, #infini_ores)], position = position, amount = 99999999})
+					table_insert(entities, {name = infini_ores[math_random(1, #infini_ores)], position = position, amount = 99999999999})
 					table_insert(entities, {name = "burner-mining-drill", position = position, force = "neutral"})				
 				end
 			end		
@@ -195,7 +195,7 @@ local function draw_east_side(surface, left_top)
 			else
 				e.direction = 0
 			end
-			e.minable = false
+			e.minable = true
 			e.destructible = false
 			e.insert({name = "coal", count = math_random(8, 36)})
 		end
@@ -237,6 +237,8 @@ local type_whitelist = {
 	["transport-belt"] = true,
 	["underground-belt"] = true,
 	["wall"] = true,
+	["beacon"] = true,
+	["mining-drill"] = true,
 }
 
 local function deny_building(event)
