@@ -41,7 +41,7 @@ function Public.reset_wave_defense()
     wave_defense.threat_log_index = 0
     wave_defense.unit_groups = {}
     wave_defense.unit_group_command_delay = 3600 * 15
-    wave_defense.unit_group_command_step_length = 80
+    wave_defense.unit_group_command_step_length = 20
     wave_defense.unit_group_last_command = {}
     wave_defense.wave_interval = 3600
     wave_defense.wave_number = 0

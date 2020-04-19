@@ -28,6 +28,21 @@ local function debug_print(msg)
 	print("WaveDefense: " .. msg)
 end
 
+local function is_closer(pos1, pos2, pos)
+  return ((pos1.x - pos.x)^2 + (pos1.y - pos.y)^2) < ((pos2.x - pos.x)^2 + (pos2.y - pos.y)^2)
+end
+
+local function shuffle_distance(tbl, position)
+	local size = #tbl
+		for i = size, 1, -1 do
+			local rand = math_random(size)
+      if is_closer(tbl[i].position, tbl[rand].position, position) and i > rand then
+        tbl[i], tbl[rand] = tbl[rand], tbl[i]
+      end
+		end
+	return tbl
+end
+
 local function is_unit_valid(biter)
 	local wave_defense_table = WD.get_table()
 	if not biter.entity then debug_print("is_unit_valid - unit destroyed - does no longer exist") return false end
@@ -104,12 +119,12 @@ local function set_main_target()
 	if wave_defense_table.target then
 		if wave_defense_table.target.valid then return end
 	end
-	
+
 	local target = SideTargets.get_side_target()
 	if not target then target = get_random_character(wave_defense_table) end
 	if not target then return end
-	
-	wave_defense_table.target = target		
+
+	wave_defense_table.target = target
 	debug_print("set_main_target -- New main target " .. target.name .. " at position x" .. target.position.x .. " y" .. target.position.y .. " selected.")
 end
 
@@ -144,15 +159,6 @@ local function set_enemy_evolution()
 	--game.forces.enemy.set_ammo_damage_modifier("melee", damage_increase)
 	--game.forces.enemy.set_ammo_damage_modifier("biological", damage_increase)
 	game.forces.enemy.evolution_factor = evolution_factor
-
-	if global.biter_health_boost then
-		for _, player in pairs(game.connected_players) do
-			--player.gui.top.wave_defense.threat.tooltip = "High threat may empower biters.\nBiter health " .. biter_health_boost * 100 .. "% | damage " .. (damage_increase + 1) * 100 .. "%"
-			if player.gui.top.wave_defense then
-				player.gui.top.wave_defense.threat.tooltip = "High threat may empower biters.\nBiter health " .. biter_health_boost * 100 .. "%"
-			end
-		end
-	end
 end
 
 local function can_units_spawn()
@@ -193,7 +199,7 @@ local function spawn_biter(surface, is_boss_biter)
 	if not is_boss_biter then
 		if not can_units_spawn() then return end
 	end
-		
+
 	local name
 	if math_random(1,100) > 73 then
 		name = BiterRolls.wave_defense_roll_spitter_name()
@@ -215,17 +221,17 @@ end
 local function set_next_wave()
 	local wave_defense_table = WD.get_table()
 	wave_defense_table.wave_number = wave_defense_table.wave_number + 1
-	
+
 	local threat_gain = wave_defense_table.wave_number * wave_defense_table.threat_gain_multiplier
 	if wave_defense_table.wave_number > 1000 then
 		threat_gain = threat_gain * (wave_defense_table.wave_number * 0.001)
 	end
 	if wave_defense_table.wave_number % 25 == 0 then
 		wave_defense_table.boss_wave = true
-		threat_gain = threat_gain * 2 
+		threat_gain = threat_gain * 2
 	end
-	
-	wave_defense_table.threat = wave_defense_table.threat + math_floor(threat_gain)	
+
+	wave_defense_table.threat = wave_defense_table.threat + math_floor(threat_gain)
 	wave_defense_table.last_wave = wave_defense_table.next_wave
 	wave_defense_table.next_wave = game.tick + wave_defense_table.wave_interval
 end
@@ -239,7 +245,6 @@ local function get_commmands(group)
 	if math_random(1,2) == 1 then
 		local side_target = SideTargets.get_side_target()
 		if side_target then
-			debug_print("get_side_target -- " .. side_target.name .. " at position x" .. side_target.position.x .. " y" .. side_target.position.y .. " selected.")
 			local target_position = side_target.position
 			local distance_to_target = math_floor(math_sqrt((target_position.x - group_position.x) ^ 2 + (target_position.y - group_position.y) ^ 2))
 			local steps = math_floor(distance_to_target / step_length) + 1
@@ -252,16 +257,49 @@ local function get_commmands(group)
 			end
 
 			for i = 1, steps, 1 do
+				local old_position = group_position
 				group_position.x = group_position.x + vector[1]
-				group_position.y = group_position.y + vector[2]	
-				local position = group.surface.find_non_colliding_position("small-biter", group_position, step_length, 2)
+				group_position.y = group_position.y + vector[2]
+				local obstacles = group.surface.find_entities_filtered{position = old_position, radius = step_length, type = {"simple-entity", "tree"}, limit = 50}
+				if obstacles then
+					shuffle_distance(obstacles, old_position)
+					for i = 1, #obstacles, 1 do
+						if obstacles[i].valid then
+							commands[#commands + 1] = {
+								type = defines.command.attack,
+								target = obstacles[i],
+								distraction = defines.distraction.by_enemy
+							 }
+						end
+					end
+				end
+				local position = group.surface.find_non_colliding_position("rocket-silo", group_position, step_length, 4)
 				if position then
+					-- commands[#commands + 1] = {
+					-- 	type = defines.command.go_to_location,
+					-- 	destination = {x = position.x, y = position.y},
+					-- 	distraction = defines.distraction.by_anything
+					-- }
 					commands[#commands + 1] = {
 						type = defines.command.attack_area,
 						destination = {x = position.x, y = position.y},
 						radius = 16,
 						distraction = defines.distraction.by_anything
 					}
+				else
+					local obstacles = group.surface.find_entities_filtered{position = group_position, radius = step_length, type = {"simple-entity", "tree"}, limit = 50}
+					if obstacles then
+						shuffle_distance(obstacles, old_position)
+		        for i = 1, #obstacles, 1 do
+		          if obstacles[i].valid then
+		            commands[#commands + 1] = {
+				          type = defines.command.attack,
+				          target = obstacles[i],
+			            distraction = defines.distraction.by_enemy
+		    	       }
+		          end
+		        end
+		      end
 				end
 			end
 
@@ -285,9 +323,23 @@ local function get_commmands(group)
 	end
 
 	for i = 1, steps, 1 do
+		local old_position = group_position
 		group_position.x = group_position.x + vector[1]
 		group_position.y = group_position.y + vector[2]
-		local position = group.surface.find_non_colliding_position("small-biter", group_position, step_length, 1)
+		local obstacles = group.surface.find_entities_filtered{position = old_position, radius = step_length / 2, type = {"simple-entity", "tree"}, limit = 50}
+		if obstacles then
+			shuffle_distance(obstacles, old_position)
+			for i = 1, #obstacles, 1 do
+				if obstacles[i].valid then
+					commands[#commands + 1] = {
+						type = defines.command.attack,
+						target = obstacles[i],
+						distraction = defines.distraction.by_enemy
+					 }
+				end
+			end
+		end
+		local position = group.surface.find_non_colliding_position("rocket-silo", group_position, step_length, 1)
 		if position then
 			commands[#commands + 1] = {
 				type = defines.command.attack_area,
@@ -320,15 +372,15 @@ local function command_unit_group(group)
 		wave_defense_table.unit_group_last_command[group.group_number] = game.tick - (wave_defense_table.unit_group_command_delay + 1)
 	end
 	if wave_defense_table.unit_group_last_command[group.group_number] then
-		if wave_defense_table.unit_group_last_command[group.group_number] + wave_defense_table.unit_group_command_delay > game.tick then return end		
+		if wave_defense_table.unit_group_last_command[group.group_number] + wave_defense_table.unit_group_command_delay > game.tick then return end
 	end
-	
+
 	group.set_command({
 		type = defines.command.compound,
 		structure_type = defines.compound_command.return_last,
 		commands = get_commmands(group)
 	})
-	
+
 	wave_defense_table.unit_group_last_command[group.group_number] = game.tick
 end
 
@@ -356,22 +408,22 @@ local function spawn_unit_group()
 	set_group_spawn_position(surface)
 	local pos = wave_defense_table.spawn_position
 	if not surface.can_place_entity({name = "small-biter", position = pos}) then return end
-	
+
 	local radius = 10
 	local area = {left_top = {pos.x - radius, pos.y - radius}, right_bottom = {pos.x + radius, pos.y + radius}}
 	for k,v in pairs(surface.find_entities_filtered{area = area, name = "land-mine"}) do if v and v.valid then v.die() end end
-	
+
 	BiterRolls.wave_defense_set_unit_raffle(wave_defense_table.wave_number)
-	
+
 	debug_print("Spawning unit group at x" .. wave_defense_table.spawn_position.x .." y" .. wave_defense_table.spawn_position.y)
-	local unit_group = surface.create_unit_group({position = wave_defense_table.spawn_position, force = "enemy"})			
+	local unit_group = surface.create_unit_group({position = wave_defense_table.spawn_position, force = "enemy"})
 	local group_size = math_floor(wave_defense_table.average_unit_group_size * group_size_modifier_raffle[math_random(1, group_size_modifier_raffle_size)])
 	for _ = 1, group_size, 1 do
 		local biter = spawn_biter(surface)
 		if not biter then break end
 		unit_group.add_member(biter)
 	end
-	
+
 	if wave_defense_table.boss_wave then
 		local count = math_random(1, math_floor(wave_defense_table.wave_number * 0.01) + 2)
 		if count > 8 then count = 8 end
@@ -383,7 +435,7 @@ local function spawn_unit_group()
 		wave_defense_table.boss_wave = false
 	end
 
-	table_insert(wave_defense_table.unit_groups, unit_group)	
+	table_insert(wave_defense_table.unit_groups, unit_group)
 	return true
 end
 
@@ -391,7 +443,7 @@ local function log_threat()
 	local wave_defense_table = WD.get_table()
 	wave_defense_table.threat_log_index = wave_defense_table.threat_log_index + 1
 	wave_defense_table.threat_log[wave_defense_table.threat_log_index] = wave_defense_table.threat
-	if wave_defense_table.threat_log_index > 900 then wave_defense_table.threat_log[wave_defense_table.threat_log_index - 901] = nil end	
+	if wave_defense_table.threat_log_index > 900 then wave_defense_table.threat_log[wave_defense_table.threat_log_index - 901] = nil end
 end
 
 local tick_tasks = {
@@ -408,15 +460,15 @@ local tick_tasks = {
 local function on_tick()
 	local wave_defense_table = WD.get_table()
 	if wave_defense_table.game_lost then return end
-			
+
 	if game.tick > wave_defense_table.next_wave then	set_next_wave() end
 
 	local t = game.tick % 300
 	local t2 = game.tick % 18000
-	
+
 	if tick_tasks[t] then tick_tasks[t]() end
 	if tick_tasks[t2] then tick_tasks[t2]() end
-	
+
 	if game.tick % 60 == 0 then log_threat() end
 	for _, player in pairs(game.connected_players) do update_gui(player) end
 end

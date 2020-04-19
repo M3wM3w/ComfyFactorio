@@ -7,24 +7,29 @@ local math_abs = math.abs
 local LootRaffle = require "functions.loot_raffle"
 
 function Public.treasure_chest(surface, position, container_name)
-	local budget = 32 + math_abs(position.y) * 6
+	local budget = 32 + math_abs(position.y) * 2
 	budget = budget * math_random(25, 175) * 0.01
+	if math_random(1,200) == 1 then 
+		budget = budget * 10
+		container_name = "compilatron-chest"
+	end
 	budget = math_floor(budget) + 1
-	local item_stacks = LootRaffle.roll(budget, 16)
+
+	local item_stacks = LootRaffle.roll(budget, 8)
 	local container = surface.create_entity({name = container_name, position = position, force = "neutral"})
 	for _, item_stack in pairs(item_stacks) do
 		container.insert(item_stack)
-	end	
+	end
 	container.minable = false
 end
 
 function Public.treasure_chest_old(surface, position, container_name)
-	
+
 	local chest_raffle = {}
-	local chest_loot = {			
-		{{name = "submachine-gun", count = math_random(1,3)}, weight = 3, d_min = 0.0, d_max = 0.1},		
+	local chest_loot = {
+		{{name = "submachine-gun", count = math_random(1,3)}, weight = 3, d_min = 0.0, d_max = 0.1},
 		{{name = "slowdown-capsule", count = math_random(16,32)}, weight = 1, d_min = 0.3, d_max = 0.7},
-		{{name = "poison-capsule", count = math_random(8,16)}, weight = 3, d_min = 0.3, d_max = 1},		
+		{{name = "poison-capsule", count = math_random(8,16)}, weight = 3, d_min = 0.3, d_max = 1},
 		{{name = "uranium-cannon-shell", count = math_random(16,32)}, weight = 5, d_min = 0.6, d_max = 1},
 		{{name = "cannon-shell", count = math_random(16,32)}, weight = 5, d_min = 0.4, d_max = 0.7},
 		{{name = "explosive-uranium-cannon-shell", count = math_random(16,32)}, weight = 5, d_min = 0.6, d_max = 1},
@@ -36,7 +41,7 @@ function Public.treasure_chest_old(surface, position, container_name)
 		{{name = "flamethrower", count = 1}, weight = 3, d_min = 0.3, d_max = 0.6},
 		{{name = "flamethrower-ammo", count = math_random(16,32)}, weight = 5, d_min = 0.3, d_max = 1},
 		{{name = "rocket-launcher", count = 1}, weight = 3, d_min = 0.2, d_max = 0.6},
-		{{name = "rocket", count = math_random(16,32)}, weight = 5, d_min = 0.2, d_max = 0.7},		
+		{{name = "rocket", count = math_random(16,32)}, weight = 5, d_min = 0.2, d_max = 0.7},
 		{{name = "explosive-rocket", count = math_random(16,32)}, weight = 5, d_min = 0.3, d_max = 1},
 		{{name = "land-mine", count = math_random(16,32)}, weight = 5, d_min = 0.2, d_max = 0.7},
 		{{name = "grenade", count = math_random(16,32)}, weight = 5, d_min = 0.0, d_max = 0.5},
@@ -49,8 +54,8 @@ function Public.treasure_chest_old(surface, position, container_name)
 		{{name = "defender-capsule", count = math_random(8,16)}, weight = 2, d_min = 0.0, d_max = 0.7},
 		{{name = "distractor-capsule", count = math_random(8,16)}, weight = 2, d_min = 0.2, d_max = 1},
 		{{name = "destroyer-capsule", count = math_random(8,16)}, weight = 2, d_min = 0.3, d_max = 1},
-		{{name = "atomic-bomb", count = 1}, weight = 1, d_min = 0.8, d_max = 1},		
-		{{name = "light-armor", count = 1}, weight = 3, d_min = 0, d_max = 0.1},		
+		{{name = "atomic-bomb", count = 1}, weight = 1, d_min = 0.8, d_max = 1},
+		{{name = "light-armor", count = 1}, weight = 3, d_min = 0, d_max = 0.1},
 		{{name = "heavy-armor", count = 1}, weight = 3, d_min = 0.1, d_max = 0.3},
 		{{name = "modular-armor", count = 1}, weight = 2, d_min = 0.2, d_max = 0.6},
 		{{name = "power-armor", count = 1}, weight = 1, d_min = 0.4, d_max = 1},
@@ -60,18 +65,19 @@ function Public.treasure_chest_old(surface, position, container_name)
 		{{name = "belt-immunity-equipment", count = 1}, weight = 1, d_min = 0.5, d_max = 1},
 		{{name = "solar-panel-equipment", count = math_random(1,4)}, weight = 5, d_min = 0.4, d_max = 0.8},
 		{{name = "discharge-defense-equipment", count = 1}, weight = 1, d_min = 0.5, d_max = 1},
+		{{name = "discharge-defense-remote", count = 1}, weight = 1, d_min = 0.5, d_max = 1},
 		{{name = "energy-shield-equipment", count = math_random(1,2)}, weight = 2, d_min = 0.3, d_max = 0.8},
 		--{{name = "energy-shield-mk2-equipment", count = 1}, weight = 2, d_min = 0.8, d_max = 1},
 		{{name = "exoskeleton-equipment", count = 1}, weight = 1, d_min = 0.3, d_max = 1},
 		--{{name = "fusion-reactor-equipment", count = 1}, weight = 1, d_min = 0.8, d_max = 1},
 		{{name = "night-vision-equipment", count = 1}, weight = 1, d_min = 0.3, d_max = 0.8},
 		{{name = "personal-laser-defense-equipment", count = 1}, weight = 1, d_min = 0.7, d_max = 1},
-		
+
 		{{name = "personal-roboport-equipment", count = math_random(1,2)}, weight = 3, d_min = 0.4, d_max = 1},
 		--{{name = "personal-roboport-mk2-equipment", count = 1}, weight = 1, d_min = 0.9, d_max = 1},
 		{{name = "logistic-robot", count = math_random(5,25)}, weight = 2, d_min = 0.5, d_max = 1},
 		{{name = "construction-robot", count = math_random(5,25)}, weight = 5, d_min = 0.4, d_max = 1},
-		
+
 		{{name = "iron-gear-wheel", count = math_random(80,100)}, weight = 3, d_min = 0.0, d_max = 0.3},
 		{{name = "copper-cable", count = math_random(100,200)}, weight = 3, d_min = 0.0, d_max = 0.3},
 		{{name = "engine-unit", count = math_random(16,32)}, weight = 2, d_min = 0.1, d_max = 0.5},
@@ -84,11 +90,11 @@ function Public.treasure_chest_old(surface, position, container_name)
 		{{name = "lubricant-barrel", count = math_random(4,10)}, weight = 1, d_min = 0.3, d_max = 0.5},
 		{{name = "rocket-fuel", count = math_random(4,10)}, weight = 2, d_min = 0.3, d_max = 0.7},
 		--{{name = "computer", count = 1}, weight = 2, d_min = 0, d_max = 1},
-		
+
 		{{name = "effectivity-module", count = math_random(1,4)}, weight = 2, d_min = 0.1, d_max = 1},
 		{{name = "productivity-module", count = math_random(1,4)}, weight = 2, d_min = 0.1, d_max = 1},
 		{{name = "speed-module", count = math_random(1,4)}, weight = 2, d_min = 0.1, d_max = 1},
-		
+
 		{{name = "automation-science-pack", count = math_random(16,64)}, weight = 3, d_min = 0.0, d_max = 0.2},
 		{{name = "logistic-science-pack", count = math_random(16,64)}, weight = 3, d_min = 0.1, d_max = 0.5},
 		{{name = "military-science-pack", count = math_random(16,64)}, weight = 3, d_min = 0.2, d_max = 1},
@@ -99,21 +105,21 @@ function Public.treasure_chest_old(surface, position, container_name)
 
 		{{name = "steel-plate", count = math_random(25,75)}, weight = 2, d_min = 0.1, d_max = 0.3},
 		{{name = "nuclear-fuel", count = 1}, weight = 2, d_min = 0.7, d_max = 1},
-				
+
 		{{name = "burner-inserter", count = math_random(8,16)}, weight = 3, d_min = 0.0, d_max = 0.1},
 		{{name = "inserter", count = math_random(8,16)}, weight = 3, d_min = 0.0, d_max = 0.4},
-		{{name = "long-handed-inserter", count = math_random(8,16)}, weight = 3, d_min = 0.0, d_max = 0.4},		
+		{{name = "long-handed-inserter", count = math_random(8,16)}, weight = 3, d_min = 0.0, d_max = 0.4},
 		{{name = "fast-inserter", count = math_random(8,16)}, weight = 3, d_min = 0.1, d_max = 1},
-		{{name = "filter-inserter", count = math_random(8,16)}, weight = 1, d_min = 0.2, d_max = 1},		
+		{{name = "filter-inserter", count = math_random(8,16)}, weight = 1, d_min = 0.2, d_max = 1},
 		{{name = "stack-filter-inserter", count = math_random(4,8)}, weight = 1, d_min = 0.4, d_max = 1},
-		{{name = "stack-inserter", count = math_random(4,8)}, weight = 3, d_min = 0.3, d_max = 1},				
+		{{name = "stack-inserter", count = math_random(4,8)}, weight = 3, d_min = 0.3, d_max = 1},
 		{{name = "small-electric-pole", count = math_random(16,24)}, weight = 3, d_min = 0.0, d_max = 0.3},
 		{{name = "medium-electric-pole", count = math_random(8,16)}, weight = 3, d_min = 0.2, d_max = 1},
 		{{name = "big-electric-pole", count = math_random(4,8)}, weight = 3, d_min = 0.3, d_max = 1},
 		{{name = "substation", count = math_random(2,4)}, weight = 3, d_min = 0.5, d_max = 1},
 		{{name = "wooden-chest", count = math_random(8,16)}, weight = 3, d_min = 0.0, d_max = 0.2},
 		{{name = "iron-chest", count = math_random(8,16)}, weight = 3, d_min = 0.1, d_max = 0.4},
-		{{name = "steel-chest", count = math_random(8,16)}, weight = 3, d_min = 0.3, d_max = 1},		
+		{{name = "steel-chest", count = math_random(8,16)}, weight = 3, d_min = 0.3, d_max = 1},
 		{{name = "small-lamp", count = math_random(16,32)}, weight = 3, d_min = 0.1, d_max = 0.3},
 		{{name = "rail", count = math_random(25,75)}, weight = 3, d_min = 0.1, d_max = 0.6},
 		{{name = "assembling-machine-1", count = math_random(2,4)}, weight = 3, d_min = 0.0, d_max = 0.3},
@@ -132,22 +138,22 @@ function Public.treasure_chest_old(surface, position, container_name)
 		{{name = "arithmetic-combinator", count = math_random(4,8)}, weight = 2, d_min = 0.1, d_max = 1},
 		{{name = "constant-combinator", count = math_random(4,8)}, weight = 2, d_min = 0.1, d_max = 1},
 		{{name = "decider-combinator", count = math_random(4,8)}, weight = 2, d_min = 0.1, d_max = 1},
-		{{name = "power-switch", count = 1}, weight = 2, d_min = 0.1, d_max = 1},		
+		{{name = "power-switch", count = 1}, weight = 2, d_min = 0.1, d_max = 1},
 		{{name = "programmable-speaker", count = math_random(2,4)}, weight = 1, d_min = 0.1, d_max = 1},
 		{{name = "green-wire", count = math_random(50,99)}, weight = 4, d_min = 0.1, d_max = 1},
 		{{name = "red-wire", count = math_random(50,99)}, weight = 4, d_min = 0.1, d_max = 1},
 		{{name = "chemical-plant", count = math_random(1,3)}, weight = 3, d_min = 0.3, d_max = 1},
 		{{name = "burner-mining-drill", count = math_random(2,4)}, weight = 3, d_min = 0.0, d_max = 0.2},
-		{{name = "electric-mining-drill", count = math_random(2,4)}, weight = 3, d_min = 0.2, d_max = 1},		
+		{{name = "electric-mining-drill", count = math_random(2,4)}, weight = 3, d_min = 0.2, d_max = 1},
 		{{name = "express-transport-belt", count = math_random(25,75)}, weight = 3, d_min = 0.5, d_max = 1},
-		{{name = "express-underground-belt", count = math_random(4,8)}, weight = 3, d_min = 0.5, d_max = 1},		
+		{{name = "express-underground-belt", count = math_random(4,8)}, weight = 3, d_min = 0.5, d_max = 1},
 		{{name = "express-splitter", count = math_random(1,4)}, weight = 3, d_min = 0.5, d_max = 1},
 		{{name = "fast-transport-belt", count = math_random(25,75)}, weight = 3, d_min = 0.2, d_max = 0.7},
 		{{name = "fast-underground-belt", count = math_random(4,8)}, weight = 3, d_min = 0.2, d_max = 0.7},
 		{{name = "fast-splitter", count = math_random(1,4)}, weight = 3, d_min = 0.2, d_max = 0.3},
 		{{name = "transport-belt", count = math_random(25,75)}, weight = 3, d_min = 0, d_max = 0.3},
 		{{name = "underground-belt", count = math_random(4,8)}, weight = 3, d_min = 0, d_max = 0.3},
-		{{name = "splitter", count = math_random(1,4)}, weight = 3, d_min = 0, d_max = 0.3},		
+		{{name = "splitter", count = math_random(1,4)}, weight = 3, d_min = 0, d_max = 0.3},
 		--{{name = "oil-refinery", count = math_random(2,4)}, weight = 2, d_min = 0.3, d_max = 1},
 		{{name = "pipe", count = math_random(30,50)}, weight = 3, d_min = 0.0, d_max = 0.3},
 		{{name = "pipe-to-ground", count = math_random(4,8)}, weight = 1, d_min = 0.2, d_max = 0.5},
@@ -156,10 +162,10 @@ function Public.treasure_chest_old(surface, position, container_name)
 		{{name = "solar-panel", count = math_random(3,6)}, weight = 3, d_min = 0.4, d_max = 0.9},
 		{{name = "electric-furnace", count = math_random(2,4)}, weight = 3, d_min = 0.5, d_max = 1},
 		{{name = "steel-furnace", count = math_random(4,8)}, weight = 3, d_min = 0.2, d_max = 0.7},
-		{{name = "stone-furnace", count = math_random(8,16)}, weight = 3, d_min = 0.0, d_max = 0.2},		
+		{{name = "stone-furnace", count = math_random(8,16)}, weight = 3, d_min = 0.0, d_max = 0.2},
 		{{name = "radar", count = math_random(1,2)}, weight = 1, d_min = 0.1, d_max = 0.4},
 		{{name = "rail-signal", count = math_random(8,16)}, weight = 2, d_min = 0.2, d_max = 0.8},
-		{{name = "rail-chain-signal", count = math_random(8,16)}, weight = 2, d_min = 0.2, d_max = 0.8},		
+		{{name = "rail-chain-signal", count = math_random(8,16)}, weight = 2, d_min = 0.2, d_max = 0.8},
 		{{name = "stone-wall", count = math_random(33,99)}, weight = 3, d_min = 0.0, d_max = 0.7},
 		{{name = "gate", count = math_random(16,32)}, weight = 3, d_min = 0.0, d_max = 0.7},
 		{{name = "storage-tank", count = math_random(2,6)}, weight = 3, d_min = 0.3, d_max = 0.6},
@@ -167,25 +173,29 @@ function Public.treasure_chest_old(surface, position, container_name)
 		{{name = "express-loader", count = math_random(1,2)}, weight = 1, d_min = 0.5, d_max = 1},
 		{{name = "fast-loader", count = math_random(1,2)}, weight = 1, d_min = 0.2, d_max = 0.7},
 		{{name = "loader", count = math_random(1,2)}, weight = 1, d_min = 0.0, d_max = 0.5},
-		{{name = "lab", count = math_random(1,2)}, weight = 2, d_min = 0.0, d_max = 0.3},	
+		{{name = "lab", count = math_random(1,2)}, weight = 2, d_min = 0.0, d_max = 0.3},
 		{{name = "roboport", count = 1}, weight = 2, d_min = 0.8, d_max = 1},
-		{{name = "flamethrower-turret", count = 1}, weight = 3, d_min = 0.5, d_max = 1},		
-		{{name = "laser-turret", count = math_random(3,6)}, weight = 3, d_min = 0.5, d_max = 1},	
+		{{name = "flamethrower-turret", count = 1}, weight = 3, d_min = 0.5, d_max = 1},
+		{{name = "laser-turret", count = math_random(3,6)}, weight = 3, d_min = 0.5, d_max = 1},
 		{{name = "gun-turret", count = math_random(2,4)}, weight = 3, d_min = 0.2, d_max = 0.9},
+		{{name = 'crude-oil-barrel', count = math_random(2,4)}, weight = 3, d_min = 0.1, d_max = 0.3},
+		{{name = 'crude-oil-barrel', count = math_random(4,8)}, weight = 3, d_min = 0.2, d_max = 0.5},
+		{{name = 'crude-oil-barrel', count = math_random(8,16)}, weight = 3, d_min = 0.4, d_max = 0.7},
+		{{name = 'crude-oil-barrel', count = math_random(12,24)}, weight = 3, d_min = 0.6, d_max = 0.9},
 	}
-	
+
 	local distance_to_center = (math.abs(position.y) + 1) * 0.0002
 	if distance_to_center > 1 then distance_to_center = 1 end
-	
+
 	for _, t in pairs (chest_loot) do
 		for x = 1, t.weight, 1 do
 			if t.d_min <= distance_to_center and t.d_max >= distance_to_center then
 				table.insert(chest_raffle, t[1])
 			end
-		end			
+		end
 	end
-	
-	local e = surface.create_entity({name = container_name, position=position, force="neutral", create_build_effect_smoke = false})	
+
+	local e = surface.create_entity({name = container_name, position=position, force="neutral", create_build_effect_smoke = false})
 	e.minable = false
 	local i = e.get_inventory(defines.inventory.chest)
 	for x = 1, math_random(2,6), 1 do

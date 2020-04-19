@@ -3,7 +3,7 @@ local Server = require 'utils.server'
 
 local bb_config = require "maps.biter_battles_v2.config"
 local event = require 'utils.event'
-local Functions = require "maps.biter_battles_v2.functions"
+local spy_fish = require "maps.biter_battles_v2.spy_fish"
 local feed_the_biters = require "maps.biter_battles_v2.feeding"
 local Tables = require "maps.biter_battles_v2.tables"
 
@@ -404,7 +404,7 @@ local function on_gui_click(event)
 	if name == "join_north_button" then join_gui_click(name, player) return end
 	if name == "join_south_button" then join_gui_click(name, player) return end
 
-	if name == "raw-fish" then Functions.spy_fish(player) return end
+	if name == "raw-fish" then spy_fish(player) return end
 
 	if food_names[name] then feed_the_biters(player, name) return end
 

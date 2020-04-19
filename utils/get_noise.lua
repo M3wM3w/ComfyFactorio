@@ -2,8 +2,6 @@ local simplex_noise = require "utils.simplex_noise".d2
 
 --add or use noise templates from here
 local noises = {
-	["bb_biterland"] = {{modifier = 0.001, weight = 1}, {modifier = 0.01, weight = 0.35}, {modifier = 0.1, weight = 0.015}},
-	["bb_ore"] = {{modifier = 0.0042, weight = 1}, {modifier = 0.031, weight = 0.08}, {modifier = 0.1, weight = 0.025}},
 	["cave_ponds"] = {{modifier = 0.01, weight = 1}, {modifier = 0.1, weight = 0.06}},
 	["cave_rivers"] = {{modifier = 0.005, weight = 1}, {modifier = 0.01, weight = 0.25}, {modifier = 0.05, weight = 0.01}},
 	["cave_rivers_2"] = {{modifier = 0.003, weight = 1}, {modifier = 0.01, weight = 0.21}, {modifier = 0.05, weight = 0.01}},

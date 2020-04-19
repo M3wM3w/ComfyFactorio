@@ -3,15 +3,11 @@ local simplex_noise = require 'utils.simplex_noise'.d2
 require "modules.satellite_score"
 require "modules.biter_noms_you"
 require "modules.dangerous_goods"
+require "modules.biters_avoid_damage"
+require "modules.dynamic_landfill"
+require "modules.biters_double_damage"
 require "modules.spawners_contain_biters"
 require "modules.splice_double"
-
-local math_random = math.random
-local math_floor = math.floor
-local math_abs = math.abs
-local math_sqrt = math.sqrt
-
-local LootRaffle = require "functions.loot_raffle"
 
 local function get_noise(name, pos)
 	local seed = game.surfaces[1].map_gen_settings.seed
@@ -56,14 +52,10 @@ local function process_tile(surface, pos)
 		
 	if surface.can_place_entity({name = "wooden-chest", position = pos, force = "neutral"}) then
 		local e = surface.create_entity({name = "wooden-chest", position = pos, force = "neutral"})
-				
-		if math_abs(noise_2) > 0.76 or math_random(1, 32) == 1 then	
-			local budget = math_sqrt(pos.x ^ 2 + pos.y ^ 2) + 1			
-			local item_stacks = LootRaffle.roll(budget, 16)
-			for _, item_stack in pairs(item_stacks) do
-				e.insert(item_stack)
-			end
-		end
+		
+		
+		if noise_2 > -0.85 and noise_2 < 0.85 then return end
+		e.insert({name = global.loot[math.random(1, #global.loot)], count = math.random(1, 8)})
 	end
 end
 
@@ -101,11 +93,75 @@ local function on_player_joined_game(event)
 	end
 end
 
+local blacklist = {
+	["atomic-bomb"] = true,
+	["battery-mk2-equipment"] = true,
+	["blueprint"] = true,
+	["blueprint-book"] = true,
+	["centrifuge"] = true,
+	["compilatron-chest"] = true,
+	["copy-paste-tool"] = true,
+	["cut-paste-tool"] = true,
+	["deconstruction-planner"] = true,
+	["dummy-steel-axe"] = true,
+	["effectivity-module-2"] = true,
+	["effectivity-module-3"] = true,
+	["electric-energy-interface"] = true,
+	["energy-shield-equipment"] = true,
+	["energy-shield-mk2-equipment"] = true,
+	["escape-pod-assembler"] = true,
+	["escape-pod-lab"] = true,
+	["escape-pod-power"] = true,
+	["fusion-reactor-equipment"] = true,
+	["heat-exchanger"] = true,
+	["heat-interface"] = true,
+	["heat-pipe"] = true,
+	["hidden-electric-energy-interface"] = true,
+	["infinity-chest"] = true,
+	["infinity-pipe"] = true,
+	["laser-turret"] = true,
+	["nuclear-reactor"] = true,
+	["oil-refinery"] = true,
+	["player-port"] = true,
+	["pollution"] = true,
+	["power-armor"] = true,
+	["power-armor-mk2"] = true,
+	["productivity-module-2"] = true,
+	["productivity-module-3"] = true,
+	["rocket-silo"] = true,
+	["satellite"] = true,
+	["selection-tool"] = true,
+	["simple-entity-with-force"] = true,
+	["simple-entity-with-owner"] = true,
+	["speed-module-2"] = true,
+	["speed-module-3"] = true,
+	["steam-turbine"] = true,
+	["tank"] = true,
+	["upgrade-planner"] = true
+}
+
 local function on_init()
 	local surface = game.surfaces[1]
 	game.forces["player"].set_spawn_position(get_spawn_position(surface), surface)
+	
+	global.loot = {}
+	for _, i in pairs(game.item_prototypes) do
+		if not blacklist[i.name] then
+			global.loot[#global.loot + 1] = i.name
+		end			
+	end
+end
+
+local function on_entity_died(event)	
+	if not event.entity.valid then return end
+	if event.entity.type == "tree" then 
+		for _, entity in pairs (event.entity.surface.find_entities_filtered({area = {{event.entity.position.x - 4, event.entity.position.y - 4},{event.entity.position.x + 4, event.entity.position.y + 4}}, name = "fire-flame-on-tree"})) do
+			if entity.valid then entity.destroy() end
+		end
+	end		
 end
 
 event.on_init(on_init)
 event.add(defines.events.on_chunk_generated, on_chunk_generated)
+event.add(defines.events.on_entity_died, on_entity_died)
 event.add(defines.events.on_player_joined_game, on_player_joined_game)

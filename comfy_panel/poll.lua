@@ -1297,6 +1297,6 @@ function Class.send_poll_result_to_discord(id)
     Server.to_discord_embed(message)
 end
 
-comfy_panel_tabs["Polls"] = draw_main_frame
+comfy_panel_tabs["Polls"] = {gui = draw_main_frame, admin = false}
 
 return Class

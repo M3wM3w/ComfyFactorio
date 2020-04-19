@@ -358,7 +358,7 @@ local function tick(event)
 	refresh_score_full()	
 end
 ]]
-comfy_panel_tabs["Scoreboard"] = show_score
+comfy_panel_tabs["Scoreboard"] = {gui = show_score, admin = false}
 
 --event.on_nth_tick(300, tick)
 event.add(defines.events.on_player_mined_entity, on_player_mined_entity)

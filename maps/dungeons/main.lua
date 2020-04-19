@@ -1,7 +1,7 @@
 -- Deep dark dungeons by mewmew --
 
 require "modules.mineable_wreckage_yields_scrap"
-require "modules.satellite_score"
+require "modules.sticky_landfill"
 
 local MapInfo = require "modules.map_info"
 local Room_generator = require "functions.room_generator"
@@ -46,8 +46,9 @@ local function get_biome(position)
 	local seed = game.surfaces[1].map_gen_settings.seed
 	local seed_addition = 100000	
 	
-	local a = 1	
-	if Get_noise("dungeons", position, seed + seed_addition * a) > 0.66 then return "glitch" end
+	local a = 1
+	
+	if Get_noise("dungeons", position, seed + seed_addition * a) > 0.65 then return "glitch" end
 	a = a + 1
 	if Get_noise("dungeons", position, seed + seed_addition * a) > 0.60 then return "doom" end
 	a = a + 1

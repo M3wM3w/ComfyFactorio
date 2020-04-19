@@ -1,11 +1,8 @@
 local Public = {}
-local BiterRaffle = require "functions.biter_raffle"
-local Functions = require "maps.biter_battles_v2.functions"
 local bb_config = require "maps.biter_battles_v2.config"
 local math_random = math.random
-local math_abs = math.abs
 
-local vector_radius = 512
+local vector_radius = 256
 local attack_vectors = {}
 attack_vectors.north = {}
 attack_vectors.south = {}
@@ -20,8 +17,6 @@ for x = vector_radius * -1, vector_radius, 1 do
 end
 local size_of_vectors = #attack_vectors.north
 
-local unit_type_raffle = {"biter", "biter", "biter", "mixed", "mixed", "spitter"}
-local size_of_unit_type_raffle = #unit_type_raffle
 
 local threat_values = {
 	["small-spitter"] = 1.5,
@@ -40,6 +35,10 @@ local threat_values = {
 	["spitter-spawner"] = 16
 }
 
+-- these areas are for north
+local middle_spawner_area = {left_top = {-600,  -1000}, right_bottom = {600,  -400}}
+local whole_spawner_area  = {left_top = {-2048, -1400}, right_bottom = {2048, -400}}
+
 local function get_active_biter_count(biter_force_name)
 	local count = 0
 	for _, biter in pairs(global.active_biters[biter_force_name]) do
@@ -48,19 +47,44 @@ local function get_active_biter_count(biter_force_name)
 	return count
 end
 
-local function get_target_entity(force_name)
-	local force_index = game.forces[force_name].index	
-	local target_entity = Functions.get_random_target_entity(force_index)
-	if not target_entity then print("Unable to get target entity for " .. force_name .. ".") return end	
-	for _ = 1, 3, 1 do
-		local e = Functions.get_random_target_entity(force_index)
-		if math_abs(e.position.x) < math_abs(target_entity.position.x) then
-			target_entity = e
+local unit_evo_limits = {
+	["small-spitter"] = 0.6,
+	["small-biter"] = 0.6,
+	["medium-spitter"] = 0.8,
+	["medium-biter"] = 0.8,
+	["big-spitter"] = 2,
+	["big-biter"] = 2,
+}
+
+local function set_biter_raffle_table(surface, biter_force_name)
+	-- It's fine to only sample the middle
+	local area = middle_spawner_area
+	
+	-- If south_biters: Mirror area along x-axis
+	if biter_force_name == "south_biters" then
+		area = {left_top = {area.left_top[1], -1*area.right_bottom[2]}, right_bottom = {area.right_bottom[1], -1*area.left_top[2]}}
+	end
+
+	local biters = surface.find_entities_filtered({type = "unit", force = biter_force_name, area = area})
+	if not biters[1] then return end
+	global.biter_raffle[biter_force_name] = {}
+	local raffle = global.biter_raffle[biter_force_name]
+	local i = 1
+	local evolution_factor = global.bb_evolution[biter_force_name]
+	
+	for key, e in pairs(biters) do
+		if key % 5 == 0 then
+			if unit_evo_limits[e.name] then
+				if evolution_factor < unit_evo_limits[e.name] then
+					raffle[i] = e.name
+					i = i + 1
+				end
+			else
+				raffle[i] = e.name
+				i = i + 1
+			end		
 		end
-	end	
-	if not target_entity then print("Unable to get target entity for " .. force_name .. ".") return end	
-	print("Target entity for " .. force_name .. ": " .. target_entity.name .. " at x=" .. target_entity.position.x .. " y=" .. target_entity.position.y)
-	return target_entity
+	end				
 end
 
 local function get_threat_ratio(biter_force_name)
@@ -135,9 +159,9 @@ Public.send_near_biters_to_silo = function()
 			target=global.rocket_silo["north"],
 			distraction=defines.distraction.none
 			},
-		unit_count = 8,
+		unit_count = 16,
 		force = "north_biters",
-		unit_search_distance = 64
+		unit_search_distance=128
 		})
 		
 	game.surfaces["biter_battles"].set_multi_command({
@@ -146,9 +170,9 @@ Public.send_near_biters_to_silo = function()
 			target=global.rocket_silo["south"],
 			distraction=defines.distraction.none
 			},
-		unit_count = 8,
+		unit_count = 16,
 		force = "south_biters",
-		unit_search_distance = 64
+		unit_search_distance=128
 		})
 end
 
@@ -169,85 +193,79 @@ local function get_random_spawner(biter_force_name)
 	end	
 end
 
-local function select_units_around_spawner(spawner, force_name, side_target)
-	local biter_force_name = spawner.force.name
+local function get_random_close_spawner(surface, biter_force_name)
+	local nearest_spawner = get_random_spawner(biter_force_name)
+	if not nearest_spawner then return end
+
+	for _ = 1, 16, 1 do	
+		local spawner = get_random_spawner(biter_force_name)
+		if spawner.position.x ^ 2 + spawner.position.y ^ 2 < nearest_spawner.position.x ^ 2 + nearest_spawner.position.y ^ 2 then
+			nearest_spawner = spawner
+		end
+	end	
 	
+	return nearest_spawner
+end
+
+local function select_units_around_spawner(spawner, force_name, biter_force_name)
+	local biters = spawner.surface.find_enemy_units(spawner.position, 160, force_name)
+	if not biters[1] then return false end
 	local valid_biters = {}
-	local i = 0
 	
-	local threat = global.bb_threat[biter_force_name] * math_random(8, 32) * 0.01
-	
-	--threat modifier for outposts
-	local m = math_abs(side_target.position.x) - 512
-	if m < 0 then m = 0 end
-	m = 1 - m * 0.001
-	if m < 0.5 then m = 0.5 end	
-	threat = threat * m
+	local threat = global.bb_threat[biter_force_name] * math_random(11,22) * 0.01
 	
 	local unit_count = 0
-	local max_unit_count = math.floor(global.bb_threat[biter_force_name] * 0.25) + math_random(6,12)
+	local max_unit_count = math.ceil(global.bb_threat[biter_force_name] * 0.25) + math_random(6,12)
 	if max_unit_count > bb_config.max_group_size then max_unit_count = bb_config.max_group_size end
 	
-	--Collect biters around spawners
-	if math_random(1, 2) == 1 then
-		local biters = spawner.surface.find_enemy_units(spawner.position, 160, force_name)
-		if biters[1] then 	
-			for _, biter in pairs(biters) do
-				if unit_count >= max_unit_count then break end
-				if biter.force.name == biter_force_name and global.active_biters[biter.force.name][biter.unit_number] == nil then
-					i = i + 1
-					valid_biters[i] = biter
-					global.active_biters[biter.force.name][biter.unit_number] = {entity = biter, active_since = game.tick}
-					unit_count = unit_count + 1
-					threat = threat - threat_values[biter.name]
-				end	
-				if threat < 0 then break end
-			end
+	for _, biter in pairs(biters) do
+		if unit_count >= max_unit_count then break end
+		if biter.force.name == biter_force_name and global.active_biters[biter.force.name][biter.unit_number] == nil then
+			valid_biters[#valid_biters + 1] = biter
+			global.active_biters[biter.force.name][biter.unit_number] = {entity = biter, active_since = game.tick}
+			unit_count = unit_count + 1
+			threat = threat - threat_values[biter.name]
+		end	
+		if threat < 0 then break end
+	end
+	
+	--Manual spawning of additional units
+	local size_of_biter_raffle = #global.biter_raffle[biter_force_name]
+	if size_of_biter_raffle > 0 then
+		for c = 1, max_unit_count - unit_count, 1 do
+			if threat < 0 then break end
+			local biter_name = global.biter_raffle[biter_force_name][math_random(1, size_of_biter_raffle)]
+			local position = spawner.surface.find_non_colliding_position(biter_name, spawner.position, 128, 2)
+			if not position then break end
+			
+			local biter = spawner.surface.create_entity({name = biter_name, force = biter_force_name, position = position})
+			threat = threat - threat_values[biter.name]
+			
+			valid_biters[#valid_biters + 1] = biter
+			global.active_biters[biter.force.name][biter.unit_number] = {entity = biter, active_since = game.tick}
 		end
 	end
 	
-	--Manual spawning of units	
-	local roll_type = unit_type_raffle[math_random(1, size_of_unit_type_raffle)]
-	for c = 1, max_unit_count - unit_count, 1 do
-		if threat < 0 then break end
-		local unit_name = BiterRaffle.roll(roll_type, global.bb_evolution[biter_force_name])
-		local position = spawner.surface.find_non_colliding_position(unit_name, spawner.position, 128, 2)
-		if not position then break end		
-		local biter = spawner.surface.create_entity({name = unit_name, force = biter_force_name, position = position})
-		threat = threat - threat_values[biter.name]	
-		i = i + 1
-		valid_biters[i] = biter
-		global.active_biters[biter.force.name][biter.unit_number] = {entity = biter, active_since = game.tick}
-	end
-		
 	if global.bb_debug then game.print(get_active_biter_count(biter_force_name) .. " active units for " .. biter_force_name) end
 	
 	return valid_biters
 end
 
-local function send_group(unit_group, force_name, side_target)
-	local target
-	if side_target then
-		target = side_target
-	else
-		target = get_target_entity(force_name) 
-	end
-	if not target then print("No target for " .. force_name .. " biters.") return end
+local function send_group(unit_group, force_name, nearest_player_unit)
+	local target = nearest_player_unit.position
+	if math_random(1,2) == 1 then target = global.rocket_silo[force_name].position end
 	
-	target = target.position
+	local commands = {}
 	
-	local commands = {}	
 	local vector = attack_vectors[force_name][math_random(1, size_of_vectors)]
-	local distance_modifier = math_random(25, 100) * 0.01
-	
-	local position = {target.x + (vector[1] * distance_modifier), target.y + (vector[2] * distance_modifier)}
+	local position = {target.x + vector[1], target.y + vector[2]}
 	position = unit_group.surface.find_non_colliding_position("stone-furnace", position, 96, 1)
 	if position then
 		if math.abs(position.y) < math.abs(unit_group.position.y) then
 			commands[#commands + 1] = {
 				type = defines.command.attack_area,
 				destination = position,
-				radius = 16,
+				radius = 24,
 				distraction = defines.distraction.by_enemy
 			}
 		end
@@ -268,25 +286,50 @@ local function send_group(unit_group, force_name, side_target)
 	
 	unit_group.set_command({
 		type = defines.command.compound,
-		structure_type = defines.compound_command.logical_and,
+		structure_type = defines.compound_command.return_last,
 		commands = commands
 	})
 	return true
 end
 
-local function get_unit_group_position(spawner)
-	local p	
-	if spawner.force.name == "north_biters" then
-		p = {x = spawner.position.x, y = spawner.position.y + 4}
-	else
-		p = {x = spawner.position.x, y = spawner.position.y - 4}
+local function is_chunk_empty(surface, area)
+	if surface.count_entities_filtered({type = {"unit-spawner", "unit"}, area = area}) ~= 0 then return false end
+	if surface.count_entities_filtered({force = {"north", "south"}, area = area}) ~= 0 then return false end
+	if surface.count_tiles_filtered({name = {"water", "deepwater"}, area = area}) ~= 0 then return false end
+	return true
+end
+
+local function get_unit_group_position(surface, nearest_player_unit, spawner)
+	
+	if math_random(1,3) ~= 1 then
+		local spawner_chunk_position = {x = math.floor(spawner.position.x / 32), y = math.floor(spawner.position.y / 32)}
+		local valid_chunks = {}
+		for x = -2, 2, 1 do
+			for y = -2, 2, 1 do
+				local chunk = {x = spawner_chunk_position.x + x, y = spawner_chunk_position.y + y}
+				local area = {{chunk.x * 32, chunk.y * 32},{chunk.x * 32 + 32, chunk.y * 32 + 32}}
+				if is_chunk_empty(surface, area) then
+					valid_chunks[#valid_chunks + 1] = chunk
+				end
+			end
+		end
+		
+		if #valid_chunks > 0 then
+			local chunk = valid_chunks[math_random(1, #valid_chunks)]
+			return {x = chunk.x * 32 + 16, y = chunk.y * 32 + 16}
+		end
 	end
-	p = spawner.surface.find_non_colliding_position("electric-furnace", p, 512, 1)
-	if not p then
-		if global.bb_debug then game.print("No unit_group_position found for team " .. spawner.force.name) end
-		return 
+	
+	local unit_group_position = {x = (spawner.position.x + nearest_player_unit.position.x) * 0.5, y = (spawner.position.y + nearest_player_unit.position.y) * 0.5}
+	local pos = surface.find_non_colliding_position("rocket-silo", unit_group_position, 256, 1)
+	if pos then unit_group_position = pos end
+	
+	if not unit_group_position then
+		if global.bb_debug then game.print("No unit_group_position found for team " .. force_name) end
+		return false 
 	end
-	return p
+	
+	return unit_group_position
 end
 
 local function get_active_threat(biter_force_name)
@@ -301,27 +344,6 @@ local function get_active_threat(biter_force_name)
 	return active_threat
 end
 
-local function get_nearby_biter_nest(target_entity)
-	local center = target_entity.position
-	local biter_force_name = target_entity.force.name .. "_biters"
-	local spawner = get_random_spawner(biter_force_name)	
-	if not spawner then return end
-	local best_distance = (center.x - spawner.position.x) ^ 2 + (center.y - spawner.position.y) ^ 2
-	
-	for i = 1, 16, 1 do
-		local new_spawner = get_random_spawner(biter_force_name)
-		local new_distance = (center.x - new_spawner.position.x) ^ 2 + (center.y - new_spawner.position.y) ^ 2	
-		if new_distance < best_distance then
-			spawner = new_spawner
-			best_distance = new_distance
-		end
-	end
-	
-	if not spawner then return end
-	print("Nearby biter nest found at x=" .. spawner.position.x .. " y=" .. spawner.position.y .. ".")
-	return spawner
-end
-
 local function create_attack_group(surface, force_name, biter_force_name)
 	local threat = global.bb_threat[biter_force_name]	
 	if get_active_threat(biter_force_name) > threat * 1.20 then return end
@@ -332,28 +354,22 @@ local function create_attack_group(surface, force_name, biter_force_name)
 		return false 
 	end	
 	
-	local side_target = get_target_entity(force_name)
-	if not side_target then
-		print("No side target found for " .. force_name .. ".")
-		return
-	end
-	
-	local spawner = get_nearby_biter_nest(side_target)
+	local spawner = get_random_close_spawner(surface, biter_force_name)
 	if not spawner then
-		print("No spawner found for " .. force_name .. ".")
-		return
+		if global.bb_debug then game.print("No spawner found for team " .. force_name) end
+		return false 
 	end
+
+	local nearest_player_unit = surface.find_nearest_enemy({position = spawner.position, max_distance = 2048, force = biter_force_name})
+	if not nearest_player_unit then nearest_player_unit = global.rocket_silo[force_name] end
 	
-	local unit_group_position = get_unit_group_position(spawner)
-	if not unit_group_position then return end
+	local unit_group_position = get_unit_group_position(surface, nearest_player_unit, spawner)
 	
-	local units = select_units_around_spawner(spawner, force_name, side_target)
-	if not units then return end
-	
+	local units = select_units_around_spawner(spawner, force_name, biter_force_name)
+	if not units then return false end
 	local unit_group = surface.create_unit_group({position = unit_group_position, force = biter_force_name})
 	for _, unit in pairs(units) do unit_group.add_member(unit) end
-	
-	send_group(unit_group, force_name, side_target)
+	send_group(unit_group, force_name, nearest_player_unit)
 	
 	global.unit_groups[unit_group.group_number] = unit_group
 end
@@ -365,6 +381,8 @@ Public.pre_main_attack = function()
 	if not global.training_mode or (global.training_mode and #game.forces[force_name].connected_players > 0) then
 		local biter_force_name = force_name .. "_biters"
 		global.main_attack_wave_amount = math.ceil(get_threat_ratio(biter_force_name) * 7)
+
+		set_biter_raffle_table(surface, biter_force_name)
 
 		if global.bb_debug then game.print(global.main_attack_wave_amount .. " unit groups designated for " .. force_name .. " biters.") end
 	else
@@ -406,7 +424,9 @@ Public.wake_up_sleepy_groups = function()
 				if unit_group then
 					if unit_group.valid then
 						if unit_group.state == defines.group_state.finished then
-							send_group(unit_group, force_name)
+							local nearest_player_unit = entity.surface.find_nearest_enemy({position = entity.position, max_distance = 2048, force = biter_force_name})
+							if not nearest_player_unit then nearest_player_unit = global.rocket_silo[force_name] end
+							send_group(unit_group, force_name, nearest_player_unit)
 							print("BiterBattles: Woke up Unit Group at x" .. unit_group.position.x .. " y" .. unit_group.position.y .. ".")
 							return
 						end

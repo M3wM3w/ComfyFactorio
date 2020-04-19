@@ -298,7 +298,9 @@ commands.add_command(
 
         local radius = {{x = (pos.x + -param), y = (pos.y + -param)}, {x = (pos.x + param), y = (pos.y + param)}}
 		for _, entity in pairs(player.surface.find_entities_filtered{area = radius, type = "corpse"}) do
-			entity.destroy()
+      if entity.corpse_expires then
+        entity.destroy()
+      end
 		end
 		player.print("Cleared biter-corpses.", Color.success)
 end)

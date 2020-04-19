@@ -1,8 +1,5 @@
+-- Mirrored Terrain for Biter Battles -- by MewMew and Serennie
 local Public = {}
-
-local Functions = require "maps.biter_battles_v2.functions"
-local table_remove = table.remove
-local table_insert = table.insert
 
 local direction_translation = {
 	[0] = 4,
@@ -39,251 +36,262 @@ local cliff_orientation_translation = {
 }
 
 local entity_copy_functions = {
-	["tree"] = function(surface, entity, target_position, force_name)
-		if not surface.can_place_entity({name = entity.name, position = target_position}) then return end
-		entity.clone({position = target_position, surface = surface, force = "neutral"})
+	["tree"] = function(surface, entity, mirror_position)
+		if not surface.can_place_entity({name = entity.name, position = mirror_position}) then return end
+		entity.clone({position = mirror_position, surface = surface, force = "neutral"})
 	end,
-	["simple-entity"] = function(surface, entity, target_position, force_name)
-		local mirror_entity = {name = entity.name, position = target_position, direction = direction_translation[entity.direction]}
+	["simple-entity"] = function(surface, entity, mirror_position)
+		local mirror_entity = {name = entity.name, position = mirror_position, direction = direction_translation[entity.direction]}
 		if not surface.can_place_entity(mirror_entity) then return end
 		local mirror_entity = surface.create_entity(mirror_entity)
 		mirror_entity.graphics_variation = entity.graphics_variation
 	end,
-	["cliff"] = function(surface, entity, target_position, force_name)
-		local mirror_entity = {name = entity.name, position = target_position, cliff_orientation = cliff_orientation_translation[entity.cliff_orientation]}
+	["cliff"] = function(surface, entity, mirror_position)
+		local mirror_entity = {name = entity.name, position = mirror_position, cliff_orientation = cliff_orientation_translation[entity.cliff_orientation]}
 		if not surface.can_place_entity(mirror_entity) then return end
 		surface.create_entity(mirror_entity)
 		return
 	end,	
-	["resource"] = function(surface, entity, target_position, force_name)
-		surface.create_entity({name = entity.name, position = target_position, amount = entity.amount})
+	["resource"] = function(surface, entity, mirror_position)
+		surface.create_entity({name = entity.name, position = mirror_position, amount = entity.amount})
 	end,	
-	["corpse"] = function(surface, entity, target_position, force_name)
-		surface.create_entity({name = entity.name, position = target_position})
+	["corpse"] = function(surface, entity, mirror_position)
+		if game.tick > 900 then return end
+		surface.create_entity({name = entity.name, position = mirror_position})
 	end,	
-	["unit-spawner"] = function(surface, entity, target_position, force_name)
-		local mirror_entity = {name = entity.name, position = target_position, direction = direction_translation[entity.direction], force = force_name .. "_biters"}
+	["unit-spawner"] = function(surface, entity, mirror_position)
+		local mirror_entity = {name = entity.name, position = mirror_position, direction = direction_translation[entity.direction], force = "south_biters"}
 		if not surface.can_place_entity(mirror_entity) then return end		
-		table_insert(global.unit_spawners[force_name .. "_biters"], surface.create_entity(mirror_entity))
+		table.insert(global.unit_spawners.south_biters, surface.create_entity(mirror_entity))
 	end,
-	["turret"] = function(surface, entity, target_position, force_name)
-		local mirror_entity = {name = entity.name, position = target_position, direction = direction_translation[entity.direction], force = force_name .. "_biters"}
+	["turret"] = function(surface, entity, mirror_position)
+		local mirror_entity = {name = entity.name, position = mirror_position, direction = direction_translation[entity.direction], force = "south_biters"}
 		if not surface.can_place_entity(mirror_entity) then return end
 		surface.create_entity(mirror_entity)
 	end,
-	["rocket-silo"] = function(surface, entity, target_position, force_name)
-		if surface.count_entities_filtered({name = "rocket-silo", area = {{target_position.x - 8, target_position.y - 8},{target_position.x + 8, target_position.y + 8}}}) > 0 then return end
-		global.rocket_silo[force_name] = surface.create_entity({name = entity.name, position = target_position, direction = direction_translation[entity.direction], force = force_name})
-		global.rocket_silo[force_name].minable = false
-		Functions.add_target_entity(global.rocket_silo[force_name])
+	["rocket-silo"] = function(surface, entity, mirror_position)
+		if game.tick > 900 then return end
+		if surface.count_entities_filtered({name = "rocket-silo", area = {{mirror_position.x - 8, mirror_position.y - 8},{mirror_position.x + 8, mirror_position.y + 8}}}) > 0 then return end
+		global.rocket_silo["south"] = surface.create_entity({name = entity.name, position = mirror_position, direction = direction_translation[entity.direction], force = "south"})
+		global.rocket_silo["south"].minable = false
 	end,	
-	["ammo-turret"] = function(surface, entity, target_position, force_name)
-		local direction = 0
-		if force_name == "south" then direction = 4 end
-		local mirror_entity = {name = entity.name, position = target_position, force = force_name, direction = direction}
-		if not surface.can_place_entity(mirror_entity) then return end
-		local e = surface.create_entity(mirror_entity)
-		Functions.add_target_entity(e)
-		local inventory = entity.get_inventory(defines.inventory.turret_ammo)
-		if inventory.is_empty() then return end
-		for name, count in pairs(inventory.get_contents()) do e.insert({name = name, count = count}) end	
+	["ammo-turret"] = function(surface, entity, mirror_position)
+		if game.tick > 900 then return end
+		if not surface.can_place_entity({name = entity.name, position = mirror_position, force = "south"}) then return end
+		entity.clone({position = mirror_position, surface = surface, force="south"})
 	end,
-	["wall"] = function(surface, entity, target_position, force_name)
-		local e = entity.clone({position = target_position, surface = surface, force = force_name})
-		e.active = true
+	["wall"] = function(surface, entity, mirror_position)
+		if game.tick > 900 then return end
+		entity.clone({position = mirror_position, surface = surface, force="south"})
 	end,
-	["container"] = function(surface, entity, target_position, force_name)
-		local e = entity.clone({position = target_position, surface = surface, force = force_name})
-		e.active = true
+	["container"] = function(surface, entity, mirror_position)
+		if game.tick > 900 then return end
+		entity.clone({position = mirror_position, surface = surface, force="south"})
 	end,
-	["fish"] = function(surface, entity, target_position, force_name)
-		local mirror_entity = {name = entity.name, position = target_position}
+	["fish"] = function(surface, entity, mirror_position)
+		local mirror_entity = {name = entity.name, position = mirror_position, direction = direction_translation[entity.direction]}
 		if not surface.can_place_entity(mirror_entity) then return end
 		local e = surface.create_entity(mirror_entity)
 	end,
 }
 
-local function process_entity(surface, entity, force_name)
+local function process_entity(surface, entity)
 	if not entity.valid then return end
 	if not entity_copy_functions[entity.type] then return end
+	local mirror_position = {x = entity.position.x * -1, y = entity.position.y * -1}
+	entity_copy_functions[entity.type](surface, entity, mirror_position)
+end
+
+
+local function mirror_tiles(surface, source_area) 
+	mirrored = {}
+
+	local i = 0
+	for x = source_area.left_top.x, source_area.left_top.x+31 do
+		for y = source_area.left_top.y, source_area.left_top.y+31 do
+			local tile = surface.get_tile(x, y)
+			mirrored[i] = {name = tile.name, position = {-x, -y - 1}}
+			i = i + 1
+		end
+	end
 	
-	local target_position
-	if force_name == "north" then
-		target_position = entity.position
+    surface.set_tiles(mirrored, true)
+end
+
+local function clear_chunk(surface, area)
+	surface.destroy_decoratives{area=area}
+	if area.left_top.y > 32 or area.left_top.x > 32 or area.left_top.x < -32 then
+		for _, e in pairs(surface.find_entities_filtered({area = area})) do
+			if e.valid then
+				e.destroy()
+			end
+		end
 	else
-		target_position = {x = entity.position.x * -1, y = entity.position.y * -1}
+		for _, e in pairs(surface.find_entities_filtered({area = area})) do
+			if e.valid then
+				if e.name ~= "character" then
+					e.destroy()
+				end
+			end
+		end
 	end
- 
-	entity_copy_functions[entity.type](surface, entity, target_position, force_name)
 end
 
-local function copy_chunk(chunk)
-	local target_surface = game.surfaces.biter_battles
-	
-	local source_surface = game.surfaces.bb_source
-	local source_chunk_position = {chunk[1][1], chunk[1][2]}
-	local source_left_top = {x = source_chunk_position[1] * 32, y = source_chunk_position[2] * 32}
-	local source_area = {{source_left_top.x, source_left_top.y}, {source_left_top.x + 32, source_left_top.y + 32}}
-	
-	local target_chunk_position = chunk[1]	
-	local target_left_top = {x = target_chunk_position[1] * 32, y = target_chunk_position[2] * 32}
-	local target_area = {{target_left_top.x, target_left_top.y}, {target_left_top.x + 32, target_left_top.y + 32}}
-	
-	if not source_surface.is_chunk_generated(source_chunk_position) then
-		source_surface.request_to_generate_chunks({x = source_left_top.x + 16, y = source_left_top.y + 16}, 0)
-		return
+local function mirror_chunk(surface, chunk)
+	--local x = chunk.x * -32 + 32
+	--local y = chunk.y * -32 + 32
+	--clear_chunk(surface, {left_top = {x = x, y = y}, right_bottom = {x = x + 32, y = y + 32}})
+	local chunk_area = {left_top = {x = chunk.x * 32, y = chunk.y * 32}, right_bottom = {x = chunk.x * 32 + 32, y = chunk.y * 32 + 32}}
+	if not surface.is_chunk_generated(chunk) then
+		surface.request_to_generate_chunks({x = chunk_area.left_top.x - 16, y = chunk_area.left_top.y - 16}, 1)
+		surface.force_generate_chunk_requests()
 	end
-	
-	if chunk[2] == 1 then
-		source_surface.clone_area({
-			source_area = source_area,
-			destination_area = target_area,
-			destination_surface = target_surface,
-			--destination_force = …,
-			clone_tiles = true,
-			clone_entities = false,
-			clone_decoratives = false,
-			clear_destination_entities = false,
-			clear_destination_decoratives = false,
-			expand_map = false
-		})
-		chunk[2] = chunk[2] + 1
-		return
+	for _, tile in pairs(surface.find_tiles_filtered({area = chunk_area})) do
+		surface.set_tiles({{name = tile.name, position = {x = tile.position.x * -1, y = (tile.position.y * -1) - 1}}}, true)
 	end
-	
-	if chunk[2] == 2 then
-		for _, entity in pairs(source_surface.find_entities_filtered({area = source_area})) do
-			process_entity(target_surface, entity, "north")						
-		end
-		chunk[2] = chunk[2] + 1
-		return
+	for _, entity in pairs(surface.find_entities_filtered({area = chunk_area})) do
+		process_entity(surface, entity)
 	end
-	
-	for _, decorative in pairs(source_surface.find_decoratives_filtered{area = source_area}) do
-		target_surface.create_decoratives{
-			check_collision = false,
-			decoratives = {{name = decorative.decorative.name, position = decorative.position, amount = decorative.amount}}
+	for _, decorative in pairs(surface.find_decoratives_filtered{area=chunk_area}) do
+		surface.create_decoratives{
+			check_collision=false,
+			decoratives={{name = decorative.decorative.name, position = {x = decorative.position.x * -1, y = (decorative.position.y * -1) - 1}, amount = decorative.amount}}
 		}
 	end
-	
+end
+
+local function is_chunk_already_mirrored(chunk)	
+	local index = chunk[1] .. "_" .. chunk[2]
+	if not global.chunks_mirrored[index] then global.chunks_mirrored[index] = true return false end
 	return true
 end
 
-local function mirror_chunk(chunk)
-	local target_surface = game.surfaces.biter_battles
-	
-	local source_surface = game.surfaces.bb_source
-	local source_chunk_position = {chunk[1][1] * -1 - 1, chunk[1][2] * -1 - 1}
-	local source_left_top = {x = source_chunk_position[1] * 32, y = source_chunk_position[2] * 32}
-	local source_area = {{source_left_top.x, source_left_top.y}, {source_left_top.x + 32, source_left_top.y + 32}}
-	
-	if not source_surface.is_chunk_generated(source_chunk_position) then
-		source_surface.request_to_generate_chunks({x = source_left_top.x + 16, y = source_left_top.y + 16}, 0)
-		return
-	end
-
-	if chunk[2] == 1 then
-		for _, tile in pairs(source_surface.find_tiles_filtered({area = source_area})) do
-			target_surface.set_tiles({{name = tile.name, position = {x = tile.position.x * -1 - 1 , y = (tile.position.y * -1) - 1}}}, true)
-		end
-		chunk[2] = chunk[2] + 1
-		return
-	end
-	
-	if chunk[2] == 2 then
-		for _, entity in pairs(source_surface.find_entities_filtered({area = source_area})) do
-			process_entity(target_surface, entity, "south")
-		end
-		chunk[2] = chunk[2] + 1
-		return
-	end
-		
-	for _, decorative in pairs(source_surface.find_decoratives_filtered{area = source_area}) do
-		target_surface.create_decoratives{
-			check_collision = false,
-			decoratives = {{name = decorative.decorative.name, position = {x = (decorative.position.x * -1) - 1, y = (decorative.position.y * -1) - 1}, amount = decorative.amount}}
-		}
-	end
-	
-	return true
+local function add_work(work)
+	if not global.ctp then global.ctp = { continue = 1, last = 0 } end
+	local idx = global.ctp.last + 1
+	global.ctp[idx] = work 
+	global.ctp.last = idx
 end
 
-local function reveal_chunk(chunk)
-	local surface = game.surfaces.biter_battles
-	local chunk_position = chunk[1]
-	for _, force_name in pairs({"north", "south"}) do
-		local force = game.forces[force_name]
-		if force.is_chunk_charted(surface, chunk_position) then
-			force.chart(surface, {{chunk_position[1] * 32, chunk_position[2] * 32}, {chunk_position[1] * 32 + 31, chunk_position[2] * 32 + 31}})
-		end
-	end
-end
-
-function Public.add_chunk(event)
+function Public.add_chunks(event)
 	local surface = event.surface
 	if surface.name ~= "biter_battles" then return end
-	local left_top = event.area.left_top	
-	local terrain_gen = global.terrain_gen
 	
-	if left_top.y < 0 then
-		terrain_gen.size_of_chunk_copy = terrain_gen.size_of_chunk_copy + 1
-		terrain_gen.chunk_copy[terrain_gen.size_of_chunk_copy] = {{left_top.x / 32, left_top.y / 32}, 1}
-	else
-		terrain_gen.size_of_chunk_mirror = terrain_gen.size_of_chunk_mirror + 1
-		terrain_gen.chunk_mirror[terrain_gen.size_of_chunk_mirror] = {{left_top.x / 32, left_top.y / 32}, 1}
+	if event.area.left_top.y < 0 then
+		if game.tick == 0 then return end
+		local x = event.area.left_top.x / 32
+		local y = event.area.left_top.y / 32
+		
+		if is_chunk_already_mirrored({x, y}) then return end
+		add_work({x = x, y = y, state = 1})
+		return 
 	end
-end
-
-local function clear_source_surface(terrain_gen)
-	if terrain_gen.counter % 1024 == 1023 then
-		terrain_gen.counter = terrain_gen.counter + 1
-		local surface = game.surfaces.bb_source
-		local c = 0
-		for chunk in surface.get_chunks() do		
-			surface.delete_chunk({chunk.x, chunk.y})
-			c = c + 1
-		end
-		print("Deleted " .. c .. " source surface chunks.")
+	
+	surface.destroy_decoratives{ area = event.area }
+	-- Destroy biters here before they get active and attack other biters;
+	-- prevents threat decrease
+	for _, e in pairs(surface.find_entities_filtered{ area = event.area, force = "enemy" }) do
+		if e.valid then e.destroy() end
 	end
-end
 
-local function north_work()
-	local terrain_gen = global.terrain_gen
-	for k, chunk in pairs(terrain_gen.chunk_copy) do		
-		if copy_chunk(chunk) then
-			reveal_chunk(chunk)
-			table_remove(terrain_gen.chunk_copy, k)
-			terrain_gen.size_of_chunk_copy = terrain_gen.size_of_chunk_copy - 1
-			terrain_gen.counter = terrain_gen.counter + 1
-		end
-		break			
-	end
-	clear_source_surface(terrain_gen)
+	local x = (((event.area.left_top.x + 16) * -1) - 16) / 32
+	local y = (((event.area.left_top.y + 16) * -1) - 16) / 32
+	
+	if is_chunk_already_mirrored({x, y}) then return end
+	add_work({x = x, y = y, state = 1})
 end
-
-local function south_work()
-	local terrain_gen = global.terrain_gen
-	for k, chunk in pairs(terrain_gen.chunk_mirror) do			
-		if mirror_chunk(chunk) then
-			reveal_chunk(chunk)
-			table_remove(terrain_gen.chunk_mirror, k)
-			terrain_gen.size_of_chunk_mirror = terrain_gen.size_of_chunk_mirror - 1
-			terrain_gen.counter = terrain_gen.counter + 1
-		end			
-		break
-	end
-	clear_source_surface(terrain_gen)
-end
-
-local works = {
-	[1] = north_work,
-	[3] = south_work,
-}
 
 function Public.ticking_work()
-	local work = works[game.tick % 4]
-	if not work then return end
-	work()
+	if not global.ctp then return end
+	local work = global.mws or 512 -- define the number of work per tick here (for copies, creations, deletions)
+	-- 136.5333 is the number of work needed to finish 4*(32*32) operations over 30 ticks (spreading a chunk copy over 30 ticks)
+	local w = 0
+	local i = global.ctp.continue
+	local c = global.ctp[i]
+	if not c then return end
+	local state = c.state
+	local d = c.data
+	local area = {
+		left_top = {x = c.x * 32, y = c.y * 32},
+		right_bottom = {x = c.x * 32 + 32, y = c.y * 32 + 32}
+	}
+	local inverted_area = {
+		left_top = { -area.right_bottom.x, -area.right_bottom.y },
+		right_bottom = { -area.left_top.x, -area.left_top.y }
+	}
+	local surface = game.surfaces["biter_battles"]
+	if not surface.is_chunk_generated(c) then
+		--game.print("Chunk not generated yet, requesting..")
+		surface.request_to_generate_chunks({x = area.left_top.x + 16, y = area.left_top.y + 16}, 0)
+		-- requeue
+		add_work(c)
+		global.ctp.continue = i+1
+		global.ctp[i] = nil 
+		return
+	end
+
+	local tasks = {
+		[1] = {
+			name = "Clearing entities",
+			list = function () return surface.find_entities_filtered({area = inverted_area, name = "character", invert = true}) end,
+			action = function (e) e.destroy() end
+		},
+		[2] = {},
+		[3] = {
+			name = "Entity copy",
+			list = function () return surface.find_entities_filtered({area = area}) end,
+			action = function (entity) process_entity(surface, entity) end
+		},
+		[4] = {
+			name = "Decorative copy",
+			list = function () return surface.find_decoratives_filtered{area = area} end,
+			action = function (decorative)
+				surface.create_decoratives{
+					check_collision = false,
+					decoratives = {{
+						name = decorative.decorative.name,
+						position = {x = decorative.position.x * -1, y = (decorative.position.y * -1) - 1},
+						amount = decorative.amount
+					}}
+				}
+			end
+		}
+	}
+
+
+    if c.state == 2 then 
+        mirror_tiles(surface, area)
+        c.state = c.state + 1
+        c.data = nil
+    else
+		local task = tasks[c.state]
+		-- game.print(task.name)
+		d = d or task.list()
+		local last_idx = nil
+		for k, v in pairs(d) do
+			task.action(v)
+			d[k] = nil
+			last_idx = k
+			w = w + 1
+			if w > work then break end
+		end
+		
+		local next_idx, _ = next(d, last_idx)
+		if next_idx == nil then
+			c.state = c.state + 1
+			c.data = nil
+		else
+			c.data = d
+		end
+	end
+
+	if c.state == 5 then
+		-- game.print("Finished processing chunk "..c.x..","..c.y)
+		global.ctp.continue = i+1
+		global.ctp[i] = nil
+	else
+		global.ctp.continue = i
+	end
 end
 
 return Public

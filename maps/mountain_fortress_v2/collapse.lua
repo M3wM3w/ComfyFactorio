@@ -34,22 +34,22 @@ local function get_collapse_vectors(radius, seed)
 			end
 		end
 	end
-	
+
 	local sorted_vectors = {}
 	for _, vector in pairs(vectors) do
 		local index = math_floor(math_sqrt(vector[1] ^ 2 + vector[2] ^ 2)) + 1
 		if not sorted_vectors[index] then sorted_vectors[index] = {} end
-		sorted_vectors[index][#sorted_vectors[index] + 1] = vector		
+		sorted_vectors[index][#sorted_vectors[index] + 1] = vector
 	end
-	
-	local final_list = {}	
+
+	local final_list = {}
 	for _, row in pairs(sorted_vectors) do
 		table_shuffle_table(row)
 		for _, tile in pairs(row) do
 			table_insert(final_list, tile)
 		end
 	end
-	
+
 	return final_list
 end
 
@@ -61,7 +61,7 @@ local function set_y(surface)
 	for _ = 1, 16, 1 do
 		local area = {{x_left, map_collapse.last_position.y},{x_right, map_collapse.last_position.y + 1}}
 		if surface.count_tiles_filtered({name = "out-of-map", area = area}) < level_width then
-			return area 
+			return area
 		end
 		map_collapse.last_position.y = map_collapse.last_position.y - 1
 	end
@@ -73,7 +73,7 @@ local function set_positions(surface)
 
 	local map_collapse = global.map_collapse
 	map_collapse.positions = {}
-	
+
 	local i = 1
 	for _, tile in pairs(surface.find_tiles_filtered({area = area})) do
 		if tile.valid then
@@ -83,7 +83,7 @@ local function set_positions(surface)
 			end
 		end
 	end
-	
+
 	if i == 1 then
 		map_collapse.positions = nil
 		return
@@ -96,7 +96,16 @@ local function set_collapse_tiles(surface, position, vectors)
 	map_collapse.processing = {}
 	local i = 1
 	for _, vector in pairs(vectors) do
+		local shifted_position = {x = position[1] + vector[1], y = position[2] + vector[2] - 60}
 		local position = {x = position[1] + vector[1], y = position[2] + vector[2]}
+		local rocks = surface.find_entities_filtered{position = shifted_position, radius = 2, type = {"simple-entity", "tree"}}
+		if #rocks > 0 then
+			for i = 1, #rocks, 1 do
+				if rocks[i].valid then
+					rocks[i].destroy()
+				end
+			end
+		end
 		local tile = surface.get_tile(position)
 		if tile.valid and tile.name ~= "out-of-map" then
 			map_collapse.processing[i] = tile
@@ -109,28 +118,28 @@ end
 
 local function clean_positions(tbl)
 	for k, tile in pairs(tbl) do
-		if not tile.valid then 
+		if not tile.valid then
 			table_remove(tbl, k)
 		else
-			if tile.name == "out-of-map" then 
+			if tile.name == "out-of-map" then
 				table_remove(tbl, k)
 			end
-		end		
-	end	
+		end
+	end
 end
 
 local function setup_next_collapse()
 	local surface = game.surfaces[global.active_surface_index]
-	local map_collapse = global.map_collapse	
+	local map_collapse = global.map_collapse
 	if not map_collapse.vector_list then
-		map_collapse.vector_list = {} 
+		map_collapse.vector_list = {}
 		for _ = 1, size_of_vector_list, 1 do
 			table_insert(global.map_collapse.vector_list, get_collapse_vectors(math_random(24, 48), math_random(1, 9999999)))
 		end
 	end
 
 	if not map_collapse.positions then
-		if math_random(1, 64) == 1 then map_collapse.last_position = {x = 0, y = 128} end
+		--if math_random(1, 64) == 1 then map_collapse.last_position = {x = 0, y = 128} end
 		set_positions(surface)
 		return
 	end
@@ -141,10 +150,10 @@ local function setup_next_collapse()
 	if tile.name == "out-of-map" then clean_positions(map_collapse.positions) return end
 
 	local position = {tile.position.x, tile.position.y}
-	
+
 	local vectors = map_collapse.vector_list[math_random(1, size_of_vector_list)]
 	set_collapse_tiles(surface, position, vectors)
-	
+
 	local last_position = global.map_collapse.last_position
 	game.forces.player.chart(surface, {{last_position.x - chart_radius, last_position.y - chart_radius},{last_position.x + chart_radius, last_position.y + chart_radius}})
 	global.map_collapse.last_position = {x = position[1], y = position[2]}
@@ -164,11 +173,11 @@ end
 local function process_tile(surface, tile, tiles_to_set)
 	if not tile then return end
 	if not tile.valid then return end
-	
-	local conversion_tile = tile_conversion[tile.name]			
+
+	local conversion_tile = tile_conversion[tile.name]
 	if conversion_tile then
 		table_insert(tiles_to_set, {name = conversion_tile, position = tile.position})
-		surface.create_trivial_smoke({name="train-smoke", position = tile.position})	
+		surface.create_trivial_smoke({name="train-smoke", position = tile.position})
 	else
 		table_insert(tiles_to_set, {name = "out-of-map", position = tile.position})
 	end
@@ -179,12 +188,12 @@ end
 function Public.process()
 	local surface = game.surfaces[global.active_surface_index]
 	local map_collapse = global.map_collapse
-	
+
 	if map_collapse.processing_index >= map_collapse.size_of_processing then
 		setup_next_collapse()
 		return
 	end
-	
+
 	local count = 0
 	local tiles_to_set = {}
 	for i = map_collapse.processing_index, map_collapse.size_of_processing, 1 do
@@ -194,7 +203,7 @@ function Public.process()
 		end
 		map_collapse.processing_index = map_collapse.processing_index + 1
 	end
-	
+
 	if count > 1 then surface.set_tiles(tiles_to_set, true) end
 end
 
@@ -204,7 +213,7 @@ function Public.init()
 		["size_of_processing"] = 0,
 		["processing"] = {},
 		["last_position"] = {x = 0, y = 128},
-		["speed"] = 2,
+		["speed"] = 3,
 	}
 end
 

@@ -3,6 +3,22 @@
 local Tabs = require 'comfy_panel.main'
 
 local functions = {
+ 	["map_settings_blueprint_toggle"] = function(event)
+		if event.element.switch_state == "left" then
+			game.permissions.get_group("Default").set_allows_action(defines.input_action.grab_blueprint_record, true)
+			game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint_string, true)
+			game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint, true)
+			global.bb_settings.blueprint_library_importing = true
+			game.print("The blueprint library has been enabled!")
+		else
+			game.permissions.get_group("Default").set_allows_action(defines.input_action.grab_blueprint_record, false)
+			game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint_string, false)
+			game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint, false)
+			global.bb_settings.blueprint_library_importing = false
+			game.print("The blueprint library has been disabled!")
+		end
+	end,
+	
 	["map_settings_team_balancing_toggle"] = function(event) 
 		if event.element.switch_state == "left" then
 			global.bb_settings.team_balancing = true
@@ -63,6 +79,13 @@ local build_config_gui = (function (player, frame)
 	local line_elements = {}
 	local switch_label_elements = {}
 	local label_elements = {}
+	
+	line_elements[#line_elements + 1] = frame.add({type = "line"})
+	
+	local switch_state = "right"
+	if global.bb_settings.blueprint_library_importing then switch_state = "left" end
+	local switch = add_switch(frame, switch_state, "map_settings_blueprint_toggle", "Blueprints", "Enables or disables the usage of blueprint strings and the library.")
+	if not admin then switch.ignored_by_interaction = true end
 	
 	line_elements[#line_elements + 1] = frame.add({type = "line"})
 		

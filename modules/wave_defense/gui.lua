@@ -19,7 +19,7 @@ local function create_gui(player)
 	progressbar.style.minimal_width = 96
 	progressbar.style.maximal_width = 96
 	progressbar.style.top_padding = 10
-	
+
 	local line = frame.add({type = "line", direction = "vertical"})
 	line.style.left_padding = 4
 	line.style.right_padding = 4
@@ -28,13 +28,13 @@ local function create_gui(player)
 	label.style.font = "default-bold"
 	label.style.left_padding = 4
 	label.style.font_color = {r = 150, g = 0, b = 255}
-	
+
 	local label = frame.add({ type = "label", caption = " ", name = "threat_value", tooltip = {"wave_defense.tooltip_1"}})
 	label.style.font = "default-bold"
 	label.style.right_padding = 1
 	label.style.minimal_width = 10
 	label.style.font_color = {r = 150, g = 0, b = 255}
-	
+
 	local label = frame.add({ type = "label", caption = " ", name = "threat_gains", tooltip = {"wave_defense.tooltip_2"}})
 	label.style.font = "default"
 	label.style.left_padding = 1
@@ -54,27 +54,31 @@ local function update_gui(player)
 	local wave_defense_table = WD.get_table()
 	if not player.gui.top.wave_defense then create_gui(player) end
 	local gui = player.gui.top.wave_defense
-	
+	local biter_health_boost = 1
+	if global.biter_health_boost then biter_health_boost = global.biter_health_boost end
+
 	gui.label.caption = {"wave_defense.gui_2"}
 	gui.wave_number.caption = wave_defense_table.wave_number
 	if wave_defense_table.wave_number == 0 then
 		gui.label.caption = {"wave_defense.gui_1"}
-		gui.wave_number.caption = math.floor((wave_defense_table.next_wave - game.tick) / 60) + 1 
+		gui.wave_number.caption = math.floor((wave_defense_table.next_wave - game.tick) / 60) + 1
 	end
 	local interval = wave_defense_table.next_wave - wave_defense_table.last_wave
 	gui.progressbar.value = 1 - (wave_defense_table.next_wave - game.tick) / interval
-	
+
 	gui.threat.caption = {"wave_defense.gui_3"}
-	gui.threat_value.caption = math.floor(wave_defense_table.threat)	
-	
+	gui.threat.tooltip = {"wave_defense.tooltip_1", biter_health_boost * 100}
+	gui.threat_value.caption = math.floor(wave_defense_table.threat)
+	gui.threat_value.tooltip = {"wave_defense.tooltip_1", biter_health_boost * 100}	
+
 	if wave_defense_table.wave_number == 0 then
 		gui.threat_gains.caption = ""
-		return 
+		return
 	end
-	
+
 	local gain = get_threat_gain()
 	local d = wave_defense_table.wave_number / 75
-	
+
 	if gain >= 0 then
 		gui.threat_gains.caption = " (+" .. gain .. ")"
 		local g = 255 - math.floor(gain / d)

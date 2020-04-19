@@ -388,7 +388,7 @@ local on_init = function()
 	global.player_list.sorting_method = {}
 end
 
-comfy_panel_tabs["Players"] = player_list_show
+comfy_panel_tabs["Players"] = {gui = player_list_show, admin = false}
 
 event.on_init(on_init)
 event.add(defines.events.on_player_joined_game, on_player_joined_game)

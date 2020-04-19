@@ -214,7 +214,7 @@ local function on_gui_click(event)
 	end		
 end
 
-comfy_panel_tabs["Groups"] = build_group_gui
+comfy_panel_tabs["Groups"] = {gui = build_group_gui, admin = false}
 
 
 local event = require 'utils.event'

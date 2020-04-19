@@ -37,6 +37,7 @@ end
 
 local function unearthing_worm(surface, position)
 	if not surface then return end
+    	if not surface.valid then return end
 	if not position then return end
 	if not position.x then return end
 	if not position.y then return end	

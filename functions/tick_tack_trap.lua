@@ -21,7 +21,8 @@ for _, t in pairs (kaboom_weights) do
 end
 
 local function create_flying_text(surface, position, text)
-	surface.create_entity({	
+	if not surface.valid then return end
+    	surface.create_entity({	
 		name = "flying-text",
 		position = position,
 		text = text,
@@ -32,7 +33,8 @@ local function create_flying_text(surface, position, text)
 end
 
 local function create_kaboom(surface, position, name)
-	local target = position
+	if not surface.valid then return end
+    	local target = position
 	local speed = 0.5
 	if name == "defender-capsule" or name == "destroyer-capsule" or name == "distractor-capsule" then 
 		surface.create_entity({	
@@ -56,6 +58,7 @@ end
 
 local function tick_tack_trap(surface, position)
 	if not surface then return end
+    	if not surface.valid then return end 
 	if not position then return end
 	if not position.x then return end
 	if not position.y then return end

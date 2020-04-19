@@ -1,9 +1,3 @@
---[[
-roll(budget, max_slots) returns a table with item-stacks
-budget		-	the total value of the item stacks combined
-max_slots	-	the maximum amount of item stacks to return
-]]
-
 local Public = {}
 
 local table_shuffle_table = table.shuffle_table
@@ -194,7 +188,6 @@ local item_worths = {
 	["battery-mk2-equipment"] = 2048,
 	["personal-laser-defense-equipment"] = 2048,
 	["discharge-defense-equipment"] = 2048,
-	["discharge-defense-remote"] = 32,
 	["belt-immunity-equipment"] = 256,
 	["exoskeleton-equipment"] = 1024,
 	["personal-roboport-equipment"] = 512,
@@ -268,9 +261,6 @@ end
 function Public.roll(budget, max_slots)
 	if not budget then return end
 	if not max_slots then return end
-	
-	budget = math_floor(budget)	
-	if budget == 0 then return end
 	
 	local final_stack_set
 	local final_stack_set_worth = 0

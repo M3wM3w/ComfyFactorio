@@ -10,6 +10,12 @@ local math_sqrt = math.sqrt
 local math_floor = math.floor
 
 local function add_enemy_units(surface, room)
+	for _, tile in pairs(room.room_border_tiles) do 
+		if math_random(1, 2) == 1 then
+			local name = BiterRaffle.roll("spitter", Functions.get_dungeon_evolution_factor() * 1.5)
+			local unit = surface.create_entity({name = name, position = tile.position, force = "enemy"})
+		end
+	end
 	for _, tile in pairs(room.room_tiles) do
 		if math_random(1, 2) == 1 then
 			local name = BiterRaffle.roll("spitter", Functions.get_dungeon_evolution_factor() * 1.5)

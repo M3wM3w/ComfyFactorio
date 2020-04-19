@@ -390,7 +390,7 @@ local function on_gui_selection_state_changed(event)
 	end
 end
 
-comfy_panel_tabs["Admin"] = create_admin_panel
+comfy_panel_tabs["Admin"] = {gui = create_admin_panel, admin = true}
 
 
 
