@@ -22,7 +22,7 @@ function Public.upgrades()
 	if difficulty < 1 then
     upgrade_coin_cost_scale = 1 - ((1 - difficulty) * 3 / 5)
   elseif difficulty > 1 then
-		upgrade_coin_cost_scale = 1 + ((difficulty - 1) / 5)
+		upgrade_coin_cost_scale = 1 + ((difficulty - 1) * 3 / 5)
 	end
 
   --Each upgrade is automatically added into gui.
