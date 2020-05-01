@@ -110,7 +110,7 @@ function Public.determine_planet(choice)
   if not choice then
     planet_choice = biome_roll()
   else
-    if biomes[choice][1] then
+    if biomes[choice] then
       planet_choice = biomes[choice][1]
     else
       planet_choice = biome_roll()
