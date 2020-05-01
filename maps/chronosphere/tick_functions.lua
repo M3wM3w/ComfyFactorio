@@ -18,6 +18,11 @@ function Public_tick.check_chronoprogress()
       game.print({"chronosphere.message_danger4"}, {r=0.98, g=0, b=0})
     end
   end
+
+  if objective.passivetimer == objective.chrononeeds * 0.50 and objective.chronojumps > 5 then
+		game.print({"chronosphere.message_rampup50"}, {r=0.98, g=0.66, b=0.22})
+	end
+
 	if objective.chronotimer == objective.chrononeeds - 180  then
 		game.print({"chronosphere.message_jump180"}, {r=0.98, g=0.66, b=0.22})
 	elseif objective.chronotimer == objective.chrononeeds - 60  then
@@ -65,7 +70,7 @@ function Public_tick.boost_evolution()
 	local objective = Chrono_table.get_table()
 	if objective.passivetimer > objective.chrononeeds * 0.50 and objective.chronojumps > 5 then
 		local evolution = game.forces.enemy.evolution_factor
-		evolution = evolution + (evolution / 500) * global.difficulty_vote_value
+		evolution = evolution + (evolution / 500) * (((global.difficulty_vote_value - 1) / 2 ) + 1)
 		if evolution > 1 then evolution = 1 end
 		game.forces.enemy.evolution_factor = evolution
 	end

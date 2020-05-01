@@ -33,12 +33,12 @@ local Public = {}
 local starting_items = {['pistol'] = 1, ['firearm-magazine'] = 32, ['grenade'] = 4, ['raw-fish'] = 4, ['rail'] = 16, ['wood'] = 16}
 
 global.difficulty_tooltips = {
-    [1] = "Biters much less aggressive; time evo significantly slower; pollution by train significantly lower; maps significantly more favourable; upgrades coin prices significantly cheaper; MK2 research enabled; flamer nerf more slight",
-    [2] = "Biters less aggressive; time evo slower; pollution by train lower; maps more favourable; upgrades coin prices cheaper; MK2 research enabled; flamer nerf more slight",
-    [3] = "Biters slightly less aggressive; time evo slightly slower; pollution by train slightly lower; maps slightly more favourable; upgrades coin prices slightly cheaper; MK2 research enabled; flamer nerf more slight",
+    [1] = "Biters much less aggressive; pollution by train significantly lower; maps significantly more favourable; upgrades coin prices significantly cheaper; MK2 research enabled; flamer nerf more slight",
+    [2] = "Biters less aggressive; pollution by train lower; maps more favourable; upgrades coin prices cheaper; MK2 research enabled; flamer nerf more slight",
+    [3] = "Biters slightly less aggressive; pollution by train slightly lower; maps slightly more favourable; upgrades coin prices slightly cheaper; MK2 research enabled; flamer nerf more slight",
     [4] = "Normal difficulty.",
-    [5] = "Biters more aggressive; time evo faster; pollution by train higher; maps less favourable; upgrades coin prices more expensive; flamer nerf less slight",
-    [6] = "Biters much more aggressive; time evo significantly faster; pollution by train significantly higher; maps significantly less favourable; upgrades coin prices significantly more expensive; flamer nerf less slight",
+    [5] = "Biters more aggressive; pollution by train higher; maps less favourable; upgrades coin prices more expensive; flamer nerf less slight",
+    [6] = "Biters much more aggressive; pollution by train significantly higher; maps significantly less favourable; upgrades coin prices significantly more expensive; flamer nerf less slight",
     [7] = "ENTER AT YOUR PERIL",
 }
 
