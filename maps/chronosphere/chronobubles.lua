@@ -62,7 +62,7 @@ function Public.determine_planet(choice)
   if not global.difficulty_vote_value then global.difficulty_vote_value = 1 end
   local difficulty = global.difficulty_vote_value
 
-  local ores_weights = {1,2,3,2,1,0}
+  local ores_weights = {4,8,12,8,4,0}
   if difficulty <= 0.25
   then ores_weights = {9,10,9,4,2,0}
   elseif difficulty <= 0.5
@@ -70,13 +70,13 @@ function Public.determine_planet(choice)
   elseif difficulty <= 0.75
   then ores_weights = {5,9,12,7,3,0}
   elseif difficulty <= 1
-  then ores_weights = {1,2,3,2,1,0}
+  then ores_weights = {4,8,12,8,4,0}
   elseif difficulty <= 1.5
-  then ores_weights = {2,8,12,9,5,0}
+  then ores_weights = {2,7,12,10,5,0}
   elseif difficulty <= 3
   then ores_weights = {1,6,12,11,6,0}
   elseif difficulty >= 5
-  then ores_weights = {1,2,12,13,6,0}
+  then ores_weights = {1,2,12,15,6,0}
   end
   local ores_raffle = {}
 	for t = 1, 5, 1 do
