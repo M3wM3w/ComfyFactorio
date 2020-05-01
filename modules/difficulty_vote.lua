@@ -9,10 +9,11 @@ local difficulties = {
 	[5] = {name = "Hard", value = 1.5, color = {r=0.25, g=0.00, b=0.00}, print_color = {r=0.4, g=0.0, b=0.00}},
 	[6] = {name = "Nightmare", value = 3, color = {r=0.35, g=0.00, b=0.00}, print_color = {r=0.6, g=0.0, b=0.00}},
 	[7] = {name = "Impossible", value = 5, color = {r=0.45, g=0.00, b=0.00}, print_color = {r=0.8, g=0.0, b=0.00}}
-} 
+}
 
 local function difficulty_gui()
-	local tooltip = "Current difficulty of the map is " .. difficulties[global.difficulty_vote_index].name
+	local tooltip -- currently not sensitive to possible presence of global.difficulty_tooltips
+	tooltip = "Current difficulty of the map is " .. difficulties[global.difficulty_vote_index].name
 	tooltip = tooltip .. "."
 		
 	for _, player in pairs(game.connected_players) do
@@ -46,7 +47,12 @@ local function poll_difficulty(player)
 	
 	local frame = player.gui.center.add { type = "frame", caption = "Vote difficulty:", name = "difficulty_poll", direction = "vertical" }
 	for i = 1, 7, 1 do
-		local b = frame.add({type = "button", name = tostring(i), caption = difficulties[i].name})
+		local b
+		if global.difficulty_tooltips[i] then
+			b = frame.add({type = "button", name = tostring(i), caption = difficulties[i].name, tooltip = global.difficulty_tooltips[i]})
+		else
+			b = frame.add({type = "button", name = tostring(i), caption = difficulties[i].name})
+		end
 		b.style.font_color = difficulties[i].color
 		b.style.font = "heading-2"
 		b.style.minimal_width = 160

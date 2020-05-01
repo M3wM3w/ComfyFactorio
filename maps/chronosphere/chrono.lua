@@ -254,7 +254,6 @@ function Public_chrono.post_jump()
       game.forces.player.technologies["fusion-reactor-equipment"].enabled = true
 	  game.forces.player.technologies["power-armor-mk2"].enabled = true
 	end
-    Public_event.on_technology_effects_reset(event) --enacts changes in manual mining speed due to difficulty
   end
 end
 

@@ -32,6 +32,16 @@ local Public = {}
 
 local starting_items = {['pistol'] = 1, ['firearm-magazine'] = 32, ['grenade'] = 4, ['raw-fish'] = 4, ['rail'] = 16, ['wood'] = 16}
 
+global.difficulty_tooltips = {
+    [1] = "Biters much less aggressive; time evo significantly slower; relative pollution by train significantly lower; maps more favourable; upgrades coin prices significantly lower; MK2 research enabled; flamer nerf more slight",
+    [2] = "Biters less aggressive; time evo slower; relative pollution by train lower; maps slightly more favourable; upgrades coin prices significantly cheaper; MK2 research enabled; flamer nerf more slight",
+    [3] = "Biters slightly less aggressive; time evo slightly slower; relative pollution by train slightly lower; maps very slightly more favourable; upgrades coin prices cheaper; MK2 research enabled; flamer nerf more slight",
+    [4] = "Normal difficulty.",
+    [5] = "Biters slightly more aggressive; time evo slightly faster; relative pollution by train slightly higher; maps very slightly less favourable; upgrades coin prices more expensive; flamer nerf less slight",
+    [6] = "Biters more aggressive; time evo faster; relative pollution by train higher; maps slightly less favourable; upgrades coin prices significantly more expensive; flamer nerf less slight",
+    [7] = "Biters much more aggressive; time evo significantly faster; relative pollution by train significantly higher; maps less favourable; upgrades coin prices much more expensive; flamer nerf less slight",
+}
+
 local function generate_overworld(surface, optplanet)
 	local objective = Chrono_table.get_table()
 	Planets.determine_planet(optplanet)
@@ -247,7 +257,7 @@ function Public.chronojump(choice)
 	game.delete_surface(oldsurface)
 	Chrono.post_jump()
 	Event_functions.flamer_nerfs()
-	surface.pollute(objective.locomotive.position, 150 * (3 / (objective.upgrades[2] / 3 + 1)) * (1 + objective.chronojumps) * global.difficulty_vote_value)
+	surface.pollute(objective.locomotive.position, 150 * (3 / (objective.upgrades[2] / 3 + 1)) * (1 + objective.chronojumps) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1))
 	::continue::
 end
 
@@ -313,7 +323,7 @@ local function tick()
 							pos,
 							(0.5 * objective.chronojumps) *
 							(3 / (objective.upgrades[2] / 3 + 1)) *
-							global.difficulty_vote_value)
+							(((global.difficulty_vote_value - 1) * 3 / 5) + 1))
 					end
 				end
 			end

@@ -47,7 +47,7 @@ function Public_tick.charge_chronosphere()
 		if energy > 3010000 and objective.chronotimer < objective.chrononeeds - 182 and objective.chronotimer > 130 then
 			acus[i].energy = acus[i].energy - 3000000
 			objective.chronotimer = objective.chronotimer + 1
-			game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, (10 + 2 * objective.chronojumps) * (3 / (objective.upgrades[2] / 3 + 1)) * global.difficulty_vote_value)
+			game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, (10 + 2 * objective.chronojumps) * (3 / (objective.upgrades[2] / 3 + 1)) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1))
 		end
 	end
 end
@@ -56,7 +56,7 @@ function Public_tick.transfer_pollution()
   local objective = Chrono_table.get_table()
 	local surface = game.surfaces["cargo_wagon"]
 	if not surface then return end
-	local pollution = surface.get_total_pollution() * (3 / (objective.upgrades[2] / 3 + 1)) * global.difficulty_vote_value
+	local pollution = surface.get_total_pollution() * (3 / (objective.upgrades[2] / 3 + 1)) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1)
 	game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, pollution)
 	surface.clear_pollution()
 end

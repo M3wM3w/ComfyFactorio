@@ -286,22 +286,12 @@ local mining_researches = {
 }
 
 function Public_event.mining_buffs(event)
-	if not global.difficulty_vote_value then global.difficulty_vote_value = 1 end
-	local difficulty = global.difficulty_vote_value
-	
-	local manual_mining_difficulty_scaling = 1.8
-	if difficulty < 1 then
-		manual_mining_difficulty_scaling = 1.8 + (1 - difficulty)
-	end
-	if difficulty > 1 then
-		manual_mining_difficulty_scaling = 1.8 - ((difficulty - 1) / 3)
-	end
 
 
 	if event == nil then
 		-- initialization/reset call
-		game.forces.player.mining_drill_productivity_bonus = 1 --fixed typo?
-		game.forces.player.manual_mining_speed_modifier = manual_mining_difficulty_scaling - 1
+		game.forces.player.mining_drill_productivity_bonus = game.forces.player.mining_drill_productivity_bonus + 1
+		game.forces.player.manual_mining_speed_modifier = game.forces.player.manual_mining_speed_modifier + 1
 		return
 	end
 
@@ -314,7 +304,7 @@ function Public_event.mining_buffs(event)
 	end
 
 	if tech.bonus_mining_speed then
-		game.forces.player.manual_mining_speed_modifier = game.forces.player.manual_mining_speed_modifier + tech.bonus_mining_speed * (manual_mining_difficulty_scaling - 1)
+		game.forces.player.manual_mining_speed_modifier = game.forces.player.manual_mining_speed_modifier + tech.bonus_mining_speed
 	end
 
 	if tech.bonus_inventory then
@@ -325,8 +315,8 @@ end
 function Public_event.on_technology_effects_reset(event)
 	local objective = Chrono_table.get_table()
 	if event.force.name == "player" then
-		game.forces.player.character_inventory_slots_bonus = objective.invupgradetier * 10 --fixed typo?
-		game.forces.player.character_loot_pickup_distance_bonus = objective.pickupupgradetier --fixed typo?
+		game.forces.player.character_inventory_slots_bonus = game.forces.player.character_inventory_slots_bonus + objective.invupgradetier * 10
+		game.forces.player.character_loot_pickup_distance_bonus = game.forces.player.character_inventory_slots_bonus + objective.pickupupgradetier
 
 		local fake_event = {}
 		Public_event.mining_buffs(nil)

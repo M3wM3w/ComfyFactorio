@@ -193,7 +193,7 @@ Public.send_near_biters_to_objective = function()
   local surface = random_target.surface
   local pollution = surface.get_pollution(random_target.position)
   local success = false
-  local pollution_scale = math.max(math.pow(global.difficulty_vote_value,-1),math.pow(global.difficulty_vote_value,-2))
+  local pollution_scale = math.pow(global.difficulty_vote_value,-2)
   if pollution > 200 * pollution_scale or objective.planet[1].name.id == 17 then
     surface.pollute(random_target.position, -50 * pollution_scale)
     --game.print("sending objective wave")
@@ -242,7 +242,7 @@ local function select_units_around_spawner(spawner)
   local objective = Chrono_table.get_table()
 
 	local unit_count = 0
-	local max_unit_count =  128 * global.difficulty_vote_value
+	local max_unit_count =  128 * global.difficulty_vote_value --does changing this reduce lag?
 
 	for _, biter in pairs(biters) do
 		if unit_count >= max_unit_count then break end
@@ -278,7 +278,7 @@ local function send_group(unit_group, nearest_player_unit)
   if not target.valid then colonize(unit_group) return end
   local surface = target.surface
   local pollution = surface.get_pollution(target.position)
-  local pollution_scale = math.max(math.pow(global.difficulty_vote_value,-1),math.pow(global.difficulty_vote_value,-2))
+  local pollution_scale = math.pow(global.difficulty_vote_value,-2)
   if pollution > 200 * pollution_scale or objective.planet[1].name.id == 17 then
     surface.pollute(target.position, -50 * pollution_scale)
     --game.print("sending unit group attack")

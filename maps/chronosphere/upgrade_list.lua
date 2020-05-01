@@ -50,7 +50,7 @@ function Public.upgrades()
       sprite = "recipe/effectivity-module",
       max_level = 9,
       message = {"chronosphere.upgrade_filter_message"},
-      tooltip = {"chronosphere.upgrade_filter_tooltip", math_floor(300/(objective.upgrades[2]/3+1) * global.difficulty_vote_value)},
+      tooltip = {"chronosphere.upgrade_filter_tooltip", math_floor(100 * (3 / (objective.upgrades[2] / 3 + 1)) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1))},
       jump_limit = (1 + objective.upgrades[2]) * 3 or 0,
       cost = {
         item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 5000 * upgrade_coin_cost_scale},
@@ -222,7 +222,7 @@ function Public.upgrades()
       tooltip = {"chronosphere.upgrade_computer3_tooltip"},
       jump_limit = 25,
       cost = {
-        item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 20000 * upgrade_coin_cost_scale}, --typo fix on coin cost I think?
+        item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 2000 * upgrade_coin_cost_scale},
         item2 = {name = "low-density-structure", tt = "item-name", sprite = "item/low-density-structure", count = 100},
         item3 = {name = "rocket-control-unit", tt = "item-name", sprite = "item/rocket-control-unit", count = 100},
         item4 = {name = "uranium-fuel-cell", tt = "item-name", sprite = "item/uranium-fuel-cell", count = 50}
