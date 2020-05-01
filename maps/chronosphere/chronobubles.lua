@@ -79,7 +79,7 @@ function Public.determine_planet(choice)
   then ores_weights = {1,2,12,15,6,0}
   end
   local ores_raffle = {}
-	for t = 1, 5, 1 do
+	for t = 1, 6, 1 do
     if ores_weights[t] > 0 then
       for _ = 1, ores_weights[t], 1 do
           table.insert(ores_raffle, t)
