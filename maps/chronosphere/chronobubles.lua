@@ -2,7 +2,6 @@ local Chrono_table = require 'maps.chronosphere.table'
 
 local Public = {}
 local math_random = math.random
---cumul_chance must be sum of this and all previous chances, add new planets at the end only, or recalculate
 --biters: used in spawner generation within math_random(1, 52 - biters), so higher number gives better chance. not to be greater than 50.
 
 local biomes = {
@@ -65,19 +64,19 @@ function Public.determine_planet(choice)
 
   local ores_weights = {1,2,3,2,1,0}
   if difficulty <= 0.25
-  then ores_weights = {12,12,12,6,2,0}
+  then ores_weights = {9,10,9,4,2,0}
   elseif difficulty <= 0.5
-  then ores_weights = {6,12,12,6,2,0}
+  then ores_weights = {5,11,12,6,2,0}
   elseif difficulty <= 0.75
-  then ores_weights = {5,10,12,6,3,0}
+  then ores_weights = {5,9,12,7,3,0}
   elseif difficulty <= 1
   then ores_weights = {1,2,3,2,1,0}
   elseif difficulty <= 1.5
-  then ores_weights = {2,6,12,10,5,0}
+  then ores_weights = {2,8,12,9,5,0}
   elseif difficulty <= 3
-  then ores_weights = {1,5,12,12,6,0}
-  elseif difficulty <= 5
-  then ores_weights = {0,2,12,12,12,0}
+  then ores_weights = {1,6,12,11,6,0}
+  elseif difficulty >= 5
+  then ores_weights = {1,2,12,13,6,0}
   end
   local ores_raffle = {}
 	for t = 1, 5, 1 do

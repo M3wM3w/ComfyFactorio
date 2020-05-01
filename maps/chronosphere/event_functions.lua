@@ -289,12 +289,12 @@ function Public_event.mining_buffs(event)
 	if not global.difficulty_vote_value then global.difficulty_vote_value = 1 end
 	local difficulty = global.difficulty_vote_value
 	
-	local manual_mining_difficulty_scaling = 2
+	local manual_mining_difficulty_scaling = 1.8
 	if difficulty < 1 then
-		manual_mining_difficulty_scaling = 2 + (1 - difficulty)
+		manual_mining_difficulty_scaling = 1.8 + (1 - difficulty)
 	end
 	if difficulty > 1 then
-		manual_mining_difficulty_scaling = 2 - ((difficulty - 1) / 3)
+		manual_mining_difficulty_scaling = 1.8 - ((difficulty - 1) / 3)
 	end
 
 
