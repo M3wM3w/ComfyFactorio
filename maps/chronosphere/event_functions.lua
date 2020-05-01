@@ -289,18 +289,18 @@ function Public_event.mining_buffs(event)
 	if not global.difficulty_vote_value then global.difficulty_vote_value = 1 end
 	local difficulty = global.difficulty_vote_value
 	
-	local manual_mining_difficulty_scaling = 1
+	local manual_mining_difficulty_scaling = 2
 	if difficulty < 1 then
-		manual_mining_difficulty_scaling = 1 + ((1 - difficulty) / 5)
+		manual_mining_difficulty_scaling = 2 + ((1 - difficulty) / 2)
 	end
 	if difficulty > 1 then
-		manual_mining_difficulty_scaling = 1 -  ((difficulty - 1) / 5)
+		manual_mining_difficulty_scaling = 2 -  ((difficulty - 1) / 2)
 	end
 
 
 	if event == nil then
 		-- initialization/reset call
-		game.forces.player.mining_drill_productivity_bonus = 0 --fixed typo?
+		game.forces.player.mining_drill_productivity_bonus = 1 --fixed typo?
 		game.forces.player.manual_mining_speed_modifier = manual_mining_difficulty_scaling - 1
 		return
 	end
@@ -314,7 +314,7 @@ function Public_event.mining_buffs(event)
 	end
 
 	if tech.bonus_mining_speed then
-		game.forces.player.manual_mining_speed_modifier = game.forces.player.manual_mining_speed_modifier + tech.bonus_mining_speed * manual_mining_difficulty_scaling
+		game.forces.player.manual_mining_speed_modifier = game.forces.player.manual_mining_speed_modifier + tech.bonus_mining_speed * (manual_mining_difficulty_scaling - 1)
 	end
 
 	if tech.bonus_inventory then

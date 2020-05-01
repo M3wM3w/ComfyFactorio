@@ -44,7 +44,7 @@ local richness = {
   [5] = {name = {"chronosphere.ore_richness_very_poor"}, dname = "very poor", factor = 0.3},
   [6] = {name = {"chronosphere.ore_richness_none"}, dname = "none", factor = 0}
 }
-local function roll()
+local function biome_roll()
   local biomes_raffle = {}
 	for t = 1, #biomes, 1 do
     if biomes[t].weight > 0 then
@@ -63,21 +63,21 @@ function Public.determine_planet(choice)
   if not global.difficulty_vote_value then global.difficulty_vote_value = 1 end
   local difficulty = global.difficulty_vote_value
 
-  local ores_weights = {1,2,2,2,1,0}
+  local ores_weights = {1,2,3,2,1,0}
   if difficulty <= 0.25
-  then ores_weights = {4,4,4,1,0,0}
+  then ores_weights = {12,12,12,6,2,0}
   elseif difficulty <= 0.5
-  then ores_weights = {3,4,5,3,1,0}
+  then ores_weights = {6,12,12,6,2,0}
   elseif difficulty <= 0.75
-  then ores_weights = {2,4,4,4,1,0}
+  then ores_weights = {5,10,12,6,3,0}
   elseif difficulty <= 1
-  then ores_weights = {1,2,2,2,1,0}
+  then ores_weights = {1,2,3,2,1,0}
   elseif difficulty <= 1.5
-  then ores_weights = {1,2,2,2,2,0}
+  then ores_weights = {2,6,12,10,5,0}
   elseif difficulty <= 3
-  then ores_weights = {1,2,4,4,2,0}
+  then ores_weights = {1,5,12,12,6,0}
   elseif difficulty <= 5
-  then ores_weights = {0,2,4,4,4,0}
+  then ores_weights = {0,2,12,12,12,0}
   end
   local ores_raffle = {}
 	for t = 1, 5, 1 do
@@ -109,17 +109,18 @@ function Public.determine_planet(choice)
     end
   end
   if not choice then
-    planet_choice = roll()
+    planet_choice = biome_roll()
   else
-    if biomes[choice] then
-      planet_choice = biomes[choice]
+    if biomes[choice][1] then
+      planet_choice = biomes[choice][1]
     else
-      planet_choice = roll()
+      planet_choice = biome_roll()
     end
   end
   if planet_choice.id == 10 then ores = 6 end
-  if objective.upgrades[13] == 1 and ores == 9 then ores = 4 end
-  if objective.upgrades[14] == 1 and ores > 6 and ores ~= 10 then ores = 3 end
+  if objective.upgrades[13] == 1 and ores == 5 then ores = 4 end
+  if objective.upgrades[14] == 1 and ores > 3 and ores < 6 then ores = 3 end
+
   local planet = {
     [1] = {
       name = planet_choice,
@@ -128,6 +129,7 @@ function Public.determine_planet(choice)
       ore_richness = richness[ores]
     }
   }
+  
   objective.planet = planet
 end
 return Public
