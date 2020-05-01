@@ -20,7 +20,7 @@ function Public.upgrades()
 	local difficulty = global.difficulty_vote_value
 	local upgrade_coin_cost_scale = 1
 	if difficulty < 1 then
-    upgrade_coin_cost_scale = 1 - ((1 - difficulty) * 4 / 5)
+    upgrade_coin_cost_scale = 1 - ((1 - difficulty) * 3 / 5)
   elseif difficulty > 1 then
 		upgrade_coin_cost_scale = 1 + ((difficulty - 1) / 5)
 	end
