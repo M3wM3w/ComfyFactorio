@@ -37,9 +37,9 @@ global.difficulty_tooltips = {
     [2] = "Biters less aggressive; time evo slower; pollution by train lower; maps slightly more favourable; upgrades coin prices significantly cheaper; MK2 research enabled; flamer nerf more slight",
     [3] = "Biters slightly less aggressive; time evo slightly slower; pollution by train slightly lower; maps very slightly more favourable; upgrades coin prices cheaper; MK2 research enabled; flamer nerf more slight",
     [4] = "Normal difficulty.",
-    [5] = "Biters slightly more aggressive; time evo slightly faster; pollution by train slightly higher; maps very slightly less favourable; upgrades coin prices more expensive; flamer nerf less slight",
-    [6] = "Biters more aggressive; time evo faster; pollution by train higher; maps slightly less favourable; upgrades coin prices significantly more expensive; flamer nerf less slight",
-    [7] = "Biters much more aggressive; time evo significantly faster; pollution by train significantly higher; maps less favourable; upgrades coin prices much more expensive; flamer nerf less slight",
+    [5] = "Biters more aggressive; time evo faster; pollution by train higher; maps slightly less favourable; upgrades coin prices slightly more expensive; flamer nerf less slight",
+    [6] = "Biters much more aggressive; time evo significantly faster; pollution by train significantly higher; maps less favourable; upgrades coin prices more expensive; flamer nerf less slight",
+    [7] = "ENTER AT YOUR PERIL",
 }
 
 local function generate_overworld(surface, optplanet)
