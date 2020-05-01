@@ -74,7 +74,7 @@ function Public.determine_planet(choice)
   elseif difficulty <= 1.5
   then ores_weights = {2,7,12,10,5,0}
   elseif difficulty <= 3
-  then ores_weights = {1,6,12,11,6,0}
+  then ores_weights = {1,5,12,12,6,0}
   elseif difficulty >= 5
   then ores_weights = {1,2,12,15,6,0}
   end
