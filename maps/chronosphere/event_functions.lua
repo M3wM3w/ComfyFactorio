@@ -291,10 +291,10 @@ function Public_event.mining_buffs(event)
 	
 	local manual_mining_difficulty_scaling = 2
 	if difficulty < 1 then
-		manual_mining_difficulty_scaling = 2 + ((1 - difficulty) / 2)
+		manual_mining_difficulty_scaling = 2 + (1 - difficulty)
 	end
 	if difficulty > 1 then
-		manual_mining_difficulty_scaling = 2 -  ((difficulty - 1) / 2)
+		manual_mining_difficulty_scaling = 2 - ((difficulty - 1) / 3)
 	end
 
 
