@@ -287,7 +287,6 @@ local mining_researches = {
 
 function Public_event.mining_buffs(event)
 
-
 	if event == nil then
 		-- initialization/reset call
 		game.forces.player.mining_drill_productivity_bonus = game.forces.player.mining_drill_productivity_bonus + 1
