@@ -128,7 +128,7 @@ local texts = {
 		"Good news! I’ve taught the inserter to feel love!",
 	},
 	["new_talks_solo"] = {
-		"I’m so embarrassed. Again we landed in the wrong time%s",
+		"I’m so embarrassed. Again we landed in the wrong timeline%s",
 		"Checking math...2 + 2 = 5, check complete%s",
 		"Seems like this planet had biters since ages%s",
 		"I bet this time we will finally get into the right year%s",
