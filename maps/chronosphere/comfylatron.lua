@@ -141,7 +141,7 @@ local texts = {
 		"Time to travel (▀̿Ĺ̯▀̿ ̿)",
 		"Have you read The Three Body Problem?",
 		"A pocket universe. Such a long way away, don't you think?",
-		"How's my Chronotrain coming along?",
+		"How's the ol' Chronotrain interior coming along? Hope it lasts!",
 		"I read out messages for coins%s",
 		"I'm selling Comfylatron ASMR tapes%s",
 		"The biters are getting smarter%s",
