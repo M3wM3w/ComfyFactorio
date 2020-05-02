@@ -24,6 +24,16 @@ end
 
 local size_of_vectors = #attack_vectors
 
+local function calculate_attacks_scale() {
+  attacks_difficulty_exponent= 1.5 --tuning parameter for biter wave strength scaling with difficulty
+  local a = math.pow(global.difficulty_vote_value,attacks_difficulty_exponent)
+  -- for difficulties = {0.25, 0.5, 0.75, 1, 1.5, 3, 5}
+  -- exponent 1 -> attacks_scale = {0.25, 0.50, 0.75, 1.00, 1.50, 3.00, 5.00}
+  -- exponent 1.5 -> attacks_scale = {0.13, 0.35, 0.65, 1.00, 1.84, 5.20, 11.18}
+  -- exponent 2 -> attacks_scale = {0.06, 0.25, 0.56, 1.00, 2.25, 9.00, 25.00}
+  return a
+}
+
 
 local function get_active_biter_count()
   local objective = Chrono_table.get_table()
@@ -194,16 +204,8 @@ Public.send_near_biters_to_objective = function()
   local pollution = surface.get_pollution(random_target.position)
   local success = false
 
-  -- for now, this definition appears twice in this file:
-  pollution_difficulty_exponent= 1.5 --tuning parameter for biter wave strength
-  local attacks_scale = math.pow(global.difficulty_vote_value,-pollution_difficulty_exponent)
-  -- for difficulties = {0.25, 0.5, 0.75, 1, 1.5, 3, 5}
-  -- exponent 1 -> attacks_scale = {0.25, 0.50, 0.75, 1.00, 1.50, 3.00, 5.00}
-  -- exponent 1.5 -> attacks_scale = {0.13, 0.35, 0.65, 1.00, 1.84, 5.20, 11.18}
-  -- exponent 2 -> attacks_scale = {0.06, 0.25, 0.56, 1.00, 2.25, 9.00, 25.00}
-
-  if pollution > 200 * attacks_scale or objective.planet[1].name.id == 17 then
-    surface.pollute(random_target.position, -50 * attacks_scale)
+  if pollution > 200 / calculate_attacks_scale() or objective.planet[1].name.id == 17 then
+    surface.pollute(random_target.position, -50 / calculate_attacks_scale())
     --game.print("sending objective wave")
     success = true
   else
@@ -287,16 +289,8 @@ local function send_group(unit_group, nearest_player_unit)
   local surface = target.surface
   local pollution = surface.get_pollution(target.position)
 
-  -- for now, this definition appears twice in this file:
-  pollution_difficulty_exponent= 1.5 --tuning parameter for biter wave strength
-  local attacks_scale = math.pow(global.difficulty_vote_value,-pollution_difficulty_exponent)
-  -- for difficulties = {0.25, 0.5, 0.75, 1, 1.5, 3, 5}
-  -- exponent 1 -> attacks_scale = {0.25, 0.50, 0.75, 1.00, 1.50, 3.00, 5.00}
-  -- exponent 1.5 -> attacks_scale = {0.13, 0.35, 0.65, 1.00, 1.84, 5.20, 11.18}
-  -- exponent 2 -> attacks_scale = {0.06, 0.25, 0.56, 1.00, 2.25, 9.00, 25.00}
-
-  if pollution > 200 * attacks_scale or objective.planet[1].name.id == 17 then
-    surface.pollute(target.position, -50 * attacks_scale)
+  if pollution > 200 / calculate_attacks_scale()) or objective.planet[1].name.id == 17 then
+    surface.pollute(target.position, -50 / calculate_attacks_scale()))
     --game.print("sending unit group attack")
 	   local commands = {}
 
