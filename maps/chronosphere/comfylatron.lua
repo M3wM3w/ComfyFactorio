@@ -68,7 +68,6 @@ local texts = {
 		"amazing, a %s%s",
 		"Do you smell something charging %s?",
 		"Somebody come check %s's pulse"
-		"I have a bone to pick with you %s%s"
 	},
 	["convo_starters"] = {
 		"=^_^= ",
@@ -80,7 +79,9 @@ local texts = {
 		"How's it going %s%s ",
 		"Hi %s%s ",
 		"Hey %s%s ",
-		"%s! "
+		"%s! ",
+		"I have a bone to pick with you %s%s",
+		"%s, haven't you heard?"
 	},
 	["multiple_characters_convo_starters"] = {
 		"Hi%s ",
