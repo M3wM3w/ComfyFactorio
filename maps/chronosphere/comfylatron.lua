@@ -125,7 +125,7 @@ local texts = {
 		"I dreamt of electric biters again D:",
 		"I need a minute to defrag.",
 		"I have a secret plan.",
-		"Good news! I’ve taught the inserter to feel love!",
+		"Good news! I’ve taught the inserter to feel love!"
 	},
 	["new_talks_solo"] = {
 		"I’m so embarrassed. Again we landed in the wrong timeline%s",
