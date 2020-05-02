@@ -65,25 +65,25 @@ local texts = {
 		"Somebody come check %s's pulse"
 	},
 	["convo_starters"] = {
-		"=^_^=",
-		"(=^ェ^=)",
-		"=^.^= Hi %s%s",
-		"^.^ Finally i found you %s%s",
-		"I have an important message for you %s%s",
-		"I have important news for you %s%s",
-		"How's it going %s%s",
-		"Hi %s%s",
-		"Hey %s%s",
-		"What's up %s%s",
-		"%s!"
+		"=^_^= ",
+		"(=^ェ^=) ",
+		"=^.^= Hi %s%s ",
+		"^.^ Finally i found you %s%s ",
+		"I have an important message for you %s%s ",
+		"I have important news for you %s%s ",
+		"How's it going %s%s ",
+		"Hi %s%s ",
+		"Hey %s%s ",
+		"What's up %s%s ",
+		"%s! "
 	},
 	["multiple_characters_convo_starters"] = {
-		"Hi%s",
-		"Hey%s",
-		"Hello everyone%s",
-		"Hey engineers%s",
-		"Hi everybody%s",
-		"Hello crew%s"
+		"Hi%s ",
+		"Hey%s ",
+		"Hello everyone%s ",
+		"Hey engineers%s ",
+		"Hi everybody%s ",
+		"Hello crew%s "
 	},
 	["neutral_findings"] = {
 		"a %s%s",
@@ -353,7 +353,7 @@ local function talks(nearby_characters)
 	if #nearby_characters == 1 then
 		local c = nearby_characters[math_random(1, #nearby_characters)]
 		local arg1 = c.player.name
-		local symbols = {". ", "! "}
+		local symbols = {".", "!"}
 		local arg2 = symbols[math_random(1, #symbols)]
 		local randomphrase = texts["convo_starters"][math_random(1, #texts["convo_starters"])]
 		str = str .. string.format(randomphrase, arg1, arg2)
@@ -367,7 +367,7 @@ local function talks(nearby_characters)
 			str = str .. string.format(randomphrase2, arg3)
 		end
 	else
-		local symbols = {". ", "! "}
+		local symbols = {".", "!"}
 		local arg1 = symbols[math_random(1, #symbols)]
 		local randomphrase = texts["multiple_characters_convo_starters"][math_random(1, #texts["multiple_characters_convo_starters"])]
 		local str = str .. string.format(randomphrase, arg1)
