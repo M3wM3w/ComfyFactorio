@@ -177,7 +177,6 @@ local texts = {
 		"3...2...1...jump time! errr...I mean...desync time!",
 		"Just let me deliver the fish. They start to smell a bit. Luckily I don't have a nose%s",
 		"Time to travel (▀̿Ĺ̯▀̿ ̿)",
-		"Have any of you read The Three Body Problem?",
 		"I read out messages for coins%s",
 		"The biters are getting smarter%s",
 		"Would you believe it? Back in the factory, I once saw a robot with ID 1627431!",
@@ -251,7 +250,8 @@ local texts = {
 		"inactive-wear for being indoors",
 		"safety in numbers",
 		"don't underoverexaggerate",
-		"I could automate the engineers.."
+		"I could automate the engineers..",
+		"protect_entity(players)"
 	}
 }
 
@@ -357,7 +357,21 @@ local function talks(nearby_characters)
 		local arg2 = symbols[math_random(1, #symbols)]
 		local randomphrase = texts["convo_starters"][math_random(1, #texts["convo_starters"])]
 		str = str .. string.format(randomphrase, arg1, arg2)
-		if math_random(1,12) == 1 then
+		if objective.planet.name.id == 10 and math_random(1,30) == 1 then
+			str = str .. "Looks dangerous out there!"
+		elseif objective.planet.name.id == 17 and math_random(1,6) == 1 then
+			str = str .. "We made it!"
+		elseif objective.planet.name.id == 18 and math_random(1,40) == 1 then
+			str = str .. "Was that you?"
+		elseif objective.planet.name.id == 15 and math_random(1,20) == 1 then
+			str = str .. "A new day, a new Chronotrain!"
+		elseif objective.chronojumps > 7 and objective.passivejumps > ((objective.chronojumps-5)/3) and math_random(1,30) == 1 then
+			str = str .. "You're sure taking it easy!"
+		elseif objective.planet.ore_richness == 1 and math_random(1,100) == 1 then
+			str = str .. "You know what else is very rich?"
+		elseif objective.poisontimeout > 0 and math_random(1,3) == 1 then
+			str = str .. "Tehe, I just let out some gas!"
+		elseif math_random(1,15) == 1 then
 			local randomphrase2 = texts["old_talks"][math_random(1, #texts["old_talks"])]
 			str = str .. randomphrase2
 		else
@@ -371,7 +385,7 @@ local function talks(nearby_characters)
 		local arg1 = symbols[math_random(1, #symbols)]
 		local randomphrase = texts["multiple_characters_convo_starters"][math_random(1, #texts["multiple_characters_convo_starters"])]
 		local str = str .. string.format(randomphrase, arg1)
-		if math_random(1,12) == 1 then
+		if math_random(1,15) == 1 then
 			local randomphrase2 = texts["old_talks"][math_random(1, #texts["old_talks"])]
 			str = str .. randomphrase2
 		else
