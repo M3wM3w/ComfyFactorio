@@ -70,7 +70,6 @@ local texts = {
 		"amazing, a %s%s",
 		"Do you smell something charging %s?",
 		"Somebody come check %s's pulse"
-		"Bite my shiny metal a$$ %s!"
 	},
 	["convo_starters"] = {
 		"=^_^= ",
@@ -267,6 +266,7 @@ local texts = {
 		"when I get tired, I load myself from save",
 		"domestic cozy",
 		"gruntled",
+		"Bite my shiny metal a$$, biters!",
 		"knitwear for drones",
 		"weighted blankets",
 		"co-operate, co-operate, defect",
@@ -277,7 +277,7 @@ local texts = {
 		"inactive-wear for being indoors",
 		"safety in numbers",
 		"I could automate the engineers..",
-		"protect_entity(players)",
+		"protect_entity(myself)",
 		"(ノಠ益ಠ)ノ彡┻━┻"
 	}
 }
