@@ -72,8 +72,6 @@ local texts = {
 		"I dispense hot water btw"
 	},
 	["convo_starters"] = {
-		"=^_^= ",
-		"(=^ェ^=) ",
 		"=^.^= Hi %s%s ",
 		"^.^ Finally i found you %s%s ",
 		"I have an important message for you %s%s ",
@@ -83,6 +81,7 @@ local texts = {
 		"Hey %s%s ",
 		"%s! ",
 		"%s! ",
+		"So %s, I was thinking. ",
 		"I have a bone to pick with you %s%s ",
 		"%s, haven't you heard? ",
 		"Just to let you know %s, ",
@@ -201,6 +200,9 @@ local texts = {
 		"We need more iron%s",
 		"We need more copper%s",
 		"I need more uranium-235%s",
+		"What if we do the sorting backwards%s",
+		"Is there a word for how shiny my body is?",
+		"I'm getting impatient, how about a jump?",
 		"Does anyone have any spare gas they've got stored up?",
 		"It is officially BREAK TIME (paid)",
 		"It is officially BREAK TIME (unpaid)",
