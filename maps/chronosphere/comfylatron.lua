@@ -311,7 +311,7 @@ local function visit_player()
 			low_priority = true
 		}
 	})
-	local symbols = {"!","!!","..","...",""}
+	local symbols = {"!","!!","..","..."," "}
 	local arg1 = symbols[math_random(1, #symbols)]
 	local randomphrase = texts["approach_player"][math_random(1, #texts["approach_player"])]
 	local str = string.format(randomphrase, arg1)
@@ -330,7 +330,7 @@ local function greet_player(nearby_characters)
 		if c.player.index == objective.comfylatron_greet_player_index then
 
 			local arg1 = c.player.name
-			local symbols = {".", "!", ".", "!", "?", "...",""}
+			local symbols = {".", "!", ".", "!", "?", "..."," "}
 			local arg2 = symbols[math_random(1, #symbols)]
 			local randomphrase = texts["solo_greetings"][math_random(1, #texts["solo_greetings"])]
 			local str = string.format(randomphrase, arg1, arg2)
@@ -375,7 +375,7 @@ local function talks(nearby_characters)
 			local randomphrase2 = texts["old_talks"][math_random(1, #texts["old_talks"])]
 			str = str .. randomphrase2
 		else
-			local symbols2 = {".","!","?","..",""}
+			local symbols2 = {".","!","?",".."," "}
 			local arg3 = symbols[math_random(1, #symbols2)]
 			local randomphrase2 = texts["new_talks_solo"][math_random(1, #texts["new_talks_solo"])]
 			str = str .. string.format(randomphrase2, arg3)
@@ -389,7 +389,7 @@ local function talks(nearby_characters)
 			local randomphrase2 = texts["old_talks"][math_random(1, #texts["old_talks"])]
 			str = str .. randomphrase2
 		else
-			local symbols2 = {".","!","?","..",""}
+			local symbols2 = {".","!","?",".."," "}
 			local arg3 = symbols[math_random(1, #symbols2)]
 			local randomphrase2 = texts["new_talks_group"][math_random(1, #texts["new_talks_group"])]
 			str = str .. string.format(randomphrase2, arg3)
@@ -556,7 +556,7 @@ local function go_to_some_location()
 		})
 	end
 	
-	local symbols = {"!","!!","..","...",""}
+	local symbols = {"!","!!","..","..."," "}
 	local arg1 = symbols[math_random(1, #symbols)]
 	local randomphrase = texts["random_travel"][math_random(1, #texts["random_travel"])]
 	local str = string.format(randomphrase, arg1)
