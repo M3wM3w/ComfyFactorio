@@ -315,7 +315,7 @@ function Public_event.on_technology_effects_reset(event)
 	local objective = Chrono_table.get_table()
 	if event.force.name == "player" then
 		game.forces.player.character_inventory_slots_bonus = game.forces.player.character_inventory_slots_bonus + objective.invupgradetier * 10
-		game.forces.player.character_loot_pickup_distance_bonus = game.forces.player.character_inventory_slots_bonus + objective.pickupupgradetier
+		game.forces.player.character_loot_pickup_distance_bonus = game.forces.player.character_loot_pickup_distance_bonus + objective.pickupupgradetier
 
 		local fake_event = {}
 		Public_event.mining_buffs(nil)
