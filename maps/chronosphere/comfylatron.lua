@@ -56,7 +56,7 @@ local texts = {
 		"(=^ェ^=)",
 		"( 。・_・。)人(。・_・。 )",
 		"(°.°)",
-		"(*°∀°)=3 %s"
+		"(*°∀°)=3 %s",
 		"=^.^= Hi %s%s",
 		"^.^ Finally i found you %s%s",
 		"I have an important message for you %s%s",
