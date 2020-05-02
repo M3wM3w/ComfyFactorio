@@ -257,7 +257,6 @@ local texts = {
 		"there's plenty more fish in the C",
 		"inactive-wear for being indoors",
 		"safety in numbers",
-		"don't underoverexaggerate",
 		"I could automate the engineers..",
 		"protect_entity(players)",
 		"(ノಠ益ಠ)ノ彡┻━┻"
