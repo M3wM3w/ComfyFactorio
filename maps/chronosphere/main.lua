@@ -258,6 +258,7 @@ function Public.chronojump(choice)
 	Chrono.post_jump()
 	Event_functions.flamer_nerfs()
 	surface.pollute(objective.locomotive.position, 150 * (3 / (objective.upgrades[2] / 3 + 1)) * (1 + objective.chronojumps) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1))
+	::continue::
 end
 
 local tick_minute_functions = {
