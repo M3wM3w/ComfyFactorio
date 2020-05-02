@@ -357,13 +357,13 @@ local function talks(nearby_characters)
 		local arg2 = symbols[math_random(1, #symbols)]
 		local randomphrase = texts["convo_starters"][math_random(1, #texts["convo_starters"])]
 		str = str .. string.format(randomphrase, arg1, arg2)
-		if objective.planet.name.id == 10 and math_random(1,30) == 1 then
+		if objective.planet[1].name.id == 10 and math_random(1,30) == 1 then
 			str = str .. "Looks dangerous out there!"
-		elseif objective.planet.name.id == 17 and math_random(1,6) == 1 then
+		elseif objective.planet[1].name.id == 17 and math_random(1,6) == 1 then
 			str = str .. "We made it!"
-		elseif objective.planet.name.id == 18 and math_random(1,40) == 1 then
+		elseif objective.planet[1].name.id == 18 and math_random(1,40) == 1 then
 			str = str .. "Was that you?"
-		elseif objective.planet.name.id == 15 and math_random(1,20) == 1 then
+		elseif objective.planet[1].name.id == 15 and math_random(1,20) == 1 then
 			str = str .. "A new day, a new Chronotrain!"
 		elseif objective.chronojumps > 7 and objective.passivejumps > ((objective.chronojumps-5)/3) and math_random(1,30) == 1 then
 			str = str .. "You're sure taking it easy!"
