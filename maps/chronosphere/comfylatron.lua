@@ -80,7 +80,6 @@ local texts = {
 		"How's it going %s%s ",
 		"Hi %s%s ",
 		"Hey %s%s ",
-		"What's up %s%s ",
 		"%s! "
 	},
 	["multiple_characters_convo_starters"] = {
