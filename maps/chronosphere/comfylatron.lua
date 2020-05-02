@@ -596,7 +596,7 @@ local function on_entity_damaged(event)
 end
 
 local function on_tick()
-	if game.tick % 200 == 100 then
+	if game.tick % 1200 == 600 then
 		heartbeat()
 	end
 end
