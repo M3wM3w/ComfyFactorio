@@ -197,7 +197,7 @@ function Public.upgrades()
       jump_limit = 15,
       cost = {
         item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 5000 * upgrade_coin_cost_scale},
-        item2 = {name = "advanced-circuit", tt = "item-name", sprite = "item/advanced-circuit", count = 1200},
+        item2 = {name = "advanced-circuit", tt = "item-name", sprite = "item/advanced-circuit", count = 1000},
         item3 = {name = "copper-plate", tt = "item-name", sprite = "item/copper-plate", count = 2000}
       }
     },
@@ -210,7 +210,7 @@ function Public.upgrades()
       jump_limit = 20,
       cost = {
         item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 10000 * upgrade_coin_cost_scale},
-        item2 = {name = "processing-unit", tt = "item-name", sprite = "item/processing-unit", count = 1200},
+        item2 = {name = "processing-unit", tt = "item-name", sprite = "item/processing-unit", count = 1000},
         item3 = {name = "nuclear-reactor", tt = "entity-name", sprite = "item/nuclear-reactor", count = 1}
       }
     },
