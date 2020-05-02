@@ -28,7 +28,6 @@ local texts = {
 		"ohh%s",
 		"...",
 		"..",
-		"ヽ(^o^)丿",
 		"(((༼•̫͡•༽)))"
 	},
 	["random_travel"] = {
@@ -69,6 +68,7 @@ local texts = {
 		"amazing, a %s%s",
 		"Do you smell something charging %s?",
 		"Somebody come check %s's pulse"
+		"I have a bone to pick with you %s%s"
 	},
 	["convo_starters"] = {
 		"=^_^= ",
