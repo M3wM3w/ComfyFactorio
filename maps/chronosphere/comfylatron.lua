@@ -69,7 +69,8 @@ local texts = {
 		">> analyzing %s",
 		"amazing, a %s%s",
 		"Do you smell something charging %s?",
-		"Somebody come check %s's pulse"
+		"Somebody come check %s's pulse",
+		"I dispense hot water btw"
 	},
 	["convo_starters"] = {
 		"=^_^= ",
@@ -274,7 +275,6 @@ local texts = {
 		"is it better to rest on the conveyor belt",
 		"get to da locomotive!!!!",
 		"there's plenty more fish in the C",
-		"inactive-wear for being indoors",
 		"safety in numbers",
 		"I could automate the engineers..",
 		"protect_entity(myself)",
