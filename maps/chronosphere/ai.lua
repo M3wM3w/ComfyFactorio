@@ -193,7 +193,15 @@ Public.send_near_biters_to_objective = function()
   local surface = random_target.surface
   local pollution = surface.get_pollution(random_target.position)
   local success = false
-  local pollution_scale = math.pow(global.difficulty_vote_value,-1.5)
+
+  -- for now, this definition appears twice in this file:
+  pollution_difficulty_exponent= 1.5 --tuning parameter for biter wave strength
+  local pollution_scale = math.pow(global.difficulty_vote_value,-pollution_difficulty_exponent)
+  -- for difficulties = {0.25, 0.5, 0.75, 1, 1.5, 3, 5}
+  -- exponent 1 -> pollution_scale = {0.25, 0.50, 0.75, 1.00, 1.50, 3.00, 5.00}
+  -- exponent 1.5 -> pollution_scale = {0.13, 0.35, 0.65, 1.00, 1.84, 5.20, 11.18}
+  -- exponent 2 -> pollution_scale = {0.06, 0.25, 0.56, 1.00, 2.25, 9.00, 25.00}
+
   if pollution > 200 * pollution_scale or objective.planet[1].name.id == 17 then
     surface.pollute(random_target.position, -50 * pollution_scale)
     --game.print("sending objective wave")
@@ -278,7 +286,15 @@ local function send_group(unit_group, nearest_player_unit)
   if not target.valid then colonize(unit_group) return end
   local surface = target.surface
   local pollution = surface.get_pollution(target.position)
-  local pollution_scale = math.pow(global.difficulty_vote_value,-1.5)
+
+  -- for now, this definition appears twice in this file:
+  pollution_difficulty_exponent= 1.5 --tuning parameter for biter wave strength
+  local pollution_scale = math.pow(global.difficulty_vote_value,-pollution_difficulty_exponent)
+  -- for difficulties = {0.25, 0.5, 0.75, 1, 1.5, 3, 5}
+  -- exponent 1 -> pollution_scale = {0.25, 0.50, 0.75, 1.00, 1.50, 3.00, 5.00}
+  -- exponent 1.5 -> pollution_scale = {0.13, 0.35, 0.65, 1.00, 1.84, 5.20, 11.18}
+  -- exponent 2 -> pollution_scale = {0.06, 0.25, 0.56, 1.00, 2.25, 9.00, 25.00}
+
   if pollution > 200 * pollution_scale or objective.planet[1].name.id == 17 then
     surface.pollute(target.position, -50 * pollution_scale)
     --game.print("sending unit group attack")
