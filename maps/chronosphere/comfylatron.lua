@@ -98,7 +98,7 @@ local texts = {
 		"does anybody need %s?",
 		"they need to nerf %s",
 		"I've decided. this is the best %s%s",
-		"fuck this %s in particular"
+		"f*ck this %s in particular"
 	},
 	["old_talks"] = {
 		"We’re making beer. I’m the brewery!",
@@ -130,7 +130,7 @@ local texts = {
 	["new_talks_solo"] = {
 		"I’m so embarrassed. Again we landed in the wrong timeline%s",
 		"Checking math...2 + 2 = 5, check complete%s",
-		"Seems like this planet had biters since ages%s",
+		"Seems like this planet had biters since ages?%s",
 		"I bet this time we will finally get into the right year%s",
 		"I remember when we jumped into the time with blackjack and hookers...",
 		"I was having the most wonderful dream. We used the time machine to kill ourselves before we launched the machine! How terrible%s",
@@ -158,7 +158,7 @@ local texts = {
 		"What do you like better, gravity or angular momentum?",
 		"Call me Ishmael one more time and I'll run you over",
 		"Time is a jet plane... it moves too fast!",
-		"They tried to make me go to rehab, but I said 000!",
+		"They tried to make me go to rehab, but I said 000! (^_-)",
 		"When there's no more room outside, the biters will spawn in the factory",
 		"The biters are making me nervous (///_-)",
 		"If you stand in the same wagon for too long something bad happens",
@@ -192,7 +192,7 @@ local texts = {
 		"I saw the best minds of my generation destroyed by madness, starving hysterical naked",
 		"Time is a jet plane... it moves too fast!",
 		"No news is good news%s",
-		"They tried to make me go to rehab, but I said 000!",
+		"They tried to make me go to rehab, but I said 000! (^_-)",
 		"What's a double entendre?",
 		"When there's no more room outside, the biters will spawn in the factory%s",
 		"Does anyone want to play Magic?",
@@ -234,6 +234,7 @@ local texts = {
 		"looks like everyone's keeping themselves occupied",
 		"it looks like I'm doing nothing, but I'm hard at work!",
 		"FISH",
+		"><>",
 		"whats the difference between pseudorandom and true random",
 		"I wonder what day of the week it is",
 		"lambda functions.. are just functions",
@@ -376,7 +377,7 @@ local function talks(nearby_characters)
 			str = str .. randomphrase2
 		else
 			local symbols2 = {".","!","?",".."," "}
-			local arg3 = symbols[math_random(1, #symbols2)]
+			local arg3 = symbols2[math_random(1, #symbols2)]
 			local randomphrase2 = texts["new_talks_solo"][math_random(1, #texts["new_talks_solo"])]
 			str = str .. string.format(randomphrase2, arg3)
 		end
@@ -390,7 +391,7 @@ local function talks(nearby_characters)
 			str = str .. randomphrase2
 		else
 			local symbols2 = {".","!","?",".."," "}
-			local arg3 = symbols[math_random(1, #symbols2)]
+			local arg3 = symbols2[math_random(1, #symbols2)]
 			local randomphrase2 = texts["new_talks_group"][math_random(1, #texts["new_talks_group"])]
 			str = str .. string.format(randomphrase2, arg3)
 		end
