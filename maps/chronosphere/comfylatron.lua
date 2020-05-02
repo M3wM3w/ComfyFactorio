@@ -28,6 +28,7 @@ local texts = {
 		"ohh%s",
 		"...",
 		"..",
+		"ヽ(^o^)丿"
 		"(((༼•̫͡•༽)))"
 	},
 	["random_travel"] = {
@@ -54,11 +55,16 @@ local texts = {
 		"=^_^=",
 		"(=^ェ^=)",
 		"( 。・_・。)人(。・_・。 )",
+		"(°.°)",
+		"(*°∀°)=3 %s"
 		"=^.^= Hi %s%s",
 		"^.^ Finally i found you %s%s",
 		"I have an important message for you %s%s",
 		"Hello engineer!",
 		"How's it going %s%s",
+		"Looking fine %s!",
+		"Is that you %s?",
+		"Well if it isn't %s!!!",
 		">> analyzing %s",
 		"amazing, a %s%s",
 		"Do you smell something charging %s?",
@@ -234,10 +240,12 @@ local texts = {
 		"looks like everyone's keeping themselves occupied",
 		"it looks like I'm doing nothing, but I'm hard at work!",
 		"FISH",
-		"><>",
+		"/><>-",
 		"whats the difference between pseudorandom and true random",
 		"I wonder what day of the week it is",
-		"lambda functions.. are just functions",
+		"lambda functions.. they're just functions..",
+		"what makes magnets work",
+		"sometimes I feel just like a robot",
 		"when I get tired, I load myself from save",
 		"domestic cozy",
 		"gruntled",
@@ -252,7 +260,8 @@ local texts = {
 		"safety in numbers",
 		"don't underoverexaggerate",
 		"I could automate the engineers..",
-		"protect_entity(players)"
+		"protect_entity(players)",
+		"(ノಠ益ಠ)ノ彡┻━┻"
 	}
 }
 
