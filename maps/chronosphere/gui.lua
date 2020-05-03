@@ -186,7 +186,7 @@ function Public_gui.update_gui(player)
 	if tick % 60 == 58 then -- timer updates
 		local history = objective.accumulator_energy_history
 		objective.accumulator_energy_history = {}
-		local powerobserved,storedbattery = 0,0
+		local powerobserved,storedbattery,seconds_ETA = 0,0,0
 		if #history == 2 then
 			powerobserved = (history[2] - history[1]) / 54 * 60
 			storedbattery = history[2]

@@ -1,15 +1,7 @@
 local Chrono_table = require 'maps.chronosphere.table'
 local Balance = require 'maps.chronosphere.balance'
+local Rand = require 'maps.chronosphere.random'
 local Public = {}
-
-local function shuffle(tbl)
-	local size = #tbl
-		for i = size, 1, -1 do
-			local rand = math_random(size)
-			tbl[i], tbl[rand] = tbl[rand], tbl[i]
-		end
-	return tbl
-end
 
 local math_random = math.random
 local math_sqrt = math.sqrt
@@ -34,24 +26,6 @@ end
 
 local size_of_vectors = #attack_vectors
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-local function calculate_attacks_scale() {
-=======
-local function calculate_attacks_scale()
->>>>>>> Stashed changes
-  attacks_difficulty_exponent= 1.5 --tuning parameter for biter wave strength scaling with difficulty
-  local a = math.pow(global.difficulty_vote_value,attacks_difficulty_exponent)
-  -- for difficulties = {0.25, 0.5, 0.75, 1, 1.5, 3, 5}
-  -- exponent 1 -> attacks_scale = {0.25, 0.50, 0.75, 1.00, 1.50, 3.00, 5.00}
-  -- exponent 1.5 -> attacks_scale = {0.13, 0.35, 0.65, 1.00, 1.84, 5.20, 11.18}
-  -- exponent 2 -> attacks_scale = {0.06, 0.25, 0.56, 1.00, 2.25, 9.00, 25.00}
-  return a
-end
-
-
-=======
->>>>>>> Stashed changes
 local function get_active_biter_count()
   local objective = Chrono_table.get_table()
 	local count = 0
@@ -221,15 +195,10 @@ Public.send_near_biters_to_objective = function()
   local pollution = surface.get_pollution(random_target.position)
   local success = false
 
-<<<<<<< Updated upstream
   if pollution > 4 * Balance.pollution_spent_per_attack() or objective.planet[1].type.id == 17 then
-    surface.pollute(random_target.position, -Balance.pollution_spent_per_attack())
-=======
-  if pollution > 200 / calculate_attacks_scale() or objective.planet[1].name.id == 17 then
-    local pollution_to_eat = 50 / calculate_attacks_scale()
+    local pollution_to_eat = Balance.pollution_spent_per_attack()
     surface.pollute(random_target.position, -pollution_to_eat)
     game.pollution_statistics.set_input_count("biter-spawner",- pollution_to_eat + game.pollution_statistics.get_input_count("biter-spawner"))
->>>>>>> Stashed changes
     --game.print("sending objective wave")
     success = true
   else
@@ -254,6 +223,7 @@ Public.send_near_biters_to_objective = function()
   end
 end
 
+
 local function get_random_close_spawner(surface)
 	local area = {left_top = {-1100, -500}, right_bottom = {1100, 500}}
 
@@ -268,6 +238,7 @@ local function get_random_close_spawner(surface)
 
 	return spawner
 end
+
 
 local function select_units_around_spawner(spawner)
 	local biters = spawner.surface.find_enemy_units(spawner.position, 160, "player")
@@ -303,58 +274,45 @@ local function select_units_around_spawner(spawner)
 	return valid_biters
 end
 
+
 local function generate_attack_target(nearest_player_unit)
   local objective = Chrono_table.get_table()
 
-  local rng = math_random(1,100)
-  local target
-  if rng<=20 then
-    target = objective.locomotive
-  elseif rng<=30 then
-    target = objective.locomotive_cargo[1]
-  elseif rng<=40 then
-    target = objective.locomotive_cargo[2]
-  elseif rng<=50 then
-    target = objective.locomotive_cargo[3]
-  elseif rng<=80 then
-    target = nearest_player_unit
-  elseif rng<=90 then
+  local target = Rand.raffle(
+    {
+      nearest_player_unit,
+      objective.locomotive,
+      objective.locomotive_cargo[1],
+      objective.locomotive_cargo[2],
+      objective.locomotive_cargo[3],
+      "pumpjack",
+      "radar"
+    },
+    {3, 2, 1, 1, 1, 1, 1}
+  )
+
+  if target == "pumpjack" or target == "radar" then
     local entities = game.surfaces[objective.active_surface_index].find_entities_filtered({
-      name = "pumpjack"
+      name = target
     })
-    entities=shuffle(entities)
+    entities=Rand.shuffle(entities)
     local entity = false
     for _, e in pairs(entities) do
-      if e.status == defines.entity_status.working
-      or e.status == defines.entity_status.low_power
+      if e.is_connected_to_electric_network()
       then
         entity = e
       end
     end
-    if entity then
-      target = entity
-    else
-      target = objective.locomotive
-    end
-  else
-    local entities = game.surfaces[objective.active_surface_index].find_entities_filtered({
-      name = "radar"
-    })
-    entities=shuffle(entities)
-    local entity = false
-    for _, e in pairs(entities) do
-      if e.is_connected_to_electric_network() then
-        entity = e
-      end
-    end
-    if entity then
+    if entity and entity.valid then
       target = entity
     else
       target = objective.locomotive
     end
   end
+  
   return target
 end
+
 
 local function send_group(unit_group, nearest_player_unit)
   local objective = Chrono_table.get_table()
@@ -364,15 +322,10 @@ local function send_group(unit_group, nearest_player_unit)
   local surface = target.surface
   local pollution = surface.get_pollution(target.position)
 
-<<<<<<< Updated upstream
   if pollution > 4 * Balance.pollution_spent_per_attack() or objective.planet[1].type.id == 17 then
-    surface.pollute(target.position, - Balance.pollution_spent_per_attack())
-=======
-  if pollution > 200 / calculate_attacks_scale() or objective.planet[1].name.id == 17 then
-    local pollution_to_eat = 50 / calculate_attacks_scale()
+    local pollution_to_eat = Balance.pollution_spent_per_attack()
     surface.pollute(target.position, -pollution_to_eat)
     if #unit_group.members > 0 then game.pollution_statistics.set_input_count(unit_group.members[1].name,- pollution_to_eat + game.pollution_statistics.get_input_count(unit_group.members[1].name)) end
->>>>>>> Stashed changes
     --game.print("sending unit group attack")
 	   local commands = {}
 

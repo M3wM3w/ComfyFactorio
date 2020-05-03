@@ -5,7 +5,6 @@ require "modules.biters_yield_coins"
 require "modules.no_deconstruction_of_neutral_entities"
 --require "modules.no_solar"
 require "modules.shotgun_buff"
-require "maps.mineable_wreckage_yields_scrap"
 require "maps.chronosphere.comfylatron"
 require "maps.chronosphere.terrain"
 require "on_tick_schedule"
@@ -20,6 +19,7 @@ local Upgrades = require "maps.chronosphere.upgrades"
 local Tick_functions = require "maps.chronosphere.tick_functions"
 local Event_functions = require "maps.chronosphere.event_functions"
 local Balance = require "maps.chronosphere.balance"
+local Rand = require 'maps.chronosphere.random'
 local Chrono = require "maps.chronosphere.chrono"
 local Chrono_table = require 'maps.chronosphere.table'
 local Locomotive = require "maps.chronosphere.locomotive"
@@ -45,8 +45,10 @@ local function generate_overworld(surface, optplanet)
 	local objective = Chrono_table.get_table()
 	Planets.determine_planet(optplanet)
 	local planet = objective.planet
+
 	local message = {"chronosphere.planet_jump", planet[1].type.name, planet[1].ore_richness.name, planet[1].day_speed.name}
 	game.print(message, {r=0.98, g=0.66, b=0.22})
+
 	local discordmessage = "Destination: "..planet[1].type.dname..", Ore Richness: "..planet[1].ore_richness.dname..", Daynight cycle: "..planet[1].day_speed.dname
 	Server.to_discord_embed(discordmessage)
 	if planet[1].type.id == 12 then
@@ -256,12 +258,7 @@ function Public.chronojump(choice)
 	game.delete_surface(oldsurface)
 	Chrono.post_jump()
 	Event_functions.flamer_nerfs()
-<<<<<<< Updated upstream
 	surface.pollute(objective.locomotive.position, 150 * (3 / (objective.upgrades[2] / 3 + 1)) * (1 + objective.chronojumps) * Balance.train_pollution_difficulty_scaling())
-=======
-	local amount_to_pollute = 150 * (3 / (objective.upgrades[2] / 3 + 1)) * (1 + objective.chronojumps) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1)
-	surface.pollute(objective.locomotive.position, amount_to_pollute)
->>>>>>> Stashed changes
 	::continue::
 end
 
@@ -308,7 +305,7 @@ local function tick()
 
 	-- increase chronotimer at one of two different rates:
 	if objective.chronotimer < objective.chrononeeds - 182 then
-		chronotimer_ticks_between_increase = math_floor(60 / objective.passive_charge_rate / 2) * 2 --make sure it's even because you can't do things on odd ticks apparently...
+		local chronotimer_ticks_between_increase = math_floor(60 / objective.passive_charge_rate / 2) * 2 --make sure it's even because you can't do things on odd ticks apparently...
 		if tick % chronotimer_ticks_between_increase == 0 and objective.planet[1].type.id ~= 17 then
 			objective.chronotimer = objective.chronotimer + 1
 		end

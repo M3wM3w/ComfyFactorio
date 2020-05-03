@@ -1,4 +1,5 @@
 local Chrono_table = require 'maps.chronosphere.table'
+local Balance = require 'maps.chronosphere.balance'
 local Public_ores = {}
 local simplex_noise = require 'utils.simplex_noise'.d2
 local math_random = math.random
@@ -123,8 +124,6 @@ function Public_ores.prospect_ores(entity, surface, pos)
   end
 end
 
-return Public_ores
-
 
 
 ---- SCRAP ----
@@ -170,3 +169,7 @@ end
 
 local Event = require 'utils.event'
 Event.add(defines.events.on_player_mined_entity, on_player_mined_entity)
+
+
+
+return Public_ores

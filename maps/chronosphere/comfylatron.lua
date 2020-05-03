@@ -1,15 +1,7 @@
 local Chrono_table = require 'maps.chronosphere.table'
 local Event = require 'utils.event'
 local math_random = math.random
-
-local function shuffle(tbl)
-	local size = #tbl
-		for i = size, 1, -1 do
-			local rand = math_random(size)
-			tbl[i], tbl[rand] = tbl[rand], tbl[i]
-		end
-	return tbl
-end
+local Rand = require 'maps.chronosphere.random'
 
 local texts = {
 	["approach_player"] = {
@@ -508,7 +500,7 @@ local function analyze_random_nearby_entity()
 		area = {{objective.comfylatron.position.x - 4, objective.comfylatron.position.y - 4}, {objective.comfylatron.position.x + 4, objective.comfylatron.position.y + 4}}
 	})
 	if not entities[1] then return false end
-	entities = shuffle(entities)
+	entities = Rand.shuffle(entities)
 	local entity = false
 	for _, e in pairs(entities) do
 		if not analyze_blacklist[e.name] then

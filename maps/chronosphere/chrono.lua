@@ -91,8 +91,6 @@ function Public_chrono.restart_settings()
 	game.forces.scrapyard.set_friend('enemy', true)
 	game.forces.enemy.set_friend('scrapyard', true)
 
-	game.player.force.recipes["grenade"].energy = 8 * Balance.grenade_crafting_time_multiplier -- 8 is default as of 0.18.22
-
 	game.forces.player.technologies["land-mine"].enabled = false
 	game.forces.player.technologies["landfill"].enabled = false
 	game.forces.player.technologies["cliff-explosives"].enabled = false
@@ -102,8 +100,8 @@ function Public_chrono.restart_settings()
 	game.forces.player.recipes["pistol"].enabled = false
 
 	--fixing the bug where partial tech progress is not reset:
-	for _, tech in pairs(game.player.force.technologies) do 
-		game.player.force.set_saved_technology_progress(tech, 0)
+	for _, tech in pairs(game.forces.player.technologies) do 
+		game.forces.player.set_saved_technology_progress(tech, 0)
 	end
 end
 
