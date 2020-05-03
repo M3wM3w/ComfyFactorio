@@ -5,7 +5,7 @@ require "modules.biters_yield_coins"
 require "modules.no_deconstruction_of_neutral_entities"
 --require "modules.no_solar"
 require "modules.shotgun_buff"
-require "modules.mineable_wreckage_yields_scrap"
+require "maps.mineable_wreckage_yields_scrap"
 require "maps.chronosphere.comfylatron"
 require "maps.chronosphere.terrain"
 require "on_tick_schedule"
@@ -19,6 +19,7 @@ local Map = require "modules.map_info"
 local Upgrades = require "maps.chronosphere.upgrades"
 local Tick_functions = require "maps.chronosphere.tick_functions"
 local Event_functions = require "maps.chronosphere.event_functions"
+local Balance = require "maps.chronosphere.balance"
 local Chrono = require "maps.chronosphere.chrono"
 local Chrono_table = require 'maps.chronosphere.table'
 local Locomotive = require "maps.chronosphere.locomotive"
@@ -29,8 +30,6 @@ local math_sqrt = math.sqrt
 require "maps.chronosphere.config_tab"
 
 local Public = {}
-
-local starting_items = {['pistol'] = 1, ['firearm-magazine'] = 32, ['grenade'] = 4, ['raw-fish'] = 4, ['rail'] = 16, ['wood'] = 16}
 
 global.difficulty_tooltips = {
     [1] = "Biters much less aggressive; pollution by train significantly lower; maps significantly more favourable; upgrades coin prices significantly cheaper; MK2 research enabled; flamer nerf more slight",
@@ -46,15 +45,15 @@ local function generate_overworld(surface, optplanet)
 	local objective = Chrono_table.get_table()
 	Planets.determine_planet(optplanet)
 	local planet = objective.planet
-	local message = {"chronosphere.planet_jump", planet[1].name.name, planet[1].ore_richness.name, planet[1].day_speed.name}
+	local message = {"chronosphere.planet_jump", planet[1].type.name, planet[1].ore_richness.name, planet[1].day_speed.name}
 	game.print(message, {r=0.98, g=0.66, b=0.22})
-	local discordmessage = "Destination: "..planet[1].name.dname..", Ore Richness: "..planet[1].ore_richness.dname..", Daynight cycle: "..planet[1].day_speed.dname
+	local discordmessage = "Destination: "..planet[1].type.dname..", Ore Richness: "..planet[1].ore_richness.dname..", Daynight cycle: "..planet[1].day_speed.dname
 	Server.to_discord_embed(discordmessage)
-	if planet[1].name.id == 12 then
+	if planet[1].type.id == 12 then
 		game.print({"chronosphere.message_choppy"}, {r=0.98, g=0.66, b=0.22})
-	elseif planet[1].name.id == 14 then
+	elseif planet[1].type.id == 14 then
 		game.print({"chronosphere.message_lava"}, {r=0.98, g=0.66, b=0.22})
-	elseif planet[1].name.id == 17 then
+	elseif planet[1].type.id == 17 then
 		game.print({"chronosphere.message_fishmarket1"}, {r=0.98, g=0.66, b=0.22})
 		game.print({"chronosphere.message_fishmarket2"}, {r=0.98, g=0.66, b=0.22})
 	end
@@ -71,23 +70,23 @@ local function generate_overworld(surface, optplanet)
 	end
 	surface.ticks_per_day = timer * 250
 
-	local moisture = planet[1].name.moisture
+	local moisture = planet[1].type.moisture
 	if moisture ~= 0 then
 		local mgs = surface.map_gen_settings
 		mgs.property_expression_names["control-setting:moisture:bias"] = moisture
 		surface.map_gen_settings = mgs
 	end
-	if planet[1].name.id == 14 then --lava planet
+	if planet[1].type.id == 14 then --lava planet
 		local mgs = surface.map_gen_settings
 		mgs.water = 0
 		surface.map_gen_settings = mgs
 	end
-	if planet[1].name.id ~= 12 then --choppy planet
+	if planet[1].type.id ~= 12 then --choppy planet
 		local mgs = surface.map_gen_settings
 		mgs.water = 0.2
 		surface.map_gen_settings = mgs
 	end
-	if planet[1].name.id == 17 then --fish market
+	if planet[1].type.id == 17 then --fish market
 		local mgs = surface.map_gen_settings
 		mgs.width = 2176
 		surface.map_gen_settings = mgs
@@ -142,7 +141,7 @@ local function reset_map()
 		objective.active_surface_index = game.create_surface("chronosphere", Chrono.get_map_gen_settings()).index
 	else
 		game.forces.player.set_spawn_position({12, 10}, game.surfaces[objective.active_surface_index])
-		objective.active_surface_index = Reset.soft_reset_map(game.surfaces[objective.active_surface_index], Chrono.get_map_gen_settings(), starting_items).index
+		objective.active_surface_index = Reset.soft_reset_map(game.surfaces[objective.active_surface_index], Chrono.get_map_gen_settings(), Balance.starting_items).index
 	end
 
 	local surface = game.surfaces[objective.active_surface_index]
@@ -152,7 +151,7 @@ local function reset_map()
 	game.forces.player.set_spawn_position({12, 10}, surface)
 	Locomotive.locomotive_spawn(surface, {x = 16, y = 10}, Chrono.get_wagons(true))
 	render_train_hp()
-	game.reset_time_played()
+	game.reset_time_played() --shouldn't this also be applied to offline players when they are killed?
 	Locomotive.create_wagon_room()
 	Event_functions.mining_buffs(nil)
 	if objective.game_won then
@@ -177,7 +176,7 @@ local function on_player_joined_game(event)
 
 	if player.online_time == 0 then
 		player.teleport(surface.find_non_colliding_position("character", game.forces.player.get_spawn_position(surface), 32, 0.5), surface)
-		for item, amount in pairs(starting_items) do
+		for item, amount in pairs(Balance.starting_items) do
 			player.insert({name = item, count = amount})
 		end
 	end
@@ -257,7 +256,7 @@ function Public.chronojump(choice)
 	game.delete_surface(oldsurface)
 	Chrono.post_jump()
 	Event_functions.flamer_nerfs()
-	surface.pollute(objective.locomotive.position, 150 * (3 / (objective.upgrades[2] / 3 + 1)) * (1 + objective.chronojumps) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1))
+	surface.pollute(objective.locomotive.position, 150 * (3 / (objective.upgrades[2] / 3 + 1)) * (1 + objective.chronojumps) * Balance.train_pollution_difficulty_scaling())
 	::continue::
 end
 
@@ -279,9 +278,10 @@ local tick_minute_functions = {
 local function tick()
 	local objective = Chrono_table.get_table()
 	local tick = game.tick
+
 	if tick % 60 == 30 and objective.passivetimer < 64 then
 		local surface = game.surfaces[objective.active_surface_index]
-		if objective.planet[1].name.id == 17 then
+		if objective.planet[1].type.id == 17 then
 			surface.request_to_generate_chunks({-800,0}, 3 + math_floor(objective.passivetimer / 5))
 		else
 			surface.request_to_generate_chunks({0,0}, 3 + math_floor(objective.passivetimer / 5))
@@ -289,12 +289,34 @@ local function tick()
 		--surface.force_generate_chunk_requests()
 
 	end
-	if tick % 10 == 0 and objective.planet[1].name.id == 18 then
+	
+	if tick % 10 == 0 and objective.planet[1].type.id == 18 then
 		Tick_functions.spawn_poison()
 	end
+
+	if tick % 60 == 2 then
+		Tick_functions.record_energy_historyA()
+	end
+	if tick % 60 == 56 then
+		Tick_functions.record_energy_historyB()
+	end
+
+	-- increase chronotimer at one of two different rates:
+	if objective.chronotimer < objective.chrononeeds - 182 then
+		chronotimer_ticks_between_increase = math_floor(60 / objective.passive_charge_rate / 2) * 2 --make sure it's even because you can't do things on odd ticks apparently...
+		if tick % chronotimer_ticks_between_increase == 0 and objective.planet[1].type.id ~= 17 then
+			objective.chronotimer = objective.chronotimer + 1
+		end
+	else
+		if tick % 60 == 0 and objective.planet[1].type.id ~= 17 then
+			objective.chronotimer = objective.chronotimer + 1
+		end
+	end
+
 	if tick % 30 == 0 then
 		if tick % 600 == 0 then
 			Tick_functions.charge_chronosphere()
+
 			Tick_functions.transfer_pollution()
 			if objective.poisontimeout > 0 then
 				objective.poisontimeout = objective.poisontimeout - 1
@@ -309,10 +331,11 @@ local function tick()
 				Tick_functions.offline_players()
 			end
 		end
+		
 		local key = tick % 3600
 		if tick_minute_functions[key] then tick_minute_functions[key]() end
-		if tick % 60 == 0 and objective.planet[1].name.id ~= 17 then
-			objective.chronotimer = objective.chronotimer + 1
+
+		if tick % 60 == 0 and objective.planet[1].type.id ~= 17 then
 			objective.passivetimer = objective.passivetimer + 1
 			if objective.chronojumps > 0 then
 				if objective.locomotive ~= nil then
@@ -327,7 +350,7 @@ local function tick()
 					end
 				end
 			end
-			if objective.planet[1].name.id == 19 then
+			if objective.planet[1].type.id == 19 then
 				Tick_functions.dangertimer()
 			end
 			if Tick_functions.check_chronoprogress() then
@@ -369,7 +392,7 @@ local function on_init()
 	game.surfaces["nauvis"].map_gen_settings = mgs
 	game.surfaces["nauvis"].clear()
 	reset_map()
-	Chrono.init_setup()
+	-- Chrono.init_setup() --superfluous with reset_map()
 	--if game.surfaces["nauvis"] then game.delete_surface(game.surfaces["nauvis"]) end
 end
 
@@ -388,7 +411,7 @@ local function protect_entity(event)
 			if event.cause.force.index == 2 or event.cause.force.name == "scrapyard" then
 					set_objective_health(event.final_damage_amount)
 			end
-		elseif objective.planet[1].name.id == 19 then
+		elseif objective.planet[1].type.id == 19 then
 			set_objective_health(event.final_damage_amount)
 		end
 		if not event.entity.valid then return end
@@ -409,7 +432,7 @@ end
 
 local function pre_player_mined_item(event)
 	local objective = Chrono_table.get_table()
-	if objective.planet[1].name.id == 11 then --rocky planet
+	if objective.planet[1].type.id == 11 then --rocky planet
 		if event.entity.name == "rock-huge" or event.entity.name == "rock-big" or event.entity.name == "sand-rock-big" then
 			Event_functions.trap(event.entity, false)
 			event.entity.destroy()
@@ -422,22 +445,22 @@ local function on_player_mined_entity(event)
 	local objective = Chrono_table.get_table()
 	local entity = event.entity
 	if not entity.valid then return end
-	if entity.type == "tree" and objective.planet[1].name.id == 12 then --choppy planet
+	if entity.type == "tree" and objective.planet[1].type.id == 12 then --choppy planet
 		Event_functions.trap(entity, false)
 		Event_functions.choppy_loot(event)
 	end
 	if entity.name == "rock-huge" or entity.name == "rock-big" or entity.name == "sand-rock-big" then
-		if objective.planet[1].name.id ~= 11 and objective.planet[1].name.id ~= 16 then --rocky and maze planet
+		if objective.planet[1].type.id ~= 11 and objective.planet[1].type.id ~= 16 then --rocky and maze planet
 			Ores.prospect_ores(entity, entity.surface, entity.position)
 		elseif
-			objective.planet[1].name.id == 11 then event.buffer.clear() -- rocky planet
+			objective.planet[1].type.id == 11 then event.buffer.clear() -- rocky planet
 		end
 	end
 end
 
 local function on_entity_died(event)
 	local objective = Chrono_table.get_table()
-	if event.entity.type == "tree" and objective.planet[1].name.id == 12 then --choppy planet
+	if event.entity.type == "tree" and objective.planet[1].type.id == 12 then --choppy planet
 		if event.cause then
 			if event.cause.valid then
 				if event.cause.force.name ~= "enemy" then
@@ -460,18 +483,18 @@ local function on_entity_died(event)
 		Event_functions.danger_silo(entity)
 	end
 	if entity.force.name == "scrapyard" and entity.name == "gun-turret" then
-		if objective.planet[1].name.id == 19 or objective.planet[1].name.id == 16 then --danger + hedge maze
+		if objective.planet[1].type.id == 19 or objective.planet[1].type.id == 16 then --danger + hedge maze
 			Event_functions.trap(entity, true)
 		end
 	end
 	if entity.force.name == "enemy" then
 		if entity.type == "unit-spawner" then
 			Event_functions.spawner_loot(entity.surface, entity.position)
-			if objective.planet[1].name.id == 18 then
+			if objective.planet[1].type.id == 18 then
 				Ores.prospect_ores(entity, entity.surface, entity.position)
 			end
 		else
-			if objective.planet[1].name.id == 18 then
+			if objective.planet[1].type.id == 18 then
 				Event_functions.swamp_loot(event)
 			end
 		end
@@ -538,7 +561,7 @@ end
 
 local function on_player_changed_position(event)
 	local objective = Chrono_table.get_table()
-	if objective.planet[1].name.id == 14 then --lava planet
+	if objective.planet[1].type.id == 14 then --lava planet
 		Event_functions.lava_planet(event)
 	end
 end
@@ -594,15 +617,15 @@ if _DEBUG then
 end
 --Time for the debug code.  If any (not global.) globals are written to at this point, an error will be thrown.
 --eg, x = 2 will throw an error because it's not global.x or local x
---setmetatable(_G, {
---    __newindex = function(_, n, v)
---        log("Desync warning: attempt to write to undeclared var " .. n)
---        -- game.print("Attempt to write to undeclared var " .. n)
---        global[n] = v;
---    end,
---    __index = function(_, n)
---        return global[n];
---    end
---})
+setmetatable(_G, {
+    __newindex = function(_, n, v)
+        log("Desync warning: attempt to write to undeclared var " .. n)
+        -- game.print("Attempt to write to undeclared var " .. n)
+        global[n] = v;
+    end,
+    __index = function(_, n)
+        return global[n];
+    end
+})
 
 return Public

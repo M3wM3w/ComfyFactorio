@@ -236,7 +236,7 @@ function Public.check_upgrades()
   if not objective.upgradechest then return end
 	if objective.game_lost == true then return end
 	check_all_upgrades()
-  if objective.planet[1].name.id == 17 then
+  if objective.planet[1].type.id == 17 then
     if objective.fishchest then
       check_win()
     end

@@ -205,7 +205,7 @@ end
 
 function Public_event.danger_silo(entity)
 	local objective = Chrono_table.get_table()
-	if objective.planet[1].name.id == 19 then
+	if objective.planet[1].type.id == 19 then
 		if objective.dangers and #objective.dangers > 1 then
 	    for i = 1, #objective.dangers, 1 do
 	      if entity == objective.dangers[i].silo then
@@ -229,7 +229,7 @@ end
 
 function Public_event.biter_immunities(event)
 	local objective = Chrono_table.get_table()
-	local planet = objective.planet[1].name.id
+	local planet = objective.planet[1].type.id
 	if event.damage_type.name == "fire" then
 		if planet == 14 then --lava planet
 			event.entity.health = event.entity.health + event.final_damage_amount

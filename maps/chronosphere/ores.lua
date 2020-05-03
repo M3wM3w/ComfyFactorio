@@ -44,17 +44,17 @@ end
 local function get_size_of_ore(ore, planet)
   local base_size = math_random(5, 10) + math_floor(planet[1].ore_richness.factor * 3)
   local final_size
-  if planet[1].name.id == 1 and ore == "iron-ore" then --iron planet
+  if planet[1].type.id == 1 and ore == "iron-ore" then --iron planet
     final_size = math_floor(base_size * 1.5)
-  elseif planet[1].name.id == 2 and ore == "copper-ore" then --copper planet
+  elseif planet[1].type.id == 2 and ore == "copper-ore" then --copper planet
     final_size = math_floor(base_size * 1.5)
-  elseif planet[1].name.id == 3 and ore == "stone" then --stone planet
+  elseif planet[1].type.id == 3 and ore == "stone" then --stone planet
     final_size = math_floor(base_size * 1.5)
-  elseif planet[1].name.id == 9 and ore == "coal" then --coal planet
+  elseif planet[1].type.id == 9 and ore == "coal" then --coal planet
     final_size = math_floor(base_size * 1.5)
-  elseif planet[1].name.id == 5 and ore == "uranium-ore" then --uranium planet
+  elseif planet[1].type.id == 5 and ore == "uranium-ore" then --uranium planet
     final_size = math_floor(base_size * 1.5)
-  elseif planet[1].name.id == 6 then --mixed planet
+  elseif planet[1].type.id == 6 then --mixed planet
     final_size = base_size
   else
     final_size = math_floor(base_size / 2)
@@ -71,15 +71,15 @@ end
 local function spawn_ore_vein(surface, pos, planet)
   local objective = Chrono_table.get_table()
   local mixed = false
-  if planet[1].name.id == 6 then mixed = true end --mixed planet
+  if planet[1].type.id == 6 then mixed = true end --mixed planet
   local richness = math_random(50 + 10 * objective.chronojumps, 100 + 10 * objective.chronojumps) * planet[1].ore_richness.factor
-  if planet[1].name.id == 16 then richness = richness * 10 end --hedge maze
-  local iron = {w = planet[1].name.iron, t = planet[1].name.iron}
-  local copper = {w = planet[1].name.copper, t = iron.t + planet[1].name.copper}
-  local stone = {w = planet[1].name.stone, t = copper.t + planet[1].name.stone}
-  local coal = {w = planet[1].name.coal, t = stone.t + planet[1].name.coal}
-  local uranium = {w = planet[1].name.uranium, t = coal.t + planet[1].name.uranium}
-  local oil = {w = planet[1].name.oil, t = uranium.t + planet[1].name.oil}
+  if planet[1].type.id == 16 then richness = richness * 10 end --hedge maze
+  local iron = {w = planet[1].type.iron, t = planet[1].type.iron}
+  local copper = {w = planet[1].type.copper, t = iron.t + planet[1].type.copper}
+  local stone = {w = planet[1].type.stone, t = copper.t + planet[1].type.stone}
+  local coal = {w = planet[1].type.coal, t = stone.t + planet[1].type.coal}
+  local uranium = {w = planet[1].type.uranium, t = coal.t + planet[1].type.uranium}
+  local oil = {w = planet[1].type.oil, t = uranium.t + planet[1].type.oil}
 
   local roll = math_random (0, oil.t)
   if roll == 0 then return end
@@ -114,7 +114,7 @@ function Public_ores.prospect_ores(entity, surface, pos)
   if entity then
     if entity.name == "rock-huge" then chance = 40 end
     if entity.type == "unit-spawner" then chance = 40 end
-    if planet[1].name.id == 15 then chance = chance + 30 end
+    if planet[1].type.id == 15 then chance = chance + 30 end
     if math_random(chance + math_floor(10 * planet[1].ore_richness.factor) ,100 + chance) >= 100 then
       spawn_ore_vein(surface, pos, planet)
     end
@@ -124,3 +124,49 @@ function Public_ores.prospect_ores(entity, surface, pos)
 end
 
 return Public_ores
+
+
+
+---- SCRAP ----
+
+local scrap_raffle = {}				
+for _, t in pairs (Balance.scrap_mining_chance_weights) do
+	for x = 1, t.chance, 1 do
+		table.insert(scrap_raffle, t.name)
+	end			
+end
+
+local size_of_scrap_raffle = #scrap_raffle
+
+local function on_player_mined_entity(event)
+	local entity = event.entity
+	if not entity.valid then return end
+	if entity.name ~= "mineable-wreckage" then return end
+			
+	event.buffer.clear()
+	
+	local scrap = scrap_raffle[math.random(1, size_of_scrap_raffle)]
+	
+	local amount_bonus = (game.forces.enemy.evolution_factor * 2) + (game.forces.player.mining_drill_productivity_bonus * 2)
+	local r1 = math.ceil(Balance.scrap_yield_amounts[scrap] * (0.3 + (amount_bonus * 0.3)))
+	local r2 = math.ceil(Balance.scrap_yield_amounts[scrap] * (1.7 + (amount_bonus * 1.7)))	
+	local amount = math.random(r1, r2)
+	
+	local player = game.players[event.player_index]	
+	local inserted_count = player.insert({name = scrap, count = amount})
+	
+	if inserted_count ~= amount then
+		local amount_to_spill = amount - inserted_count			
+		entity.surface.spill_item_stack(entity.position,{name = scrap, count = amount_to_spill}, true)
+	end
+	
+	entity.surface.create_entity({
+		name = "flying-text",
+		position = entity.position,
+		text = "+" .. amount .. " [img=item/" .. scrap .. "]",
+		color = {r=0.98, g=0.66, b=0.22}
+	})	
+end
+
+local Event = require 'utils.event'
+Event.add(defines.events.on_player_mined_entity, on_player_mined_entity)

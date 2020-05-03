@@ -1,4 +1,5 @@
 local Chrono_table = require 'maps.chronosphere.table'
+local Balance = require 'maps.chronosphere.balance'
 local Public = {}
 local Upgrades = require "maps.chronosphere.upgrade_list"
 local math_floor = math.floor
@@ -11,7 +12,7 @@ function Public.locomotive_spawn(surface, position, wagons)
 	surface.request_to_generate_chunks(position, 0.5)
 	surface.force_generate_chunk_requests()
 	local objective = Chrono_table.get_table()
-	if objective.planet[1].name.id == 17 then --fish market
+	if objective.planet[1].type.id == 17 then --fish market
 		position.x = position.x - 960
 		position.y = position.y - 64
 	end
@@ -107,23 +108,6 @@ function Public.fish_tag()
 		text = " "
 	})
 end
-
-local market_offers = {
-	{price = {{'coin', 10}}, offer = {type = 'give-item', item = "raw-fish"}},
-	{price = {{"coin", 20}}, offer = {type = 'give-item', item = 'wood', count = 50}},
-	{price = {{"coin", 50}}, offer = {type = 'give-item', item = 'iron-ore', count = 50}},
-	{price = {{"coin", 50}}, offer = {type = 'give-item', item = 'copper-ore', count = 50}},
-	{price = {{"coin", 50}}, offer = {type = 'give-item', item = 'stone', count = 50}},
-	{price = {{"coin", 50}}, offer = {type = 'give-item', item = 'coal', count = 50}},
-	{price = {{"coin", 200}}, offer = {type = 'give-item', item = 'uranium-ore', count = 50}},
-	{price = {{"coin", 25}, {"empty-barrel", 1}}, offer = {type = 'give-item', item = 'crude-oil-barrel', count = 1}},
-	{price = {{"coin", 200}, {"steel-plate", 20}, {"electronic-circuit", 20}}, offer = {type = 'give-item', item = 'loader', count = 1}},
-	{price = {{"coin", 400}, {"steel-plate", 40}, {"advanced-circuit", 10}, {"loader", 1}}, offer = {type = 'give-item', item = 'fast-loader', count = 1}},
-	{price = {{"coin", 600}, {"express-transport-belt", 10}, {"fast-loader", 1}}, offer = {type = 'give-item', item = 'express-loader', count = 1}},
-	--{price = {{"coin", 5}, {"stone", 100}}, offer = {type = 'give-item', item = 'landfill', count = 1}},
-	{price = {{"coin", 1}, {"steel-plate", 1}, {"explosives", 10}}, offer = {type = 'give-item', item = 'land-mine', count = 1}},
-	{price = {{"pistol", 1}}, offer = {type = "give-item", item = "iron-plate", count = 100}}
-}
 
 function Public.create_wagon_room()
 	local objective = Chrono_table.get_table()
@@ -384,7 +368,7 @@ function Public.create_wagon_room()
 	}
 
 
-	for _, offer in pairs(market_offers) do market.add_market_item(offer) end
+	for _, offer in pairs(Balance.market_offers()) do market.add_market_item(offer) end
 
 	--generate cars--
 	local car_pos = {
@@ -417,9 +401,9 @@ function Public.create_wagon_room()
 	table.shuffle_table(positions)
 
 	local cargo_boxes = {
-		{name = "grenade", count = math_random(2, 5)},
-		{name = "grenade", count = math_random(2, 5)},
-		{name = "grenade", count = math_random(2, 5)},
+		{name = "grenade", count = math_random(2, 3)},
+		{name = "grenade", count = math_random(2, 3)},
+		{name = "grenade", count = math_random(2, 3)},
 		{name = "submachine-gun", count = 1},
 		{name = "submachine-gun", count = 1},
 		{name = "submachine-gun", count = 1},

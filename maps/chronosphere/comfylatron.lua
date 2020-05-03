@@ -2,7 +2,6 @@ local Chrono_table = require 'maps.chronosphere.table'
 local Event = require 'utils.event'
 local math_random = math.random
 
-
 local function shuffle(tbl)
 	local size = #tbl
 		for i = size, 1, -1 do
@@ -167,7 +166,6 @@ local texts = {
 		"The fish told me thaigfah9",
 		"Have you seen what it's like outside?",
 		"I dare you to say WTF in chat%s",
-		"Won't you decorate my house?",
 		"You can feel yourself breathing",
 		"What do you like better, gravity or angular momentum?",
 		"Call me Ishmael one more time and I'll run you over",
@@ -208,9 +206,9 @@ local texts = {
 		"It is officially BREAK TIME (unpaid)",
 		"Break time is OVER... Get back to work, engineers%s",
 		"Have you seen what it's like outside?",
-		"Don't forget to use groups and polls!",
+		"Anyone got any good jokes?",
 		"are my speakers working?",
-		"How do you use a semicolon?",
+		"How do you use a semicolon??",
 		"Who's ready for the New Year??",
 		"I am having trouble modulating my emotions today. But it's only temporary!",
 		"I saw the best minds of my generation destroyed by madness, starving hysterical naked",
@@ -227,27 +225,38 @@ local texts = {
 		"I just wanted to reassure everyone that I've deleted all your internet browsing data that I was storing!"
 	},
 	["alone"] = {
-		"comfy ^.^",
-		"comfy ^.^",
-		"comfy ^_~",
 		"....",
 		"...",
 		"...",
 		"...",
+		"...",
+		"...",
+		"...",
+		"...",
+		"..",
+		"..",
+		"..",
+		"..",
 		"..",
 		"..",
 		"^.^",
 		"^.^",
 		"^.^",
 		"=^.^=",
+		"*_*",
+		"~(˘▾˘~)",
+		"(ノಠ益ಠ)ノ彡┻━┻",
+		"comfy ^.^",
+		"comfy ^.^",
+		"comfy ^_~",
 		"01010010",
 		"11001011",
 		"01011101",
+		"01000101",
+		"01101111",
 		"00010111",
 		"10010010... I think.",
-		"*_*",
 		"some of those humans are cute",
-		"~(˘▾˘~)",
 		"do engineers dream of real sheep..",
 		"sometimes I get lonely",
 		"time to practice throwing cards into a hat",
@@ -258,9 +267,8 @@ local texts = {
 		"one must imagine Sisyphus happy",
 		"looks like everyone's keeping themselves occupied",
 		"it looks like I'm doing nothing, but I'm hard at work!",
-		"FISH",
 		"/><>-",
-		"whats the difference between pseudorandom and true random",
+		"whats the difference between pseudorandom and truerandom",
 		"I wonder what day of the week it is",
 		"lambda functions.. they're just functions..",
 		"what makes magnets work",
@@ -268,9 +276,10 @@ local texts = {
 		"when I get tired, I load myself from save",
 		"domestic cozy",
 		"gruntled",
-		"Bite my shiny metal a$$, biters!",
+		"Bite my shiny metal a$$",
 		"knitwear for drones",
 		"weighted blankets",
+		"indoor swimming at the space station",
 		"co-operate, co-operate, defect",
 		"music for airports",
 		"is it better to rest on the conveyor belt",
@@ -279,7 +288,9 @@ local texts = {
 		"safety in numbers",
 		"I could automate the engineers..",
 		"protect_entity(myself)",
-		"(ノಠ益ಠ)ノ彡┻━┻"
+		"should I turn the firewall off...",
+		"the train is working",
+		"the memoirs of comfylatron"
 	}
 }
 
@@ -385,19 +396,19 @@ local function talks(nearby_characters)
 		local arg2 = symbols[math_random(1, #symbols)]
 		local randomphrase = texts["convo_starters"][math_random(1, #texts["convo_starters"])]
 		str = str .. string.format(randomphrase, arg1, arg2)
-		if objective.planet[1].name.id == 10 and math_random(1,30) == 1 then
+		if objective.planet[1].type.id == 10 and math_random(1,30) == 1 then
 			str = str .. "Sounds dangerous out there!"
-		elseif objective.planet[1].name.id == 17 and math_random(1,6) == 1 then
+		elseif objective.planet[1].type.id == 17 and math_random(1,6) == 1 then
 			str = str .. "We made it!"
-		elseif objective.planet[1].name.id == 18 and math_random(1,40) == 1 then
+		elseif objective.planet[1].type.id == 18 and math_random(1,40) == 1 then
 			str = str .. "Was that you?"
-		elseif objective.planet[1].name.id == 19 and math_random(1,10) == 1 then
+		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
 			str = str .. "Better get moving!"
-		elseif objective.planet[1].name.id == 19 and math_random(1,10) == 1 then
+		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
 			str = str .. "Chop chop! Boom boom!"
-		elseif objective.planet[1].name.id == 15 and math_random(1,20) == 1 then
+		elseif objective.planet[1].type.id == 15 and math_random(1,20) == 1 then
 			str = str .. "A new day, a new Chronotrain!"
-		elseif objective.chronojumps > 7 and objective.passivejumps > ((objective.chronojumps-5)/3) and math_random(1,30) == 1 then
+		elseif objective.chronojumps > 7 and objective.overstaycount > ((objective.chronojumps-5)/3) and math_random(1,30) == 1 then
 			str = str .. "You're so relaxed, it makes the biters angry!"
 		elseif objective.planet.ore_richness == 1 and math_random(1,100) == 1 then
 			str = str .. "You know what else is very rich?"

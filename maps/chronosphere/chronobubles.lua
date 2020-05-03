@@ -1,10 +1,11 @@
 local Chrono_table = require 'maps.chronosphere.table'
+local Balance = require 'maps.chronosphere.balance'
 
 local Public = {}
 local math_random = math.random
 --biters: used in spawner generation within math_random(1, 52 - biters), so higher number gives better chance. not to be greater than 50.
 
-local biomes = {
+local biome_types = {
   [1] = {{id = 1, name = {"chronosphere.map_1"}, dname = "Terra Ferrata", iron = 6, copper = 1, coal = 1, stone = 1, uranium = 0, oil = 1, biters = 16, moisture = -0.2}, weight = 1},
   [2] = {{id = 2, name = {"chronosphere.map_2"}, dname = "Malachite Hills", iron = 1, copper = 6, coal = 1, stone = 1, uranium = 0, oil = 1, biters = 16, moisture = 0.2}, weight = 1},
   [3] = {{id = 3, name = {"chronosphere.map_3"}, dname = "Granite Plains", iron = 1, copper = 1, coal = 1, stone = 6, uranium = 0, oil = 1, biters = 16, moisture = -0.2}, weight = 1},
@@ -45,10 +46,10 @@ local richness = {
 }
 local function biome_roll()
   local biomes_raffle = {}
-	for t = 1, #biomes, 1 do
-    if biomes[t].weight > 0 then
-      for _ = 1, biomes[t].weight, 1 do
-          table.insert(biomes_raffle, biomes[t][1])
+	for t = 1, #biome_types, 1 do
+    if biome_types[t].weight > 0 then
+      for _ = 1, biome_types[t].weight, 1 do
+          table.insert(biomes_raffle, biome_types[t][1])
       end
     end
   end
@@ -57,39 +58,37 @@ local function biome_roll()
   return planet
 end
 
+
+
 function Public.determine_planet(choice)
   local objective = Chrono_table.get_table()
   if not global.difficulty_vote_value then global.difficulty_vote_value = 1 end
   local difficulty = global.difficulty_vote_value
 
-  local ores_weights = {4,8,12,8,4,0}
-  if difficulty <= 0.25
-  then ores_weights = {9,10,9,4,2,0}
-  elseif difficulty <= 0.5
-  then ores_weights = {5,11,12,6,2,0}
-  elseif difficulty <= 0.75
-  then ores_weights = {5,9,12,7,3,0}
-  elseif difficulty <= 1
-  then ores_weights = {4,8,12,8,4,0}
-  elseif difficulty <= 1.5
-  then ores_weights = {2,5,15,9,5,0}
-  elseif difficulty <= 3
-  then ores_weights = {1,4,12,13,6,0}
-  elseif difficulty >= 5
-  then ores_weights = {1,2,10,17,6,0}
-  end
+  local oreweights = Balance.ore_richness_weightings()
   local ores_raffle = {}
-	for t = 1, 6, 1 do
-    if ores_weights[t] > 0 then
-      for _ = 1, ores_weights[t], 1 do
+	for t = 1, #oreweights, 1 do
+    if oreweights[t] > 0 then
+      for _ = 1, oreweights[t], 1 do
           table.insert(ores_raffle, t)
       end
     end
   end
   local ores = ores_raffle[math_random(1,#ores_raffle)]
 
-  local dayspeed = time_speed_variants[math_random(1, #time_speed_variants)]
+  local dayspeedweights = Balance.dayspeed_weightings()
+  local dayspeed_raffle = {}
+	for t = 1, 6, 1 do
+    if dayspeedweights[t] > 0 then
+      for _ = 1, dayspeedweights[t], 1 do
+          table.insert(dayspeed_raffle, t)
+      end
+    end
+  end
+  local dayspeed = dayspeed_raffle[math_random(1,#dayspeed_raffle)]
+
   local daytime = math_random(1,100) / 100
+
   local planet_choice
   if objective.game_lost then
     choice = 15
@@ -107,11 +106,12 @@ function Public.determine_planet(choice)
       daytime = 0.15
     end
   end
+
   if not choice then
     planet_choice = biome_roll()
   else
-    if biomes[choice] then
-      planet_choice = biomes[choice][1]
+    if biome_types[choice] then
+      planet_choice = biome_types[choice][1]
     else
       planet_choice = biome_roll()
     end
@@ -122,8 +122,8 @@ function Public.determine_planet(choice)
 
   local planet = {
     [1] = {
-      name = planet_choice,
-      day_speed = dayspeed,
+      type = planet_choice,
+      day_speed = time_speed_variants[dayspeed],
       time = daytime,
       ore_richness = richness[ores]
     }
