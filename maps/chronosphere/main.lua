@@ -256,7 +256,12 @@ function Public.chronojump(choice)
 	game.delete_surface(oldsurface)
 	Chrono.post_jump()
 	Event_functions.flamer_nerfs()
+<<<<<<< Updated upstream
 	surface.pollute(objective.locomotive.position, 150 * (3 / (objective.upgrades[2] / 3 + 1)) * (1 + objective.chronojumps) * Balance.train_pollution_difficulty_scaling())
+=======
+	local amount_to_pollute = 150 * (3 / (objective.upgrades[2] / 3 + 1)) * (1 + objective.chronojumps) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1)
+	surface.pollute(objective.locomotive.position, amount_to_pollute)
+>>>>>>> Stashed changes
 	::continue::
 end
 
@@ -342,11 +347,10 @@ local function tick()
 					local surface = game.surfaces[objective.active_surface_index]
 					local pos = objective.locomotive.position or {x=0,y=0}
 					if surface and surface.valid then
-						game.surfaces[objective.active_surface_index].pollute(
-							pos,
-							(0.5 * objective.chronojumps) *
+						local amount_to_pollute = (0.5 * objective.chronojumps) *
 							(3 / (objective.upgrades[2] / 3 + 1)) *
-							(((global.difficulty_vote_value - 1) * 3 / 5) + 1))
+							(((global.difficulty_vote_value - 1) * 3 / 5) + 1)
+						surface.pollute(pos,amount_to_pollute)
 					end
 				end
 			end

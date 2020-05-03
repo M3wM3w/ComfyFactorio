@@ -81,11 +81,17 @@ function Public_tick.charge_chronosphere()
 		if energy > 3010000 and objective.chronotimer < objective.chrononeeds - 182 then
 			acus[i].energy = acus[i].energy - 3000000
       objective.chronotimer = objective.chronotimer + 1
+<<<<<<< Updated upstream
 
       local exterior_pollution = Balance.train_base_pollution_due_to_charging(objective.jumps) * Balance.train_pollution_difficulty_scaling() * (3 / (objective.upgrades[2] / 3 + 1))
 
       game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, exterior_pollution)
       game.pollution_statistics.set_input_count(game.pollution_statistics.get_input_count("locomotive") + "locomotive",exterior_pollution)
+=======
+      local pollution = (10 + 2 * objective.chronojumps) * (3 / (objective.upgrades[2] / 3 + 1)) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1)
+			game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, pollution)
+      game.pollution_statistics.set_input_count("locomotive",pollution + game.pollution_statistics.get_input_count("locomotive"))
+>>>>>>> Stashed changes
     end
 	end
 end
@@ -93,6 +99,7 @@ end
 function Public_tick.transfer_pollution()
   local objective = Chrono_table.get_table()
 	local surface = game.surfaces["cargo_wagon"]
+<<<<<<< Updated upstream
   if not surface then return end
 
   local total_interior_pollution = surface.get_total_pollution()
@@ -103,6 +110,13 @@ function Public_tick.transfer_pollution()
   -- attribute the difference to the locomotive in the stats:
   game.pollution_statistics.set_input_count("locomotive",game.pollution_statistics.get_input_count("locomotive") + exterior_pollution - total_interior_pollution)
   surface.clear_pollution()
+=======
+	if not surface then return end
+	local pollution = surface.get_total_pollution() * (3 / (objective.upgrades[2] / 3 + 1)) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1)
+  game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, pollution)
+  game.pollution_statistics.set_input_count("locomotive",pollution + game.pollution_statistics.get_input_count("locomotive"))
+	surface.clear_pollution()
+>>>>>>> Stashed changes
 end
 
 function Public_tick.boost_evolution()
