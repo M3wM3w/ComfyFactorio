@@ -330,7 +330,6 @@ Public.scrap_mining_chance_weights = {
 	{name = "electric-engine-unit", chance = 1},
 	{name = "logistic-robot", chance = 1},
 	{name = "construction-robot", chance = 1},
-	
 	{name = "land-mine", chance = 1},	
 	{name = "grenade", chance = 4},
 	{name = "rocket", chance = 1},

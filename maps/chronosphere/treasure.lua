@@ -26,7 +26,7 @@ function Public.treasure_chest(surface, position, container_name)
 		if loot_data[i].scaling then -- scale down weights away from the midpoint 'peak' (without changing the mean)
 			local midpoint = (loot_data[i].d_min + loot_data[i].d_max)
 			local difference = (loot_data[i].d_max - loot_data[i].d_min)
-			table.insert(loot_weights,2 * loot_data[i].weight * math_min(0, 1 - math_abs(distance_to_center - midpoint) / difference))
+			table.insert(loot_weights,2 * loot_data[i].weight * math_max(0, 1 - math_abs(distance_to_center - midpoint) / difference))
 		else -- no scaling
 			if loot_data[i].d_min <= distance_to_center and loot_data[i].d_max >= distance_to_center then
 				table.insert(loot_weights, loot_data[i].weight)

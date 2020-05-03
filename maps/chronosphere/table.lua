@@ -23,8 +23,8 @@ function Public.reset_table()
 	chronosphere.chronojumps = 0
 	chronosphere.game_lost = true
 	chronosphere.game_won = false
-	chronosphere.max_health = 0
-	chronosphere.health = 0
+	chronosphere.max_health = 10000
+	chronosphere.health = 10000
 	chronosphere.poisontimeout = 0
 	chronosphere.chronotimer = 0
 	chronosphere.passive_charge_rate = 0
