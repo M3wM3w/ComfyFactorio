@@ -105,7 +105,7 @@ function Public.defaultai_attack_pollution_consumption_modifier(difficulty) retu
 
 -- changing this now affects ONLY how many kWH you need to get to the next level:
 function Public.MJ_needed_for_full_charge(difficulty, jumps)
-	local baserate = 4000 + 600 * jumps
+	local baserate = 2000 + 300 * jumps
 
 	local modifiedrate
 	if difficulty <= 1 then modifiedrate = baserate end
