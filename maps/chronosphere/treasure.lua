@@ -46,8 +46,6 @@ function Public.treasure_chest(surface, position, container_name)
 		if objective.chronojumps == 0 then difficulty_scaling = 1 end
 		local low = math_max(1, math_ceil(loot.count.min_count * difficulty_scaling))
 		local high = math_max(1, math_ceil(loot.count.max_count * difficulty_scaling))
-		log(low)
-		log(high)
 		local _count = math_random(low, high)
 		i.insert({name = loot.name, count = _count})
 	end

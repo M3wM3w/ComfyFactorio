@@ -30,9 +30,6 @@ function Public.raffle(values,weights) --arguments of the form {[a] = A, [b] = B
 		cumulative_probability = cumulative_probability + (weights[k] / total_weight)
 		if rng <= cumulative_probability then return v end
 	end
-	log(rng)
-	log(cumulative_probability)
-	log(total_weight)
 end
 
 return Public

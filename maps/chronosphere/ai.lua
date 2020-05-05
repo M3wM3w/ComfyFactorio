@@ -169,7 +169,7 @@ local function colonize(unit_group)
     end
   end
   if #commands > 0 then
-    game.print("Attacking [gps=" .. commands[1].target.position.x .. "," .. commands[1].target.position.y .. "]")
+    --game.print("Attacking [gps=" .. commands[1].target.position.x .. "," .. commands[1].target.position.y .. "]")
     unit_group.set_command({
       type = defines.command.compound,
       structure_type = defines.compound_command.return_last,
@@ -204,13 +204,13 @@ Public.send_near_biters_to_objective = function()
   else
     if objective.chronojumps < 50 then
       if math_random(1, 50 - objective.chronojumps) == 1 then success = true end
-      game.print("not enough pollution for objective attack")
+      -- game.print("not enough pollution for objective attack")
     else
       success = true
     end
   end
   if success then
-    game.print("sending objective wave")
+    -- game.print("sending objective wave")
     game.surfaces[objective.active_surface_index].set_multi_command({
       command={
         type=defines.command.attack,
@@ -343,7 +343,7 @@ local function send_group(unit_group, nearest_player_unit)
     position = unit_group.surface.find_non_colliding_position("stone-furnace", position, 96, 1)
     if position then
 
-      game.print("group of " .. #unit_group.members .. " to " .. position.x .. ", " .. position.y)
+      -- game.print("group of " .. #unit_group.members .. " to " .. position.x .. ", " .. position.y)
 
       commands[#commands + 1] = {
         type = defines.command.attack_area,
@@ -353,7 +353,7 @@ local function send_group(unit_group, nearest_player_unit)
     }
     end
 
-    game.print("group of " .. #unit_group.members .. " to " .. target.position.x .. ", " .. target.position.y)
+    -- game.print("group of " .. #unit_group.members .. " to " .. target.position.x .. ", " .. target.position.y)
 
     commands[#commands + 1] = {
     type = defines.command.attack_area,
