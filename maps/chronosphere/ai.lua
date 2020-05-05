@@ -291,7 +291,7 @@ local function generate_attack_target(nearest_player_unit)
       "pumpjack",
       "radar"
     },
-    {3, 2, 1, 1, 1, 1, 1}
+    {3, 2, 1, 1, 1, 2, 1}
   )
 
   if target == "pumpjack" or target == "radar" then
