@@ -12,7 +12,7 @@ local difficulties = {
 }
 
 local function difficulty_gui()
-	local tooltip -- currently not sensitive to possible presence of global.difficulty_tooltips
+	local tooltip -- currently not sensitive to global.difficulty_tooltips
 	tooltip = "Current difficulty of the map is " .. difficulties[global.difficulty_vote_index].name
 	tooltip = tooltip .. "."
 		

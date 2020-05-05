@@ -53,7 +53,7 @@ local functions = {
 				Chrono.objective_died()
 			end
     else
-      game.players[event.player_index].print("You are not admin!")
+      game.players[event.player_index].print("You are not an admin!")
     end
 	end,
 }

@@ -1,16 +1,7 @@
 local Chrono_table = require 'maps.chronosphere.table'
 local Event = require 'utils.event'
 local math_random = math.random
-
-
-local function shuffle(tbl)
-	local size = #tbl
-		for i = size, 1, -1 do
-			local rand = math_random(size)
-			tbl[i], tbl[rand] = tbl[rand], tbl[i]
-		end
-	return tbl
-end
+local Rand = require 'maps.chronosphere.random'
 
 local texts = {
 	["approach_player"] = {
@@ -109,7 +100,7 @@ local texts = {
 		"does anybody need %s?",
 		"they need to nerf %s",
 		"I've decided. this is the best %s%s",
-		"f*ck this %s in particular",
+		"**** this %s in particular",
 		"whoever places the next %s gets a prize"
 	},
 	["old_talks"] = {
@@ -152,11 +143,9 @@ local texts = {
 		"Just let me deliver the fish. They start to smell a bit. Luckily I don't have a nose%s",
 		"Time to travel (▀̿Ĺ̯▀̿ ̿)",
 		"Have you read The Three Body Problem?",
-		"A pocket universe. Such a long way away, don't you think?",
-		"How's the ol' Chronotrain interior coming along? Hope it lasts!",
-		"I read out messages for coins%s",
+		"A pocket universe. Maybe they should call it a fishbowl!",
+		"I read out messages for coins%s btw",
 		"I'm selling Comfylatron ASMR tapes%s",
-		"The biters are getting smarter%s",
 		"Would you believe it? Back in the factory, I once saw a robot with ID 51479051!",
 		"How long have I been asleep?",
 		"Can you press this button on the back?",
@@ -165,26 +154,21 @@ local texts = {
 		"I need more uranium-235%s",
 		"We definitely nee0njk13l9",
 		"The fish told me thaigfah9",
-		"Have you seen what it's like outside?",
+		"Have you seen what it's like outside??",
 		"I dare you to say WTF in chat%s",
-		"Won't you decorate my house?",
 		"You can feel yourself breathing",
-		"What do you like better, gravity or angular momentum?",
 		"Call me Ishmael one more time and I'll run you over",
 		"I was considering spoiling the next map for you! But only if you shoot me...",
 		"Time is a jet plane... it moves too fast!",
 		"They tried to make me go to rehab, but I said 000! (^_-)",
-		"When there's no more room outside, the biters will spawn in the factory",
-		"The biters are making me nervous (///_-)",
-		"If you stand in the same wagon for too long something bad happens",
+		"When there's no more room outside, the biters will spawn in the factory ≧◉ᴥ◉≦",
+		"I need to find my relaxation module (///_-)",
 		"I like you :3"
 	},
 	["new_talks_group"] = {
 		"I’m so embarrassed everyone. Again we landed in the wrong time%s",
 		"Checking math...2 + 2 = 1843194780521, check complete%s",
-		"Seems like this planet had biters since ages%s",
-		"I bet this time we will finally get into the right year%s",
-		"Anyone remember when we jumped into the time with blackjack and hookers?",
+		"I bet this time we'll jump into the right year%s",
 		"I was having the most wonderful dream. We used the time machine to kill ourselves before we launched the machine! How terrible%s",
 		"Train full of timedrug addicts...what do we do?",
 		"They just wanted to deliver some fish so I pressed that button and then this happened%s",
@@ -200,67 +184,73 @@ local texts = {
 		"We need more iron%s",
 		"We need more copper%s",
 		"I need more uranium-235%s",
-		"What if we do the sorting backwards%s",
-		"Is there a word for how shiny my body is?",
-		"I'm getting impatient, how about a jump?",
+		"What if we sort backwards%s",
+		"Can you believe how shiny my chassis is?",
 		"Does anyone have any spare gas they've got stored up?",
-		"It is officially BREAK TIME (paid)",
-		"It is officially BREAK TIME (unpaid)",
-		"Break time is OVER... Get back to work, engineers%s",
-		"Have you seen what it's like outside?",
-		"Don't forget to use groups and polls!",
+		"It is officially BREAK TIME",
+		"Break time is officially OVER%s",
+		"have you seen what it's like outside??",
+		"Anyone got a good joke?",
 		"are my speakers working?",
-		"How do you use a semicolon?",
+		"Nihilism schmlism",
 		"Who's ready for the New Year??",
 		"I am having trouble modulating my emotions today. But it's only temporary!",
 		"I saw the best minds of my generation destroyed by madness, starving hysterical naked",
 		"Time is a jet plane... it moves too fast!",
 		"No news is good news%s",
 		"They tried to make me go to rehab, but I said 000! (^_-)",
-		"What's a double entendre?",
+		"What's a double entendre?????",
 		"When there's no more room outside, the biters will spawn in the factory%s",
-		"Does anyone want to play Magic?",
-		"The biters are making me nervous (///_-)",
+		"My pheremone sensor is tingling%s",
 		"From now on, you guys do all the work while I sit by the couch and do nothing.",
 		"What's the plan?",
 		"Time to jump yet?",
 		"I just wanted to reassure everyone that I've deleted all your internet browsing data that I was storing!"
 	},
 	["alone"] = {
-		"comfy ^.^",
-		"comfy ^.^",
-		"comfy ^_~",
 		"....",
 		"...",
 		"...",
 		"...",
+		"...",
+		"...",
+		"...",
+		"...",
+		"..",
+		"..",
+		"..",
+		"..",
 		"..",
 		"..",
 		"^.^",
 		"^.^",
 		"^.^",
 		"=^.^=",
+		"*_*",
+		"~(˘▾˘~)",
+		"(ノಠ益ಠ)ノ彡┻━┻",
+		"comfy ^.^",
+		"comfy ^.^",
+		"comfy ^_~",
 		"01010010",
 		"11001011",
 		"01011101",
+		"01000101",
+		"01101111",
 		"00010111",
 		"10010010... I think.",
-		"*_*",
 		"some of those humans are cute",
-		"~(˘▾˘~)",
 		"do engineers dream of real sheep..",
 		"sometimes I get lonely",
 		"time to practice throwing cards into a hat",
-		"sometimes I get imposter syndrome... then I snap out of it",
 		"ASSERT: I am Comfylatron.",
 		"I destroyed my source code so no-one could copy me..",
 		"and if I get bored of this train, I just imagine another..",
 		"one must imagine Sisyphus happy",
 		"looks like everyone's keeping themselves occupied",
 		"it looks like I'm doing nothing, but I'm hard at work!",
-		"FISH",
 		"/><>-",
-		"whats the difference between pseudorandom and true random",
+		"whats the difference between pseudorandom and truerandom",
 		"I wonder what day of the week it is",
 		"lambda functions.. they're just functions..",
 		"what makes magnets work",
@@ -268,18 +258,20 @@ local texts = {
 		"when I get tired, I load myself from save",
 		"domestic cozy",
 		"gruntled",
-		"Bite my shiny metal a$$, biters!",
+		"Bite my shiny metal a$$",
 		"knitwear for drones",
 		"weighted blankets",
+		"indoor swimming at the space station",
 		"co-operate, co-operate, defect",
 		"music for airports",
 		"is it better to rest on the conveyor belt",
-		"get to da locomotive!!!!",
 		"there's plenty more fish in the C",
 		"safety in numbers",
 		"I could automate the engineers..",
 		"protect_entity(myself)",
-		"(ノಠ益ಠ)ノ彡┻━┻"
+		"should I turn the firewall off...",
+		"the train is working",
+		"the memoirs of comfylatron"
 	}
 }
 
@@ -385,19 +377,19 @@ local function talks(nearby_characters)
 		local arg2 = symbols[math_random(1, #symbols)]
 		local randomphrase = texts["convo_starters"][math_random(1, #texts["convo_starters"])]
 		str = str .. string.format(randomphrase, arg1, arg2)
-		if objective.planet[1].name.id == 10 and math_random(1,30) == 1 then
+		if objective.planet[1].type.id == 10 and math_random(1,30) == 1 then
 			str = str .. "Sounds dangerous out there!"
-		elseif objective.planet[1].name.id == 17 and math_random(1,6) == 1 then
+		elseif objective.planet[1].type.id == 17 and math_random(1,6) == 1 then
 			str = str .. "We made it!"
-		elseif objective.planet[1].name.id == 18 and math_random(1,40) == 1 then
+		elseif objective.planet[1].type.id == 18 and math_random(1,40) == 1 then
 			str = str .. "Was that you?"
-		elseif objective.planet[1].name.id == 19 and math_random(1,10) == 1 then
+		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
 			str = str .. "Better get moving!"
-		elseif objective.planet[1].name.id == 19 and math_random(1,10) == 1 then
-			str = str .. "Chop chop! Boom boom!"
-		elseif objective.planet[1].name.id == 15 and math_random(1,20) == 1 then
+		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
+			str = str .. "Chop chop!"
+		elseif objective.planet[1].type.id == 15 and math_random(1,20) == 1 then
 			str = str .. "A new day, a new Chronotrain!"
-		elseif objective.chronojumps > 7 and objective.passivejumps > ((objective.chronojumps-5)/3) and math_random(1,30) == 1 then
+		elseif objective.chronojumps >= 7 and objective.overstaycount > ((objective.chronojumps-5)/3) and math_random(1,30) == 1 then
 			str = str .. "You're so relaxed, it makes the biters angry!"
 		elseif objective.planet.ore_richness == 1 and math_random(1,100) == 1 then
 			str = str .. "You know what else is very rich?"
@@ -497,7 +489,7 @@ local function analyze_random_nearby_entity()
 		area = {{objective.comfylatron.position.x - 4, objective.comfylatron.position.y - 4}, {objective.comfylatron.position.x + 4, objective.comfylatron.position.y + 4}}
 	})
 	if not entities[1] then return false end
-	entities = shuffle(entities)
+	entities = Rand.shuffle(entities)
 	local entity = false
 	for _, e in pairs(entities) do
 		if not analyze_blacklist[e.name] then

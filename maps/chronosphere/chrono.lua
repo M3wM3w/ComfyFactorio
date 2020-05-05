@@ -1,4 +1,5 @@
 local Chrono_table = require 'maps.chronosphere.table'
+local Balance = require 'maps.chronosphere.balance'
 local Score = require "comfy_panel.score"
 local Public_chrono = {}
 
@@ -28,13 +29,17 @@ end
 function Public_chrono.restart_settings()
 	local get_score = Score.get_table()
 	local objective = Chrono_table.get_table()
-    objective.max_health = 10000
-	objective.health = 10000
+    objective.max_health = Balance.Chronotrain_max_HP
+	objective.health = Balance.Chronotrain_max_HP
 	objective.poisontimeout = 0
-	objective.chronotimer = 0
+	objective.chronocharges = 0
+	objective.chronochargesneeded = Balance.initial_CCneeded
+	objective.passive_chronocharge_rate = Balance.initial_CCneeded / Balance.initial_passive_jumptime --per second rate
+	objective.accumulator_energy_history = {}
 	objective.passivetimer = 0
-	objective.passivejumps = 0
-	objective.chrononeeds = 2000
+	objective.overstaycount = 0
+	objective.jump_countdown_start_time = -1
+	objective.jump_countdown_length = -1
 	objective.mainscore = 0
 	objective.active_biters = {}
 	objective.unit_groups = {}
@@ -51,7 +56,7 @@ function Public_chrono.restart_settings()
 	objective.outchests = {}
 	objective.upgradechest = {}
 	objective.fishchest = {}
-	objective.acumulators = {}
+	objective.accumulators = {}
 	objective.comfychests = {}
 	objective.comfychests2 = {}
 	objective.locomotive_cargo = {}
@@ -62,7 +67,7 @@ function Public_chrono.restart_settings()
 	global.landfill_history = {}
 	global.mining_history = {}
 	get_score.score_table = {}
-	global.difficulty_poll_closing_timeout = game.tick + 90000
+	global.difficulty_poll_closing_timeout = game.tick + 108000 --any time during first level; this is set to gametick when the jump happens
 	global.difficulty_player_votes = {}
 
 	game.difficulty_settings.technology_price_multiplier = 0.6
@@ -75,19 +80,19 @@ function Public_chrono.restart_settings()
 	game.map_settings.enemy_expansion.settler_group_max_size = 8
 	game.map_settings.enemy_expansion.settler_group_min_size = 16
 	game.map_settings.pollution.enabled = true
+	game.map_settings.pollution.expected_max_per_chunk = 500
 	game.map_settings.pollution.pollution_restored_per_tree_damage = 0.02
 	game.map_settings.pollution.min_pollution_to_damage_trees = 1
 	game.map_settings.pollution.max_pollution_to_restore_trees = 0
 	game.map_settings.pollution.pollution_with_max_forest_damage = 10
 	game.map_settings.pollution.pollution_per_tree_damage = 0.1
 	game.map_settings.pollution.ageing = 0.1
-	game.map_settings.pollution.diffusion_ratio = 0.1
+	game.map_settings.pollution.diffusion_ratio = 0.15 -- up a bit... any higher and it's too anisotropic
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 5
 	game.forces.neutral.character_inventory_slots_bonus = 500
 	game.forces.enemy.evolution_factor = 0.0001
 	game.forces.scrapyard.set_friend('enemy', true)
 	game.forces.enemy.set_friend('scrapyard', true)
-
 	game.forces.player.technologies["land-mine"].enabled = false
 	game.forces.player.technologies["landfill"].enabled = false
 	game.forces.player.technologies["cliff-explosives"].enabled = false
@@ -95,75 +100,74 @@ function Public_chrono.restart_settings()
 	game.forces.player.technologies["power-armor-mk2"].enabled = false
 	game.forces.player.technologies["railway"].researched = true
 	game.forces.player.recipes["pistol"].enabled = false
-end
 
-function Public_chrono.init_setup()
-	game.forces.player.recipes["pistol"].enabled = false
+	--fixing the bug where partial tech progress is not reset:
+	for _, tech in pairs(game.forces.player.technologies) do 
+		game.forces.player.set_saved_technology_progress(tech, 0)
+	end
 end
 
 function Public_chrono.objective_died()
-  local objective = Chrono_table.get_table()
-  if objective.game_lost == true then return end
-  objective.health = 0
-  local surface = objective.surface
-  game.print({"chronosphere.message_game_lost1"})
-  game.print({"chronosphere.message_game_lost2"})
-  for i = 1, 3, 1 do
-    surface.create_entity({name = "big-artillery-explosion", position = objective.locomotive_cargo[i].position})
-    objective.locomotive_cargo[i].destroy()
-  end
-  for i = 1, #objective.comfychests,1 do
-    --surface.create_entity({name = "big-artillery-explosion", position = objective.comfychests[i].position})
-    objective.comfychests[i].destroy()
-
-    if objective.comfychests2 then objective.comfychests2[i].destroy() end
-
-    --objective.comfychests = {}
-  end
-  objective.acumulators = {}
-  objective.game_lost = true
-  objective.game_reset_tick = game.tick + 1800
-  for _, player in pairs(game.connected_players) do
-    player.play_sound{path="utility/game_lost", volume_modifier=0.75}
-  end
-end
-
-local function overstayed()
-  local objective = Chrono_table.get_table()
-	if objective.passivetimer > objective.chrononeeds * 0.75 and objective.chronojumps > 5 then
-		objective.passivejumps = objective.passivejumps + 1
-    return true
+	local objective = Chrono_table.get_table()
+	if objective.game_lost == true then return end
+	objective.health = 0
+	local surface = objective.surface
+	game.print({"chronosphere.message_game_lost1"})
+	game.print({"chronosphere.message_game_lost2"})
+	for i = 1, 3, 1 do
+		surface.create_entity({name = "big-artillery-explosion", position = objective.locomotive_cargo[i].position})
+		objective.locomotive_cargo[i].destroy()
 	end
-  return false
+	for i = 1, #objective.comfychests,1 do
+		--surface.create_entity({name = "big-artillery-explosion", position = objective.comfychests[i].position})
+		objective.comfychests[i].destroy()
+
+		if objective.comfychests2 then objective.comfychests2[i].destroy() end
+
+		--objective.comfychests = {}
+	end
+	objective.accumulators = {}
+	objective.game_lost = true
+	objective.game_reset_tick = game.tick + 1800
+	for _, player in pairs(game.connected_players) do
+		player.play_sound{path="utility/game_lost", volume_modifier=0.75}
+	end
 end
 
 local function check_nuke_silos()
-  local objective = Chrono_table.get_table()
-  if objective.dangers and #objective.dangers > 1 then
-    for i = 1, #objective.dangers, 1 do
-      if objective.dangers[i].destroyed == true then
-        objective.looted_nukes = objective.looted_nukes + 5
-      end
-    end
-  end
+	local objective = Chrono_table.get_table()
+	if objective.dangers and #objective.dangers > 1 then
+		for i = 1, #objective.dangers, 1 do
+		if objective.dangers[i].destroyed == true then
+			objective.looted_nukes = objective.looted_nukes + 5
+		end
+		end
+	end
 end
 
 function Public_chrono.process_jump()
 	local objective = Chrono_table.get_table()
-	local _overstayed = overstayed()
+	
+	if objective.chronojumps == 1 then
+		global.difficulty_poll_closing_timeout = game.tick
+	end
+
 	objective.chronojumps = objective.chronojumps + 1
-	objective.chrononeeds = 2000 + 300 * objective.chronojumps
+	objective.passivetimer = 0
+	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(objective.chronojumps) -- since 1CC = 1MJ now
+	objective.passive_chronocharge_rate = objective.chronochargesneeded / Balance.passive_planet_jumptime(objective.chronojumps)
 	objective.active_biters = {}
 	objective.unit_groups = {}
 	objective.biter_raffle = {}
-	objective.passivetimer = 0
-	objective.chronotimer = 0
+	objective.chronocharges = 0
+	objective.jump_countdown_start_time = -1
+	objective.jump_countdown_length = -1
   	objective.dangertimer = 1200
 	local message = "Comfylatron: Wheeee! Time Jump Active! This is Jump number " .. objective.chronojumps
 	game.print(message, {r=0.98, g=0.66, b=0.22})
 	Server.to_discord_embed(message)
 
-	if objective.chronojumps == 6 then
+	if objective.chronojumps == 3 then
 		game.print({"chronosphere.message_evolve"}, {r=0.98, g=0.36, b=0.22})
 	elseif objective.chronojumps >= 15 and objective.computermessage == 0 then
 		game.print({"chronosphere.message_quest1"}, {r=0.98, g=0.36, b=0.22})
@@ -175,12 +179,12 @@ function Public_chrono.process_jump()
 		game.print({"chronosphere.message_quest5"}, {r=0.98, g=0.36, b=0.22})
     objective.computermessage = 5
 	end
-	if _overstayed then
-    game.print({"chronosphere.message_overstay"}, {r=0.98, g=0.36, b=0.22})
-  end
-  if objective.planet[1].name.id == 19 then
-    check_nuke_silos()
-  end
+	if (objective.passivetimer - objective.jump_countdown_length) * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.75 and objective.chronojumps >= 3 then
+    	game.print({"chronosphere.message_overstay"}, {r=0.98, g=0.36, b=0.22})
+  	end
+  	if objective.planet[1].type.id == 19 then
+		check_nuke_silos()
+	end
 end
 
 function Public_chrono.get_wagons(start)
@@ -218,43 +222,49 @@ function Public_chrono.get_wagons(start)
 			wagons[3].inventory[i] = inventories.three[i]
 		end
 	end
-  return wagons
+	
+	return wagons
 end
 
 function Public_chrono.post_jump()
-  local objective = Chrono_table.get_table()
-  game.forces.enemy.reset_evolution()
-	if objective.chronojumps + objective.passivejumps <= 40 and objective.planet[1].name.id ~= 17 then
-		game.forces.enemy.evolution_factor = 0 + 0.025 * (objective.chronojumps + objective.passivejumps)
+	local objective = Chrono_table.get_table()
+	local difficulty = global.difficulty_vote_value
+	  
+  	game.forces.enemy.reset_evolution()
+	if objective.chronojumps + objective.overstaycount <= 40 and objective.planet[1].type.id ~= 17 then
+		game.forces.enemy.evolution_factor = 0 + 0.025 * (objective.chronojumps + objective.overstaycount)
 	else
 		game.forces.enemy.evolution_factor = 1
 	end
-	if objective.planet[1].name.id == 17 then
+	if objective.planet[1].type.id == 17 then
 		objective.comfychests[1].insert({name = "space-science-pack", count = 1000})
-    if objective.looted_nukes > 0 then
-      objective.comfychests[1].insert({name = "atomic-bomb", count = objective.looted_nukes})
-      game.print({"chronosphere.message_fishmarket3"}, {r=0.98, g=0.66, b=0.22})
-    end
-		objective.chrononeeds = 200000000
-  elseif objective.planet[1].name.id == 19 then
-    objective.chronotimer = objective.chrononeeds - 1500
+		if objective.looted_nukes > 0 then
+      	objective.comfychests[1].insert({name = "atomic-bomb", count = objective.looted_nukes})
+      	game.print({"chronosphere.message_fishmarket3"}, {r=0.98, g=0.66, b=0.22})
+    	end
+		objective.chronochargesneeded = 200000000
+  	elseif objective.planet[1].type.id == 19 then
+		objective.chronocharges = objective.chronochargesneeded - 1500
+		objective.passive_chronocharge_rate = 1
 	end
 	for _, player in pairs(game.connected_players) do
 		objective.flame_boots[player.index] = {fuel = 1, steps = {}}
 	end
 
-	game.map_settings.enemy_evolution.time_factor = 7e-05 + 3e-06 * (objective.chronojumps + objective.passivejumps)
+	game.map_settings.enemy_evolution.time_factor = 7e-05 + 3e-06 * (objective.chronojumps + objective.overstaycount)
+
 	game.forces.scrapyard.set_ammo_damage_modifier("bullet", 0.01 * objective.chronojumps + 0.02 * math_max(0, objective.chronojumps - 20))
 	game.forces.scrapyard.set_turret_attack_modifier("gun-turret", 0.01 * objective.chronojumps + 0.02 * math_max(0, objective.chronojumps - 20))
-	game.forces.enemy.set_ammo_damage_modifier("melee", 0.1 * objective.passivejumps)
-	game.forces.enemy.set_ammo_damage_modifier("biological", 0.1 * objective.passivejumps)
-	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 0.8
-  if objective.chronojumps == 1 then
-    if global.difficulty_vote_value < 1 then
-      game.forces.player.technologies["fusion-reactor-equipment"].enabled = true
-	  game.forces.player.technologies["power-armor-mk2"].enabled = true
+	game.forces.enemy.set_ammo_damage_modifier("melee", 0.1 * objective.overstaycount)
+	game.forces.enemy.set_ammo_damage_modifier("biological", 0.1 * objective.overstaycount)
+	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = Balance.defaultai_attack_pollution_consumption_modifier(difficulty)
+
+	if objective.chronojumps == 1 then
+		if difficulty < 1 then
+		game.forces.player.technologies["fusion-reactor-equipment"].enabled = true
+		game.forces.player.technologies["power-armor-mk2"].enabled = true
+		end
 	end
-  end
 end
 
 return Public_chrono

@@ -109,6 +109,49 @@ local function update_upgrades_gui(player)
 	end
 end
 
+
+
+local function planet_gui(player)
+	local objective = Chrono_table.get_table()
+	if player.gui.screen["gui_planet"] then player.gui.screen["gui_planet"].destroy() return end
+	local planet = objective.planet[1]
+	local evolution = game.forces["enemy"].evolution_factor
+	local frame = player.gui.screen.add{type = "frame", name = "gui_planet", caption = "Planet Info", direction = "vertical"}
+  frame.location = {x = 650, y = 45}
+  frame.style.minimal_height = 300
+  frame.style.maximal_height = 500
+  frame.style.minimal_width = 200
+  frame.style.maximal_width = 400
+	local l = {}
+	l[1] = frame.add({type = "label", name = "planet_name", caption = {"chronosphere.gui_planet_0", planet.type.name}})
+	l[2] = frame.add({type = "label", caption = {"chronosphere.gui_planet_1"}})
+	local table0 = frame.add({type = "table", name = "planet_ores", column_count = 3})
+	table0.add({type = "sprite-button", name = "iron-ore", sprite = "item/iron-ore", enabled = false, number = planet.type.iron})
+	table0.add({type = "sprite-button", name = "copper-ore", sprite = "item/copper-ore", enabled = false, number = planet.type.copper})
+	table0.add({type = "sprite-button", name = "coal", sprite = "item/coal", enabled = false, number = planet.type.coal})
+	table0.add({type = "sprite-button", name = "stone", sprite = "item/stone", enabled = false, number = planet.type.stone})
+	table0.add({type = "sprite-button", name = "uranium-ore", sprite = "item/uranium-ore", enabled = false, number = planet.type.uranium})
+	table0.add({type = "sprite-button", name = "oil", sprite = "fluid/crude-oil", enabled = false, number = planet.type.oil})
+	l[3] = frame.add({type = "label", name = "richness", caption = {"chronosphere.gui_planet_2", planet.ore_richness.name}})
+	frame.add({type = "line"})
+	frame.add({type = "label", name = "planet_biters", caption = {"chronosphere.gui_planet_3", math_floor(evolution * 1000) / 10}})
+	frame.add({type = "label", name = "planet_biters2", caption = {"chronosphere.gui_planet_4"}})
+	frame.add({type = "label", name = "planet_biters3", caption = {"chronosphere.gui_planet_4_1", objective.overstaycount * 2.5, objective.overstaycount * 10}})
+	frame.add({type = "line"})
+	frame.add({type = "label", name = "planet_time", caption = {"chronosphere.gui_planet_5", planet.day_speed.name}})
+	frame.add({type = "label", name = "overstay_time", caption = {"chronosphere.gui_planet_7", "",""}})
+	
+	frame.add({type = "line"})
+
+	local close = frame.add({type = "button", name = "close_planet", caption = "Close"})
+	close.style.horizontal_align = "center"
+	-- for i = 1, 3, 1 do
+	-- 	l[i].style.font = "default-game"
+	-- end
+
+	return l
+end
+
 local function update_planet_gui(player)
 	local objective = Chrono_table.get_table()
 	if not player.gui.screen["gui_planet"] then return end
@@ -121,34 +164,60 @@ local function update_planet_gui(player)
   }
 	local frame = player.gui.screen["gui_planet"]
 
-	frame["planet_name"].caption = {"chronosphere.gui_planet_0", planet.name.name}
-	frame["planet_ores"]["iron-ore"].number = planet.name.iron
-	frame["planet_ores"]["copper-ore"].number = planet.name.copper
-	frame["planet_ores"]["coal"].number = planet.name.coal
-	frame["planet_ores"]["stone"].number = planet.name.stone
-	frame["planet_ores"]["uranium-ore"].number = planet.name.uranium
-	frame["planet_ores"]["oil"].number = planet.name.oil
+	frame["planet_name"].caption = {"chronosphere.gui_planet_0", planet.type.name}
+	frame["planet_ores"]["iron-ore"].number = planet.type.iron
+	frame["planet_ores"]["copper-ore"].number = planet.type.copper
+	frame["planet_ores"]["coal"].number = planet.type.coal
+	frame["planet_ores"]["stone"].number = planet.type.stone
+	frame["planet_ores"]["uranium-ore"].number = planet.type.uranium
+	frame["planet_ores"]["oil"].number = planet.type.oil
 	frame["richness"].caption = {"chronosphere.gui_planet_2", planet.ore_richness.name}
 	frame["planet_biters"].caption = {"chronosphere.gui_planet_3", math_floor(evolution * 1000) / 10}
 	frame["planet_biters"].style.font_color = evo_color
 
-	frame["planet_biters3"].caption = {"chronosphere.gui_planet_4_1", objective.passivejumps * 2.5, objective.passivejumps * 10}
+	frame["planet_biters3"].caption = {"chronosphere.gui_planet_4_1", objective.overstaycount * 2.5, objective.overstaycount * 10}
 	frame["planet_time"].caption = {"chronosphere.gui_planet_5", planet.day_speed.name}
-	if objective.chronojumps > 5 then
-		local overstay_timer_min = math_floor((objective.chrononeeds * 0.75 - objective.passivetimer) / 60)
-		if overstay_timer_min < 0 then
-			frame["overstay_time"].caption = {"chronosphere.gui_planet_6", overstay_timer_min, 59 - ((objective.chrononeeds * 0.75 - objective.passivetimer) % 60)}
+	
+	if objective.jump_countdown_start_time == -1 then
+		if objective.chronojumps >= 3 then
+			local time_until_overstay = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate - objective.passivetimer)
+			if time_until_overstay < 0 then
+				frame["overstay_time"].caption = {"chronosphere.gui_overstayed","",""}
+			else
+				frame["overstay_time"].caption = {"chronosphere.gui_planet_6", math_floor(time_until_overstay / 60), math_floor(time_until_overstay % 60)}--check this
+			end
 		else
-			frame["overstay_time"].caption = {"chronosphere.gui_planet_6", overstay_timer_min, (objective.chrononeeds * 0.75 - objective.passivetimer) % 60}
+			frame["overstay_time"].caption = {"chronosphere.gui_planet_7","",""}
 		end
 	else
-		frame["overstay_time"].caption = {"chronosphere.gui_planet_7", "", ""}
+		if objective.chronojumps >= 3 then
+			local overstayed = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate < objective.jump_countdown_start_time)
+			if overstayed < 0 then
+				frame["overstay_time"].caption = {"chronosphere.gui_overstayed","",""}
+			else
+				frame["overstay_time"].caption = {"chronosphere.gui_not_overstayed","",""}
+			end
+		end
 	end
 
 end
 
+local function ETA_seconds_until_full(power, storedbattery) -- in watts and joules
+	local objective = Chrono_table.get_table()
+	
+	local n = objective.chronochargesneeded - objective.chronocharges
+
+	if n <= 0 then return 0
+	else
+		local eta = (n - storedbattery/1000000) / (power/1000000 + objective.passive_chronocharge_rate)
+		if eta < 1 then return 1 end
+		return math_floor(eta)
+	end
+end
+
 function Public_gui.update_gui(player)
   local objective = Chrono_table.get_table()
+  local tick = game.tick
 	update_planet_gui(player)
 	update_upgrades_gui(player)
 	if not player.gui.top.chronosphere then create_gui(player) end
@@ -157,50 +226,79 @@ function Public_gui.update_gui(player)
 	gui.label.caption = {"chronosphere.gui_1"}
 	gui.jump_number.caption = objective.chronojumps
 
-	local interval = objective.chrononeeds
-	gui.progressbar.value = 1 - (objective.chrononeeds - objective.chronotimer) / interval
+	local interval = objective.chronochargesneeded
+	gui.progressbar.value = 1 - (objective.chronochargesneeded - objective.chronocharges) / interval
 
 	gui.charger.caption = {"chronosphere.gui_2"}
-	gui.charger_value.caption = objective.chronotimer .. " / " .. objective.chrononeeds
 
-  gui.timer.caption = {"chronosphere.gui_3"}
-	gui.timer_value.caption = math_floor((objective.chrononeeds - objective.chronotimer) / 60) .. " min, " .. (objective.chrononeeds - objective.chronotimer) % 60 .. " s"
-	if objective.chronojumps > 5 then
-		local overstay_timer_min = math_floor((objective.chrononeeds * 0.75 - objective.passivetimer) / 60)
-		local evo_timer_min = math_floor((objective.chrononeeds * 0.5 - objective.passivetimer) / 60)
-		local first_part = "Biters permanently evolve when we overstay our welcome: " .. overstay_timer_min .. " min, " .. (objective.chrononeeds * 0.75 - objective.passivetimer) % 60 .. " s"
-		if overstay_timer_min < 0 then
-			first_part = "Biters permanently evolve when we overstay our welcome: " .. overstay_timer_min .. " min, " .. 59 - ((objective.chrononeeds * 0.75 - objective.passivetimer) % 60) .. " s"
-		end
-		local second_part = "Evolution ramps up on this planet in: " ..evo_timer_min .. " min, " .. (objective.chrononeeds * 0.5 - objective.passivetimer) % 60 .. " s"
-		if evo_timer_min < 0 then
-			second_part = "Evolution ramps up on this planet in: " ..evo_timer_min .. " min, " .. 59 -((objective.chrononeeds * 0.5 - objective.passivetimer) % 60) .. " s"
-		end
-		gui.timer.tooltip = first_part .. "\n" .. second_part --more area is hoverable
-		gui.timer_value.tooltip = first_part .. "\n" .. second_part
+	if (objective.chronochargesneeded<1000) then
+		gui.charger_value.caption =  objective.chronocharges .. "/" .. objective.chronochargesneeded .. " MJ"
+	elseif (objective.chronochargesneeded<10000) then
+		gui.charger_value.caption =  math_floor(objective.chronocharges/100)/10 .. " / " .. math_floor(objective.chronochargesneeded/100)/10 .. " GJ"
 	else
-		gui.timer.tooltip = "After planet 5, biters will get additional permanent evolution for staying too long on each planet."
-		gui.timer_value.tooltip = "After planet 5, biters will get additional permanent evolution for staying too long on each planet."
+		gui.charger_value.caption =  math_floor(objective.chronocharges/1000) .. " / " .. math_floor(objective.chronochargesneeded/1000) .. " GJ"
+	end
+
+	if objective.jump_countdown_start_time == -1 then
+		if tick % 60 == 58 then -- charge timer updates
+			local history = objective.accumulator_energy_history
+			objective.accumulator_energy_history = {}
+			local powerobserved,storedbattery,seconds_ETA = 0,0,0
+			if #history == 2 then
+				powerobserved = (history[2] - history[1]) / 54 * 60
+				storedbattery = history[2]
+			end
+			
+			seconds_ETA = ETA_seconds_until_full(powerobserved, storedbattery)
+	
+			gui.timer.caption = {"chronosphere.gui_3"}
+			gui.timer_value.caption = math_floor(seconds_ETA / 60) .. " min, " .. seconds_ETA % 60 .. " s"
+			
+				if objective.planet[1].type.id == 19 and objective.passivetimer > 31 then
+					local nukecase = objective.dangertimer
+					gui.timer2.caption = {"chronosphere.gui_3_2"}
+					gui.timer_value2.caption = math_floor(nukecase / 60) .. " min, " .. nukecase % 60 .. " s"
+					gui.timer2.style.font_color = {r=0.98, g=0, b=0}
+					gui.timer_value2.style.font_color = {r=0.98, g=0, b=0}
+				else
+					local bestcase = 0
+					if objective.accumulators then bestcase = math_floor(ETA_seconds_until_full(#objective.accumulators * 300000, storedbattery))
+					gui.timer2.caption = {"chronosphere.gui_3_1"}
+					gui.timer_value2.caption = math_floor(bestcase / 60) .. "m" .. bestcase % 60 .. "s (drawing " .. #objective.accumulators * 0.3 .. "MW)"
+					gui.timer2.style.font_color = {r = 0, g = 200, b = 0}
+					gui.timer_value2.style.font_color = {r = 0, g = 200, b = 0}
+				end
+			end
+		end
+		if objective.chronojumps >= 3 then
+			local time_until_overstay = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate - objective.passivetimer)
+			local time_until_evo = (objective.chronochargesneeded * 0.5 / objective.passive_chronocharge_rate - objective.passivetimer)
+
+			local first_part = "Biters permanently evolve in: " .. math_floor(time_until_overstay/60) .. " min, " .. math_floor(time_until_overstay) % 60 .. " s"
+			if time_until_overstay < 0 then
+				first_part = "Biters permanently evolve in: " .. math_floor(time_until_overstay/60) .. " min, " .. 59 - (math_floor(time_until_overstay) % 60) .. " s"
+			end
+
+			local second_part = "Evolution ramps up on this planet in: " .. math_floor(time_until_evo/60) .. " min, " .. math_floor(time_until_evo) % 60 .. " s"
+			if time_until_evo < 0 then
+				second_part = "Evolution ramps up on this planet in: " .. math_floor(time_until_evo/60) .. " min, " .. 59 - (math_floor(time_until_evo) % 60) .. " s"
+			end
+
+			gui.timer_value.tooltip = first_part .. "\n" .. second_part
+		else
+			gui.timer_value.tooltip = ""
+		end
+	else
+		gui.timer.caption = {"chronosphere.gui_3_3"}
+		gui.timer_value.caption = objective.passivetimer - objective.jump_countdown_start_time .. " / " .. objective.jump_countdown_length
+		gui.timer.tooltip = ""
+		gui.timer_value.tooltip = ""
+		gui.timer2.caption = ""
+		gui.timer_value2.caption = ""
 	end
 
 	gui.planet_button.caption = {"chronosphere.gui_planet_button"}
 	gui.upgrades_button.caption = {"chronosphere.gui_upgrades_button"}
-
-  local acus = 0
-  if objective.acumulators then acus = #objective.acumulators end
-  local bestcase = math_floor((objective.chrononeeds - objective.chronotimer) / (1 + math_floor(acus/10)))
-	local nukecase = objective.dangertimer
-	if objective.planet[1].name.id == 19 and objective.passivetimer > 31 then
-		gui.timer2.caption = {"chronosphere.gui_3_2"}
-		gui.timer_value2.caption = math_floor(nukecase / 60) .. " min, " .. nukecase % 60 .. " s"
-		gui.timer2.style.font_color = {r=0.98, g=0, b=0}
-		gui.timer_value2.style.font_color = {r=0.98, g=0, b=0}
-	else
-		gui.timer2.caption = {"chronosphere.gui_3_1"}
-		gui.timer_value2.caption = math_floor(bestcase / 60) .. " min, " .. bestcase % 60 .. " s (using " .. acus * 0.3 .. "MW)"
-		gui.timer2.style.font_color = {r = 0, g = 200, b = 0}
-		gui.timer_value2.style.font_color = {r = 0, g = 200, b = 0}
-	end
 end
 
 local function upgrades_gui(player)
@@ -245,56 +343,6 @@ local function upgrades_gui(player)
 	end
   frame.add({type = "button", name = "close_upgrades", caption = "Close"})
   return costs
-end
-
-local function planet_gui(player)
-	local objective = Chrono_table.get_table()
-	if player.gui.screen["gui_planet"] then player.gui.screen["gui_planet"].destroy() return end
-	local planet = objective.planet[1]
-	local evolution = game.forces["enemy"].evolution_factor
-	local frame = player.gui.screen.add{type = "frame", name = "gui_planet", caption = "Planet Info", direction = "vertical"}
-  frame.location = {x = 650, y = 45}
-  frame.style.minimal_height = 300
-  frame.style.maximal_height = 500
-  frame.style.minimal_width = 200
-  frame.style.maximal_width = 400
-	local l = {}
-	l[1] = frame.add({type = "label", name = "planet_name", caption = {"chronosphere.gui_planet_0", planet.name.name}})
-	l[2] = frame.add({type = "label", caption = {"chronosphere.gui_planet_1"}})
-	local table0 = frame.add({type = "table", name = "planet_ores", column_count = 3})
-	table0.add({type = "sprite-button", name = "iron-ore", sprite = "item/iron-ore", enabled = false, number = planet.name.iron})
-	table0.add({type = "sprite-button", name = "copper-ore", sprite = "item/copper-ore", enabled = false, number = planet.name.copper})
-	table0.add({type = "sprite-button", name = "coal", sprite = "item/coal", enabled = false, number = planet.name.coal})
-	table0.add({type = "sprite-button", name = "stone", sprite = "item/stone", enabled = false, number = planet.name.stone})
-	table0.add({type = "sprite-button", name = "uranium-ore", sprite = "item/uranium-ore", enabled = false, number = planet.name.uranium})
-	table0.add({type = "sprite-button", name = "oil", sprite = "fluid/crude-oil", enabled = false, number = planet.name.oil})
-	l[3] = frame.add({type = "label", name = "richness", caption = {"chronosphere.gui_planet_2", planet.ore_richness.name}})
-	frame.add({type = "line"})
-	frame.add({type = "label", name = "planet_biters", caption = {"chronosphere.gui_planet_3", math_floor(evolution * 1000) / 10}})
-	frame.add({type = "label", name = "planet_biters2", caption = {"chronosphere.gui_planet_4"}})
-	frame.add({type = "label", name = "planet_biters3", caption = {"chronosphere.gui_planet_4_1", objective.passivejumps * 2.5, objective.passivejumps * 10}})
-	frame.add({type = "line"})
-	frame.add({type = "label", name = "planet_time", caption = {"chronosphere.gui_planet_5", planet.day_speed.name}})
-	frame.add({type = "label", name = "overstay_time", caption = {"chronosphere.gui_planet_7", "",""}})
-	
-	if objective.chronojumps > 5 then
-		local overstay_timer_min = math_floor((objective.chrononeeds * 0.75 - objective.passivetimer) / 60)
-		if overstay_timer_min < 0 then
-			frame["overstay_time"].caption = {"chronosphere.gui_planet_6", overstay_timer_min, 59 - ((objective.chrononeeds * 0.75 - objective.passivetimer) % 60)}
-		else
-			frame["overstay_time"].caption = {"chronosphere.gui_planet_6", overstay_timer_min, (objective.chrononeeds * 0.75 - objective.passivetimer) % 60}
-		end
-	else
-		frame["overstay_time"].caption = {"chronosphere.gui_planet_7", "", ""}
-	end
-	frame.add({type = "line"})
-
-	local close = frame.add({type = "button", name = "close_planet", caption = "Close"})
-	close.style.horizontal_align = "center"
-	-- for i = 1, 3, 1 do
-	-- 	l[i].style.font = "default-game"
-	-- end
-	return l
 end
 
 function Public_gui.on_gui_click(event)

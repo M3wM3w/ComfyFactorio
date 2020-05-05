@@ -1,4 +1,4 @@
--- on table to rule them all!
+-- one table to rule them all!
 local Global = require 'utils.global'
 local Event = require 'utils.event'
 
@@ -23,18 +23,22 @@ function Public.reset_table()
 	chronosphere.chronojumps = 0
 	chronosphere.game_lost = true
 	chronosphere.game_won = false
-	chronosphere.max_health = 10000
-	chronosphere.health = 10000
+	chronosphere.max_health = 0
+	chronosphere.health = 0
 	chronosphere.poisontimeout = 0
-	chronosphere.chronotimer = 0
+	chronosphere.chronocharges = 0
+	chronosphere.passive_chronocharge_rate = 0
+	chronosphere.accumulator_energy_history = {}
 	chronosphere.passivetimer = 0
-	chronosphere.passivejumps = 0
-	chronosphere.chrononeeds = 2000
+	chronosphere.overstaycount = 0
+	chronosphere.chronochargesneeded = 0
+	chronosphere.jump_countdown_start_time = 0
+	chronosphere.jump_countdown_length = 0
 	chronosphere.mainscore = 0
 	chronosphere.active_biters = {}
 	chronosphere.unit_groups = {}
 	chronosphere.biter_raffle = {}
-	chronosphere.dangertimer = 1200
+	chronosphere.dangertimer = 0
 	chronosphere.dangers = {}
 	chronosphere.looted_nukes = 0
 	chronosphere.offline_players = {}
@@ -44,7 +48,7 @@ function Public.reset_table()
 	chronosphere.upgradechest = {}
 	chronosphere.fishchest = {}
 	chronosphere.comfylatron = {}
-	chronosphere.acumulators = {}
+	chronosphere.accumulators = {}
 	chronosphere.comfychests = {}
 	chronosphere.comfychests2 = {}
 	chronosphere.locomotive_cargo = {}

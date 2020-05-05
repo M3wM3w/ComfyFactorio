@@ -1,76 +1,100 @@
 local Chrono_table = require 'maps.chronosphere.table'
+local Balance = require 'maps.chronosphere.balance'
 local Public_tick = {}
 
 local math_random = math.random
 local math_floor = math.floor
 local math_ceil = math.ceil
 local math_min = math.min
+local math_cos = math.cos
+local math_sin = math.sin
+local math_rad = math.rad
+local math_exp = math.exp
 
-function Public_tick.check_chronoprogress()
+function Public_tick.realtime_events()
   local objective = Chrono_table.get_table()
-  if objective.planet[1].name.id == 19 then
-    if objective.passivetimer == 10 then
-      game.print({"chronosphere.message_danger1"}, {r=0.98, g=0.66, b=0.22})
+
+  if objective.planet[1].type.id == 19 then
+    if objective.passivetimer == 3 then
+    game.print({"chronosphere.message_danger1"}, {r=0.98, g=0.66, b=0.22})
+    elseif objective.passivetimer == 15 then
       game.print({"chronosphere.message_danger2"}, {r=0.98, g=0.66, b=0.22})
     elseif objective.passivetimer == 25 then
       game.print({"chronosphere.message_danger3"}, {r=0.98, g=0, b=0})
     elseif objective.passivetimer == 30 then
-      game.print({"chronosphere.message_danger4"}, {r=0.98, g=0, b=0})
+      game.print({"chronosphere.message_danger4"}, {r=0.98, g=0.66, b=0.22})
+    elseif objective.passivetimer == 35 then
+      game.print({"chronosphere.message_danger5"}, {r=0.98, g=0, b=0})
     end
   end
 
-  if objective.passivetimer == objective.chrononeeds * 0.50 and objective.chronojumps > 5 then
+  if objective.jump_countdown_start_time == -1 and objective.passivetimer == math_floor(objective.chronochargesneeded * 0.50 / objective.passive_chronocharge_rate) and objective.chronojumps >= 3 then
 		game.print({"chronosphere.message_rampup50"}, {r=0.98, g=0.66, b=0.22})
-	end
+  end
 
-	if objective.chronotimer == objective.chrononeeds - 180  then
-		game.print({"chronosphere.message_jump180"}, {r=0.98, g=0.66, b=0.22})
-	elseif objective.chronotimer == objective.chrononeeds - 60  then
-		game.print({"chronosphere.message_jump60"}, {r=0.98, g=0.66, b=0.22})
-	elseif objective.chronotimer == objective.chrononeeds - 30 then
-		game.print({"chronosphere.message_jump30"}, {r=0.98, g=0.66, b=0.22})
-	elseif objective.chronotimer >= objective.chrononeeds - 10 and objective.chrononeeds - objective.chronotimer > 0 then
-		game.print("Comfylatron: Jump in " .. objective.chrononeeds - objective.chronotimer .. " seconds!", {r=0.98, g=0.66, b=0.22})
-	end
-	if objective.chronotimer >= objective.chrononeeds then
-		return true
-	end
-  return false
+  if objective.jump_countdown_start_time ~= -1 then
+    if objective.passivetimer == objective.jump_countdown_start_time + objective.jump_countdown_length - 60 then
+      game.print({"chronosphere.message_jump60"}, {r=0.98, g=0.66, b=0.22})
+    elseif objective.passivetimer == objective.jump_countdown_start_time + objective.jump_countdown_length - 30 then
+      game.print({"chronosphere.message_jump30"}, {r=0.98, g=0.66, b=0.22})
+    elseif objective.passivetimer >= objective.jump_countdown_start_time + objective.jump_countdown_length - 10 and objective.jump_countdown_start_time + objective.jump_countdown_length - objective.passivetimer > 0 then
+      game.print("Comfylatron: Jump in " .. objective.jump_countdown_start_time + objective.jump_countdown_length - objective.passivetimer .. " seconds!", {r=0.98, g=0.66, b=0.22})
+    end
+  end
 end
 
-function Public_tick.charge_chronosphere()
+function Public_tick.record_energy_historyA()
   local objective = Chrono_table.get_table()
-	if not objective.acumulators then return end
-	if not objective.chronotimer then return end
-	if objective.chronotimer < 20 then return end
-	if objective.planet[1].name.id == 17 or objective.planet[1].name.id == 19 then return end
-	local acus = objective.acumulators
-	if #acus < 1 then return end
-	for i = 1, #acus, 1 do
-		if not acus[i].valid then return end
-		local energy = acus[i].energy
-		if energy > 3010000 and objective.chronotimer < objective.chrononeeds - 182 and objective.chronotimer > 130 then
-			acus[i].energy = acus[i].energy - 3000000
-			objective.chronotimer = objective.chronotimer + 1
-			game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, (10 + 2 * objective.chronojumps) * (3 / (objective.upgrades[2] / 3 + 1)) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1))
-		end
-	end
+  local acus = objective.accumulators
+  if #objective.accumulator_energy_history == 0 and #acus > 0 then
+    local e = 0
+    for i = 1,#acus,1 do
+      if acus[i].valid then
+        e = e + acus[i].energy
+      end
+    end
+    objective.accumulator_energy_history[1] = e
+  end
+end
+
+function Public_tick.record_energy_historyB()
+  local objective = Chrono_table.get_table()
+  local acus = objective.accumulators
+  if #objective.accumulator_energy_history == 1 and #acus > 0 then
+    local e = 0
+    for i = 1,#acus,1 do
+      if acus[i].valid then
+        e = e + acus[i].energy
+      end
+    end
+    objective.accumulator_energy_history[2] = e
+  end
 end
 
 function Public_tick.transfer_pollution()
   local objective = Chrono_table.get_table()
+  local difficulty = global.difficulty_vote_value
+
 	local surface = game.surfaces["cargo_wagon"]
-	if not surface then return end
-	local pollution = surface.get_total_pollution() * (3 / (objective.upgrades[2] / 3 + 1)) * (((global.difficulty_vote_value - 1) * 3 / 5) + 1)
-	game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, pollution)
-	surface.clear_pollution()
+  if not surface or not objective.locomotive.valid then return end
+
+  local total_interior_pollution = surface.get_total_pollution()
+
+  local exterior_pollution =  total_interior_pollution * Balance.pollution_transfer_from_inside_factor(difficulty, objective.upgrades[2])
+  
+  game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, exterior_pollution)
+  -- attribute the difference to the locomotive in the stats:
+	game.pollution_statistics.on_flow("locomotive", exterior_pollution - total_interior_pollution)
+  surface.clear_pollution()
 end
 
 function Public_tick.boost_evolution()
-	local objective = Chrono_table.get_table()
-	if objective.passivetimer > objective.chrononeeds * 0.50 and objective.chronojumps > 5 then
+  local objective = Chrono_table.get_table()
+  local difficulty = global.difficulty_vote_value
+
+	if objective.passivetimer > objective.chronochargesneeded * 0.50 and objective.chronojumps >= 3 then
 		local evolution = game.forces.enemy.evolution_factor
-		evolution = evolution + (evolution / 500) * (((global.difficulty_vote_value - 1) / 2 ) + 1)
+		evolution = evolution * Balance.evoramp50_multiplier_per_second(difficulty)
 		if evolution > 1 then evolution = 1 end
 		game.forces.enemy.evolution_factor = evolution
 	end
@@ -132,10 +156,10 @@ function Public_tick.repair_train()
 	local inv = objective.upgradechest[0].get_inventory(defines.inventory.chest)
 	if objective.health < objective.max_health then
 		count = inv.get_item_count("repair-pack")
-		count = math_min(count, objective.upgrades[6] + 1, math_ceil((objective.max_health - objective.health) / 150))
+		count = math_min(count, objective.upgrades[6] + 1, math_ceil((objective.max_health - objective.health) / Balance.Chronotrain_HP_repaired_per_pack))
 		if count > 0 then inv.remove({name = "repair-pack", count = count}) end
 	end
-  return count * -150
+  return count * -Balance.Chronotrain_HP_repaired_per_pack
 end
 
 function Public_tick.spawn_poison()
@@ -146,11 +170,14 @@ function Public_tick.spawn_poison()
   local tile = surface.get_tile(random_x, random_y)
   if not tile.valid then return end
   if tile.name == "water-shallow" or tile.name == "water-mud" then
+    --wider poison clouds, different shapes
+    random_angles = {math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359))}
+
     surface.create_entity({name = "poison-cloud", position = {x = random_x, y = random_y}})
-    surface.create_entity({name = "poison-cloud", position = {x = random_x + 2, y = random_y + 2}})
-    surface.create_entity({name = "poison-cloud", position = {x = random_x - 2, y = random_y - 2}})
-    surface.create_entity({name = "poison-cloud", position = {x = random_x + 2, y = random_y - 2}})
-    surface.create_entity({name = "poison-cloud", position = {x = random_x - 2, y = random_y + 2}})
+    surface.create_entity({name = "poison-cloud", position = {x = random_x + 12 * math_cos(random_angles[1]), y = random_y + 12 * math_sin(random_angles[1])}})
+    surface.create_entity({name = "poison-cloud", position = {x = random_x + 12 * math_cos(random_angles[2]), y = random_y + 12 * math_sin(random_angles[2])}})
+    surface.create_entity({name = "poison-cloud", position = {x = random_x + 12 * math_cos(random_angles[3]), y = random_y + 12 * math_sin(random_angles[3])}})
+    surface.create_entity({name = "poison-cloud", position = {x = random_x + 12 * math_cos(random_angles[4]), y = random_y + 12 * math_sin(random_angles[4])}})
   end
 end
 
@@ -172,7 +199,7 @@ function Public_tick.dangertimer()
   local objective = Chrono_table.get_table()
   local timer = objective.dangertimer
   if timer == 0 then return end
-  if objective.planet[1].name.id == 19 then
+  if objective.planet[1].type.id == 19 then
     timer = timer - 1
     if objective.dangers and #objective.dangers > 0 then
       for i = 1, #objective.dangers, 1 do
@@ -199,7 +226,7 @@ end
 
 function Public_tick.offline_players()
   local objective = Chrono_table.get_table()
-  if objective.chronotimer > objective.chrononeeds - 182 or objective.passivetimer < 30 then return end
+  if objective.chronocharges == objective.chronochargesneeded or objective.passivetimer < 30 then return end
   --local current_tick = game.tick
   local players = objective.offline_players
   local surface = game.surfaces[objective.active_surface_index]
@@ -238,7 +265,8 @@ function Public_tick.offline_players()
               end
             end
 						game.print({"chronosphere.message_accident"}, {r=0.98, g=0.66, b=0.22})
-						e.die("neutral")
+            e.die("neutral")
+            -- thesixthroc: do we also want to mark the player as offline for purposes of 'time played?'
 					else
 						e.destroy()
           end
