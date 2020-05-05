@@ -11,6 +11,7 @@ local math_random = math.random
 local math_log = math.log
 
 
+
 --- DIFFICULTY SCALING CURVES ---
 
 local function difficulty_sloped(difficulty,slope)
@@ -64,7 +65,7 @@ function Public.passive_planet_jumptime(jumps)
 end
 
 function Public.passive_pollution_rate(jumps, difficulty, filter_upgrades)
-	local baserate = 3 * jumps --higher by 50%
+	local baserate = 2 * jumps --unchanged
 
 	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
   
@@ -74,7 +75,7 @@ end
 function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgrades) --1CC = 1MJ
 	--previously 1CC was 3MJ, and 1MJ active charge produced (10 + 2 * jumps) pollution
 
-	local baserate = 0.7 * (10 + 2 * jumps) -- lowered by 30%, due to having to survive new 'countdown' phase afterwards
+	local baserate = 0.8 * (10 + 2 * jumps) -- lowered by 20%, due to having to survive new 'countdown' phase afterwards
 
 	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
 	
@@ -90,9 +91,9 @@ function Public.countdown_pollution_rate(jumps, difficulty)
 end
 
 function Public.post_jump_initial_pollution(jumps, difficulty)
-	local baserate = 500 * (1 + jumps)
+	local baserate = 400 * (1 + jumps) --down from 400 to 450
 
-	local modifiedrate = baserate * difficulty_sloped(difficulty, 1) -- NOT DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution
+	local modifiedrate = baserate * difficulty_sloped(difficulty, 1) -- NO LONGER DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution
 	
 	return modifiedrate
 end
@@ -104,12 +105,17 @@ function Public.defaultai_attack_pollution_consumption_modifier(difficulty) retu
 
 -- changing this now affects ONLY how many kWH you need to get to the next level:
 function Public.MJ_needed_for_full_charge(difficulty, jumps)
-	return (difficulty_sloped(difficulty, 1) * (4000 + 600 * jumps)) --unchanged at normal difficulty
+	local baserate = 4000 + 600 * jumps
+
+	local modifiedrate
+	if difficulty <= 1 then modifiedrate = baserate end
+	if difficulty > 1 and jumps>0 then modifiedrate = baserate + 2000 end
+	return modifiedrate
 end --difficulty
 
 
------ GENERAL BALANCE ----
 
+----- GENERAL BALANCE ----
 
 Public.Chronotrain_max_HP = 10000
 Public.Chronotrain_HP_repaired_per_pack = 150
@@ -118,10 +124,10 @@ Public.starting_items = {['pistol'] = 1, ['firearm-magazine'] = 32, ['grenade'] 
 Public.wagon_starting_items = {{name = 'firearm-magazine', count = 16},{name = 'iron-plate', count = 16},{name = 'wood', count = 16},{name = 'burner-mining-drill', count = 8}}
 
 function Public.jumps_until_overstay_is_on(difficulty)
-	if difficulty < 0.75 then return 5 end
-	elseif difficulty == 0.75 then return 4 end
-	elseif difficulty == 1 then return 3 end
-	elseif difficulty > 1 then return 1 end
+	if difficulty > 1 then return 2
+	elseif difficulty == 1 then return 3
+	else return 5
+	end
 end
 
 function Public.pistol_damage_bonus(difficulty) return 2 end -- unupgraded multiplier is this + 1
@@ -129,7 +135,7 @@ function Public.shotgun_damage_research_multipler(difficulty) return  3 end -- a
 
 function Public.generate_jump_countdown_length(difficulty)
 	if difficulty <= 1 then
-		return Rand.raffle({90,120,150,180,210,240,270},{1,8,64,512,64,8,1})
+		return Rand.raffle({90,120,150,180,210},{1,8,64,8,1})
 	else
 		return 180 --suppress rng for speedruns
 	end
@@ -143,11 +149,11 @@ function Public.misfire_percentage_chance(difficulty)
 	end
 end
 
---function Public.coin_reward_per_second_jumped_early(seconds, difficulty)
---	local minutes = seconds / 60
---	local amount = minutes * 10 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
---	return math_max(0,math_floor(amount))
---end
+function Public.coin_reward_per_second_jumped_early(seconds, difficulty) --the reason for this it to make it seem to the players like there's always a bit of an advantage to charging sooner rather than later, but the effect is fairly mild.
+	local minutes = seconds / 60
+	local amount = minutes * 5 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
+	return math_max(0,math_floor(amount))
+end
 
 function Public.upgrades_coin_cost_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 3/5) end
 
@@ -168,7 +174,7 @@ Public.biome_weights = {
 	dumpwrld = 1,
 	coalwrld = 1,
 	scrapwrld = 3,
-	cavewrld = 2,
+	cavewrld = 1, --reduced from 2 to 1, this map is the most laggy...
 	forestwrld = 2,
 	riverwrld = 2,
 	hellwrld = 1,
@@ -214,19 +220,19 @@ Public.dayspeed_weights = {
 }
 function Public.market_offers()
 	return {
-    {price = {{'coin', 20}}, offer = {type = 'give-item', item = "raw-fish"}},
+    {price = {{'coin', 40}}, offer = {type = 'give-item', item = "raw-fish"}},
     {price = {{"coin", 40}}, offer = {type = 'give-item', item = 'wood', count = 50}},
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'iron-ore', count = 50}},
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'copper-ore', count = 50}},
-    {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'stone', count = 50}},
+    -- {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'stone', count = 50}}, --not needed I think?
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'coal', count = 50}},
     {price = {{"coin", 400}}, offer = {type = 'give-item', item = 'uranium-ore', count = 50}},
     {price = {{"coin", 50}, {"empty-barrel", 1}}, offer = {type = 'give-item', item = 'crude-oil-barrel', count = 1}},
-    {price = {{"coin", 200}, {"steel-plate", 20}, {"electronic-circuit", 20}}, offer = {type = 'give-item', item = 'loader', count = 1}},
-    {price = {{"coin", 400}, {"steel-plate", 40}, {"advanced-circuit", 10}, {"loader", 1}}, offer = {type = 'give-item', item = 'fast-loader', count = 1}},
-    {price = {{"coin", 600}, {"express-transport-belt", 10}, {"fast-loader", 1}}, offer = {type = 'give-item', item = 'express-loader', count = 1}},
+    {price = {{"coin", 300}, {"steel-plate", 20}, {"electronic-circuit", 20}}, offer = {type = 'give-item', item = 'loader', count = 1}}, --balancing loaders for higher difficulties
+    {price = {{"coin", 800}, {"steel-plate", 40}, {"advanced-circuit", 10}, {"loader", 1}}, offer = {type = 'give-item', item = 'fast-loader', count = 1}}, --balancing loaders for higher difficulties
+    {price = {{"coin", 1600}, {"express-transport-belt", 10}, {"fast-loader", 1}}, offer = {type = 'give-item', item = 'express-loader', count = 1}}, --balancing loaders for higher difficulties
     --{price = {{"coin", 5}, {"stone", 100}}, offer = {type = 'give-item', item = 'landfill', count = 1}},
-    {price = {{"coin", 5}, {"steel-plate", 1}, {"explosives", 10}}, offer = {type = 'give-item', item = 'land-mine', count = 1}},
+    {price = {{"coin", 2}, {"steel-plate", 1}, {"explosives", 10}}, offer = {type = 'give-item', item = 'land-mine', count = 1}},
     {price = {{"pistol", 1}}, offer = {type = "give-item", item = "iron-plate", count = 100}}
   }
 end
@@ -309,9 +315,9 @@ function Public.treasure_chest_loot(difficulty, planet)
 		--modular armor meta:
 		{1, -3, 1, true, "modular-armor", 1, 1},
 		{1, 0,1, true, "power-armor", 1, 1},
-		{0.5, -1,3, true, "power-armor-mk2", 1, 1},
-		{2, 0, 1, true, "solar-panel-equipment", 1, 4},
-		{2, 0, 1, true, "battery-equipment", 1, 2},
+		-- {0.5, -1,3, true, "power-armor-mk2", 1, 1},
+		{2, 0, 1, true, "solar-panel-equipment", 1, 2},
+		{2, 0, 1, true, "battery-equipment", 1, 1},
 		{1.6, 0, 1, true, "energy-shield-equipment", 1, 2},
 		{0.8, 0.5, 1.5, true, "personal-laser-defense-equipment", 1, 1},
 		{0.8, 0, 1, true, "night-vision-equipment", 1, 1},
@@ -459,6 +465,10 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{30, 0, 1, false, "green-wire", 10, 29},
 			{30, 0, 1, false, "red-wire", 10, 29},
 
+			{4, -3, 0, true, "modular-armor", 1, 1},
+			{4, 0,1, true, "power-armor", 1, 1},
+			{4, 0,3, true, "power-armor-mk2", 1, 1},
+
 			{4, 0, 1, false, "exoskeleton-equipment", 1, 1},
 			{4, 0, 1, false, "belt-immunity-equipment", 1, 1},
 			{4, 0, 1, true, "energy-shield-equipment", 1, 2},
@@ -466,18 +476,16 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{4, 0, 1, false, "discharge-defense-equipment", 1, 1},
 			{4, 0.2, 1, false, "personal-roboport-equipment", 1, 2},
 			{4, 0.4, 1, false, "personal-laser-defense-equipment", 1, 1},
-			{8, 0, 1, false, "solar-panel-equipment", 1, 4},
+			{8, 0, 1, false, "solar-panel-equipment", 1, 2},
 			{8, 0, 1, false, "battery-equipment", 1, 1},
 
-			{3, -3, 1, true, "modular-armor", 1, 1},
-			{3, 0,1, true, "power-armor", 1, 1},
-			{3, -1,3, true, "power-armor-mk2", 1, 1},
+			{1, 0, 1, false, "energy-shield-mk2-equipment", 1, 1},
+			{1, 0, 1, false, "battery-mk2-equipment", 1, 1},
 
-			--double the chance of:
-			{4, -0, 1, true, "copper-cable", 100, 200},
-			{4, -0.3, 0.6, true, "electronic-circuit", 50, 150},
-			{4, 0.2, 1.4, true, "advanced-circuit", 50, 150},
-			{4, 0.5, 1.5, true, "processing-unit", 50, 150},
+			{4, -0, 1, true, "copper-cable", 20, 80},
+			{4, -0.3, 0.6, true, "electronic-circuit", 50, 100},
+			{4, 0.2, 1.4, true, "advanced-circuit", 50, 100},
+			{4, 0.5, 1.5, true, "processing-unit", 50, 100},
 		}
 	end
 

@@ -257,12 +257,12 @@ function Public_gui.update_gui(player)
 			seconds_ETA = ETA_seconds_until_full(powerobserved, storedbattery)
 	
 			gui.timer.caption = {"chronosphere.gui_3"}
-			gui.timer_value.caption = math_floor(seconds_ETA / 60) .. " min, " .. seconds_ETA % 60 .. " s"
+			gui.timer_value.caption = math_floor(seconds_ETA / 60) .. "m" .. seconds_ETA % 60 .. "s"
 			
 				if objective.planet[1].type.id == 19 and objective.passivetimer > 31 then
 					local nukecase = objective.dangertimer
 					gui.timer2.caption = {"chronosphere.gui_3_2"}
-					gui.timer_value2.caption = math_floor(nukecase / 60) .. " min, " .. nukecase % 60 .. " s"
+					gui.timer_value2.caption = math_floor(nukecase / 60) .. "m" .. nukecase % 60 .. "s"
 					gui.timer2.style.font_color = {r=0.98, g=0, b=0}
 					gui.timer_value2.style.font_color = {r=0.98, g=0, b=0}
 				else
@@ -279,14 +279,14 @@ function Public_gui.update_gui(player)
 			local time_until_overstay = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate - objective.passivetimer)
 			local time_until_evo = (objective.chronochargesneeded * 0.5 / objective.passive_chronocharge_rate - objective.passivetimer)
 
-			local first_part = "Biters permanently evolve in: " .. math_floor(time_until_overstay/60) .. " min, " .. math_floor(time_until_overstay) % 60 .. " s"
+			local first_part = "Biters permanently evolve in: " .. math_floor(time_until_overstay/60) .. "m" .. math_floor(time_until_overstay) % 60 .. "s"
 			if time_until_overstay < 0 then
-				first_part = "Biters permanently evolve in: " .. math_floor(time_until_overstay/60) .. " min, " .. 59 - (math_floor(time_until_overstay) % 60) .. " s"
+				first_part = "Biters permanently evolve in: " .. math_floor(time_until_overstay/60) .. "m" .. 59 - (math_floor(time_until_overstay) % 60) .. "s"
 			end
 
-			local second_part = "Evolution ramps up on this planet in: " .. math_floor(time_until_evo/60) .. " min, " .. math_floor(time_until_evo) % 60 .. " s"
+			local second_part = "Evolution ramps up on this planet in: " .. math_floor(time_until_evo/60) .. "m" .. math_floor(time_until_evo) % 60 .. "s"
 			if time_until_evo < 0 then
-				second_part = "Evolution ramps up on this planet in: " .. math_floor(time_until_evo/60) .. " min, " .. 59 - (math_floor(time_until_evo) % 60) .. " s"
+				second_part = "Evolution ramps up on this planet in: " .. math_floor(time_until_evo/60) .. "m" .. 59 - (math_floor(time_until_evo) % 60) .. "s"
 			end
 
 			gui.timer_value.tooltip = first_part .. "\n" .. second_part

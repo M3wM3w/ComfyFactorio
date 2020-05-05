@@ -85,7 +85,7 @@ function Public.determine_planet(choice)
     ores = ore_richness_variants["none"]
   end
   if objective.config.jumpfailure == true and objective.game_lost == false then
-    if objective.chronojumps == 21 or objective.chronojumps == 29 or objective.chronojumps == 36 or objective.chronojumps == 42 then
+    if objective.chronojumps == 19 or objective.chronojumps == 26 or objective.chronojumps == 33 or objective.chronojumps == 41 then
       choice = "nukewrld"
       ores = ore_richness_variants["none"]
       dayspeed = time_speed_variants["static"]

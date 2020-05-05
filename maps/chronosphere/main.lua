@@ -232,9 +232,9 @@ local function set_objective_health(final_damage_amount)
 	rendering.set_text(objective.health_text, "HP: " .. objective.health .. " / " .. objective.max_health)
 end
 
---local function award_coins(count)
---	Locomotive.award_coins(count)
---end
+local function award_coins(count)
+	Locomotive.award_coins(count)
+end
 
 
 function Public.chronojump(choice)
@@ -246,9 +246,11 @@ function Public.chronojump(choice)
 
 	if objective.game_lost then goto continue end
 
-	--award_coins(
-	--	Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + objective.jump_countdown_length - objective.passivetimer, global.difficulty_vote_value)
-	--)
+	if objective.chronojumps <= 19 then
+		award_coins(
+			Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + objective.jump_countdown_length - objective.passivetimer, global.difficulty_vote_value)
+		)
+	end
 
 	Chrono.process_jump()
 
@@ -367,8 +369,9 @@ end
 
 function Public.attempt_to_jump()
 	local objective = Chrono_table.get_table()
+	local difficulty = global.difficulty_vote_value
 	
-	if 100 * math_random() <= Balance.misfire_percentage_chance() then
+	if 100 * math_random() <= Balance.misfire_percentage_chance(difficulty) then
 		game.print({"chronosphere.message_jump_misfire"}, {r=0.98, g=0.66, b=0.22})
 		objective.jump_countdown_length = objective.jump_countdown_length + 15
 	else

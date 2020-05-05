@@ -29,7 +29,7 @@ end
 function Public_chrono.restart_settings()
 	local get_score = Score.get_table()
 	local objective = Chrono_table.get_table()
-	if not global.difficulty_vote_value then global.difficulty_vote_value = 1
+	if not global.difficulty_vote_value then global.difficulty_vote_value = 1 end
     objective.max_health = Balance.Chronotrain_max_HP
 	objective.health = Balance.Chronotrain_max_HP
 	objective.poisontimeout = 0
@@ -68,7 +68,7 @@ function Public_chrono.restart_settings()
 	global.landfill_history = {}
 	global.mining_history = {}
 	get_score.score_table = {}
-	global.difficulty_poll_closing_timeout = game.tick + Balance.passive_planet_jumptime(0) --any time during first level; this becomes set to gametick when the jump happens
+	global.difficulty_poll_closing_timeout = game.tick + 35 * 60 * 60 --any time during first level; this becomes set to gametick when the jump happens
 	global.difficulty_player_votes = {}
 
 	game.difficulty_settings.technology_price_multiplier = 0.6
