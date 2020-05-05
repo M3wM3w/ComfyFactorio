@@ -29,12 +29,13 @@ end
 function Public_chrono.restart_settings()
 	local get_score = Score.get_table()
 	local objective = Chrono_table.get_table()
+	if not global.difficulty_vote_value then global.difficulty_vote_value = 1
     objective.max_health = Balance.Chronotrain_max_HP
 	objective.health = Balance.Chronotrain_max_HP
 	objective.poisontimeout = 0
 	objective.chronocharges = 0
-	objective.chronochargesneeded = Balance.initial_CCneeded
-	objective.passive_chronocharge_rate = Balance.initial_CCneeded / Balance.initial_passive_jumptime --per second rate
+	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, 0)
+	objective.passive_chronocharge_rate = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, 0) / Balance.passive_planet_jumptime(0) --per second rate
 	objective.accumulator_energy_history = {}
 	objective.passivetimer = 0
 	objective.overstaycount = 0
@@ -67,7 +68,7 @@ function Public_chrono.restart_settings()
 	global.landfill_history = {}
 	global.mining_history = {}
 	get_score.score_table = {}
-	global.difficulty_poll_closing_timeout = game.tick + 108000 --any time during first level; this is set to gametick when the jump happens
+	global.difficulty_poll_closing_timeout = game.tick + Balance.passive_planet_jumptime(0) --any time during first level; this becomes set to gametick when the jump happens
 	global.difficulty_player_votes = {}
 
 	game.difficulty_settings.technology_price_multiplier = 0.6
@@ -147,15 +148,11 @@ end
 
 function Public_chrono.process_jump()
 	local objective = Chrono_table.get_table()
-	
-	if objective.chronojumps == 1 then
-		global.difficulty_poll_closing_timeout = game.tick
-	end
 
 	objective.chronojumps = objective.chronojumps + 1
 	objective.passivetimer = 0
-	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(objective.chronojumps) -- since 1CC = 1MJ now
-	objective.passive_chronocharge_rate = objective.chronochargesneeded / Balance.passive_planet_jumptime(objective.chronojumps)
+	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps) -- since 1CC = 1MJ now
+	objective.passive_chronocharge_rate = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps) / Balance.passive_planet_jumptime(objective.chronojumps)
 	objective.active_biters = {}
 	objective.unit_groups = {}
 	objective.biter_raffle = {}
@@ -179,7 +176,7 @@ function Public_chrono.process_jump()
 		game.print({"chronosphere.message_quest5"}, {r=0.98, g=0.36, b=0.22})
     objective.computermessage = 5
 	end
-	if (objective.passivetimer - objective.jump_countdown_length) * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.75 and objective.chronojumps >= 3 then
+	if (objective.passivetimer - objective.jump_countdown_length) * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.75 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
     	game.print({"chronosphere.message_overstay"}, {r=0.98, g=0.36, b=0.22})
   	end
   	if objective.planet[1].type.id == 19 then
@@ -196,10 +193,9 @@ function Public_chrono.get_wagons(start)
 	if start then
 		wagons[1].inventory[1] = {name = "raw-fish", count = 100}
 		for i = 2, 3, 1 do
-			wagons[i].inventory[1] = {name = 'firearm-magazine', count = 16}
-			wagons[i].inventory[2] = {name = 'iron-plate', count = 16}
-			wagons[i].inventory[3] = {name = 'wood', count = 16}
-			wagons[i].inventory[4] = {name = 'burner-mining-drill', count = 8}
+			for j = 1,#Balance.wagon_starting_items do
+				wagons[i].inventory[j] = Balance.wagon_starting_items[j]
+			end
 		end
 	else
 		local inventories = {

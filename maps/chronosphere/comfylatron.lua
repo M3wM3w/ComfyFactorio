@@ -389,11 +389,11 @@ local function talks(nearby_characters)
 			str = str .. "Chop chop!"
 		elseif objective.planet[1].type.id == 15 and math_random(1,20) == 1 then
 			str = str .. "A new day, a new Chronotrain!"
-		elseif objective.chronojumps >= 7 and objective.overstaycount > ((objective.chronojumps-5)/3) and math_random(1,30) == 1 then
-			str = str .. "You're so relaxed, it makes the biters angry!"
+		elseif objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) + 3 and objective.overstaycount > ((objective.chronojumps-Balance.jumps_until_overstay_is_on(global.difficulty_vote_value))/3) and math_random(1,30) == 1 then
+			str = str .. "You're so relaxed!"
 		elseif objective.planet.ore_richness == 1 and math_random(1,100) == 1 then
 			str = str .. "You know what else is very rich?"
-		elseif objective.poisontimeout >= 60 and math_random(1,2) == 1 then
+		elseif objective.poisontimeout >= 90 and math_random(1,4) == 1 then
 			str = str .. "Tehe, I just let out some gas!"
 		elseif math_random(1,15) == 1 then
 			local randomphrase2 = texts["old_talks"][math_random(1, #texts["old_talks"])]

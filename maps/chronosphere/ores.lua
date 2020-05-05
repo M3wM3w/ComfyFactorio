@@ -25,17 +25,25 @@ local function draw_noise_ore_patch(position, name, surface, radius, richness, m
 			noise = noise_1 + noise_2 * 0.12
 			local distance_to_center = math.sqrt(x^2 + y^2)
 			local a = richness - richness_part * distance_to_center
-			if distance_to_center < radius - math.abs(noise * radius * 0.85) and a > 1 then
-        pos = surface.find_non_colliding_position(name, pos, 64, 1, true)
-        if not pos then return end
+      if distance_to_center < radius - math.abs(noise * radius * 0.85) and a > 1 then
+        
         if mixed then
           noise = simplex_noise(pos.x * 0.005, pos.y * 0.005, seed) + simplex_noise(pos.x * 0.01, pos.y * 0.01, seed) * 0.3 + simplex_noise(pos.x * 0.05, pos.y * 0.05, seed) * 0.2
           local i = (math_floor(noise * 100) % 7) + 1
           name = ore_raffle[i]
         end
         local entity = {name = name, position = pos, amount = a}
-				if surface.can_place_entity(entity) then
+
+        local preexisting_ores = surface.find_entities_filtered{area = {{pos.x - 0.025, pos.y - 0.025}, {pos.x + 0.025, pos.y + 0.025}}, type= "resource"}
+
+        if #preexisting_ores >= 1 then
           surface.create_entity(entity)
+        else
+          pos = surface.find_non_colliding_position(name, pos, 64, 1, true)
+          if not pos then return end
+          if surface.can_place_entity(entity) then
+            surface.create_entity(entity)
+          end
         end
 			end
 		end

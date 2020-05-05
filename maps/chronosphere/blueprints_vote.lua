@@ -5,8 +5,8 @@ local event = require 'utils.event'
 local Server = require 'utils.server'
 
 local options = {
-	[1] = {name = "Ghosts On", value = true, color = {r=0.0, g=0.0, b=0.90}, print_color = {r=0.00, g=0, b=0.70}},
-	[2] = {name = "Ghosts Off", value = false, color = {r=0.90, g=0.0, b=0.0}, print_color = {r=0.70, g=0, b=0.00}}
+	[1] = {name = "Importing blueprints On", value = true, color = {r=0.0, g=0.0, b=0.90}, print_color = {r=0.00, g=0, b=0.70}},
+	[2] = {name = "Importing blueprints Off", value = false, color = {r=0.90, g=0.0, b=0.0}, print_color = {r=0.70, g=0, b=0.00}}
 }
 
 local function blueprints_permissions_gui()
@@ -39,7 +39,7 @@ local function poll_blueprints(player)
 		return 
 	end
 	
-	local frame = player.gui.center.add { type = "frame", caption = "Vote on ghosts:", name = "blueprints_poll", direction = "vertical" }
+	local frame = player.gui.center.add { type = "frame", caption = "Vote on importing blueprints:", name = "blueprints_poll", direction = "vertical" }
 	for i = 1, 2, 1 do
 		local b
 		b = frame.add({type = "button", name = tostring(i), caption = options[i].name})
@@ -67,15 +67,25 @@ local function set_blueprints_permissions()
 	if global.blueprints_vote_index ~= new_index then
 		local message
 		if options[new_index].value then
-			message = table.concat({"Permissions: Ghosts on!"})
+			message = table.concat({"Permissions: Importing blueprints on!"})
 		else
-			message = table.concat({"Permissions: Ghosts off!"})
+			message = table.concat({"Permissions: Importing blueprints off!"})
 		end
 		game.print(message, options[new_index].print_color)
 		Server.to_discord_embed(message)	
 	end
 	 global.blueprints_vote_index = new_index
 	 global.blueprints_vote_allowed = options[new_index].value
+
+	if global.blueprints_vote_allowed == true then
+		game.permissions.get_group("Default").set_allows_action(defines.input_action.grab_blueprint_record, true)
+		game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint_string, true)
+		game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint, true)
+	else
+		game.permissions.get_group("Default").set_allows_action(defines.input_action.grab_blueprint_record, false)
+		game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint_string, false)
+		game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint, false)
+	end
 end
 
 function reset_blueprints_poll()

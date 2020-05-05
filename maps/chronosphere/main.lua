@@ -8,8 +8,10 @@ require "modules.no_deconstruction_of_neutral_entities"
 require "modules.shotgun_buff"
 require "maps.chronosphere.comfylatron"
 require "maps.chronosphere.terrain"
+require "maps.chronosphere.weapon_buffs"
 require "on_tick_schedule"
 require "modules.biter_noms_you"
+require "modules.custom_death_messages"
 local Server = require 'utils.server'
 local Ai = require "maps.chronosphere.ai"
 local Planets = require "maps.chronosphere.chronobubles"
@@ -32,15 +34,15 @@ require "maps.chronosphere.config_tab"
 
 local Public = {}
 
-global.difficulty_tooltips = {
-    [1] = "Biters much less aggressive; pollution by train significantly lower; maps significantly more favourable; upgrades coin prices significantly cheaper; MK2 research enabled; flamer nerf more slight",
-    [2] = "Biters less aggressive; pollution by train lower; maps more favourable; upgrades coin prices cheaper; MK2 research enabled; flamer nerf more slight",
-    [3] = "Biters slightly less aggressive; pollution by train slightly lower; maps slightly more favourable; upgrades coin prices slightly cheaper; MK2 research enabled; flamer nerf more slight",
-    [4] = "Normal difficulty.",
-    [5] = "Biters more aggressive; pollution by train higher; maps less favourable; upgrades coin prices more expensive; flamer nerf less slight",
-    [6] = "Biters much more aggressive; pollution by train significantly higher; maps significantly less favourable; upgrades coin prices significantly more expensive; flamer nerf less slight",
-    [7] = "ENTER AT YOUR PERIL",
-}
+--global.difficulty_tooltips = {
+--    [1] = "Biters much less aggressive; pollution by train significantly lower; maps significantly more favourable; upgrades coin prices significantly cheaper; MK2 research enabled; flamer nerf more slight",
+--    [2] = "Biters less aggressive; pollution by train lower; maps more favourable; upgrades coin prices cheaper; MK2 research enabled; flamer nerf more slight",
+--    [3] = "Biters slightly less aggressive; pollution by train slightly lower; maps slightly more favourable; upgrades coin prices slightly cheaper; MK2 research enabled; flamer nerf more slight",
+--    [4] = "Normal difficulty.",
+--    [5] = "Biters more aggressive; pollution by train higher; maps less favourable; upgrades coin prices more expensive; flamer nerf less slight",
+--    [6] = "Biters much more aggressive; pollution by train significantly higher; maps significantly less favourable; upgrades coin prices significantly more expensive; flamer nerf less slight",
+--    [7] = "ENTER AT YOUR PERIL",
+--}
 
 local function generate_overworld(surface, optplanet)
 	local objective = Chrono_table.get_table()
@@ -230,19 +232,23 @@ local function set_objective_health(final_damage_amount)
 	rendering.set_text(objective.health_text, "HP: " .. objective.health .. " / " .. objective.max_health)
 end
 
-local function award_coins(count)
-	Locomotive.award_coins(count)
-end
+--local function award_coins(count)
+--	Locomotive.award_coins(count)
+--end
 
 
 function Public.chronojump(choice)
 	local objective = Chrono_table.get_table()
 
+	if objective.chronojumps == 0 then
+		global.difficulty_poll_closing_timeout = game.tick
+	end
+
 	if objective.game_lost then goto continue end
 
-	award_coins(
-		Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + objective.jump_countdown_length - objective.passivetimer, global.difficulty_vote_value)
-	)
+	--award_coins(
+	--	Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + objective.jump_countdown_length - objective.passivetimer, global.difficulty_vote_value)
+	--)
 
 	Chrono.process_jump()
 
@@ -303,7 +309,8 @@ local tick_minute_functions = {
 
 local function initiate_jump_countdown()
 	local objective = Chrono_table.get_table()
-	local length = Balance.generate_jump_countdown_length()
+	local difficulty = global.difficulty_vote_value
+	local length = Balance.generate_jump_countdown_length(difficulty)
 
 	objective.jump_countdown_start_time = objective.passivetimer
 	objective.jump_countdown_length = length
@@ -314,7 +321,7 @@ end
 local function check_if_overstayed()
 	local objective = Chrono_table.get_table()
 
-	  if objective.passivetimer * objective.passive_chronocharge_rate > (objective.chronochargesneeded * 0.75) and objective.chronojumps >= 3 then
+	  if objective.passivetimer * objective.passive_chronocharge_rate > (objective.chronochargesneeded * 0.75) and objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
 		  objective.overstaycount = objective.overstaycount + 1
 	  end
 end
@@ -361,7 +368,7 @@ end
 function Public.attempt_to_jump()
 	local objective = Chrono_table.get_table()
 	
-	if math_random(1,20) == 1 then
+	if 100 * math_random() <= Balance.misfire_percentage_chance() then
 		game.print({"chronosphere.message_jump_misfire"}, {r=0.98, g=0.66, b=0.22})
 		objective.jump_countdown_length = objective.jump_countdown_length + 15
 	else
@@ -670,19 +677,6 @@ local function on_technology_effects_reset(event)
 	Event_functions.on_technology_effects_reset(event)
 end
 
-local function on_built_entity(event)
-	if global.blueprints_vote_allowed then return end
-	if not event.created_entity.valid then return end
-	if event.created_entity.name == "entity-ghost" then
-
-		event.created_entity.destroy()
-
-		if not event.player_index then return end
-		local player = game.players[event.player_index]
-		player.print("Ghosts are turned off for this run.", { r=0.22, g=0.99, b=0.99})
-	end
-end
-
 
 local event = require 'utils.event'
 event.on_init(on_init)
@@ -699,7 +693,6 @@ event.add(defines.events.on_player_driving_changed_state, on_player_driving_chan
 event.add(defines.events.on_player_changed_position, on_player_changed_position)
 event.add(defines.events.on_technology_effects_reset, on_technology_effects_reset)
 event.add(defines.events.on_gui_click, Gui.on_gui_click)
-event.add(defines.events.on_built_entity, on_built_entity)
 
 if _DEBUG then
 	local Session = require 'utils.session_data'

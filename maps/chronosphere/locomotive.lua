@@ -437,14 +437,14 @@ function Public.set_player_spawn_and_refill_fish()
 	game.forces.player.set_spawn_position({x = position.x, y = position.y}, cargo.surface)
 end
 
-function Public.award_coins(_count)
-	if not (_count >= 1) then return end
-	local objective = Chrono_table.get_table()
-	if not objective.locomotive_cargo[1] then return end
-	local cargo = objective.locomotive_cargo[1]
-	if not cargo.valid then return end
-	cargo.get_inventory(defines.inventory.cargo_wagon).insert({name = "coin", count = math_floor(_count)})
-end
+--function Public.award_coins(_count)
+--	if not (_count >= 1) then return end
+--	local objective = Chrono_table.get_table()
+--	if not objective.locomotive_cargo[1] then return end
+--	local cargo = objective.locomotive_cargo[1]
+--	if not cargo.valid then return end
+--	cargo.get_inventory(defines.inventory.cargo_wagon).insert({name = "coin", count = math_floor(_count)})
+--end
 
 function Public.enter_cargo_wagon(player, vehicle)
 	local objective = Chrono_table.get_table()

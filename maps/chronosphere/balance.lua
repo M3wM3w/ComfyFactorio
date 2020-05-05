@@ -11,7 +11,7 @@ local math_random = math.random
 local math_log = math.log
 
 
---- MATHEMATICAL CURVES ---
+--- DIFFICULTY SCALING CURVES ---
 
 local function difficulty_sloped(difficulty,slope)
 	local difficulty = global.difficulty_vote_value
@@ -35,61 +35,46 @@ end
 -- exponent 2 -> {0.06, 0.25, 0.56, 1.00, 2.25, 9.00, 25.00}
 -- exponent -1.2 -> {5.28, 2.30, 1.41, 1.00, 0.61, 0.27, 0.14}
 
-local function scaling_curve_type(jumps,a,b,c,d,e,pivot)
-	local val
-	if jumps < pivot then
-		val = (a * jumps + math_pow(b, jumps)) --normalised to 1 at jumps=0
-	else
-		val = c - d * math_pow(e, - (jumps - pivot))
-	end
-
-	return val
-end
--- when used, include imgur links of curve shape
-
 
 
 ---- CHRONO/POLLUTION BALANCE ----
 
-function Public.train_pollution_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 3/5) end -- applies to all pollution 'from train'
+function Public.train_pollution_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 3/5) end
 
--- Now that we have a dynamic passive charge rate, we can separate the energy needed to charge from the default length of stay. So we can scale these initial values and curves to whatever we like:
-Public.initial_passive_jumptime = 1800
-Public.initial_MJneeded = 6000
-Public.initial_CCneeded = Public.initial_MJneeded -- 1MJ = 1CC
+function Public.pollution_filter_upgrade_factor(upgrades2)
+	return 1 / (upgrades2 / 3 + 1) --unchanged
+end
 
--- and the curves of the scales over time:
+function Public.pollution_transfer_from_inside_factor(difficulty, filter_upgrades) return 3 * Public.pollution_filter_upgrade_factor(filter_upgrades) * Public.train_pollution_difficulty_scaling(difficulty) end
+
+
+-- Now that we have a dynamic passive charge rate, we can separate the energy needed to charge from the default length of stay. So we can choose the following however we like:
+
+
 function Public.passive_planet_jumptime(jumps)
-	-- imgur link
-	--local a,b,c,d,e,pivot = 0.05, 1.06, 2.35, 1, 1.04, 16
-	local a,b,c,d,e,pivot = 0.05, 1.06, 2.35, 1, 1, 16
+	local mins
 
-	local curveval = scaling_curve_type(jumps,a,b,c,d,e,pivot)
-	return math_floor(Public.initial_passive_jumptime * curveval)
-end
-function Public.MJ_needed_for_full_charge(jumps)
-	-- imgur link
-	-- local a,b,c,d,e,pivot = 3 * (10 + 2 * jumps) --unchanged
+	if jumps < 15 then
+		mins = 30 + 4 * jumps
+	else
+		mins = 90
+	end
 
-	-- local curveval = scaling_curve_type(jumps,a,b,c,d,e,pivot)
-	--return math_floor(Public.initial_MJneeded * curveval)
-	return 3 * (2000 + 300 * jumps)
-end
-
-function Public.pollution_filter_upgrade_factor(upgrades2) --unchanged
-	return 1 / (upgrades2 / 3 + 1)
+	return mins * 60
 end
 
 function Public.passive_pollution_rate(jumps, difficulty, filter_upgrades)
-	local baserate = 3 * jumps --higher
+	local baserate = 3 * jumps --higher by 50%
 
 	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
   
 	return modifiedrate
 end
 
-function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgrades)
-	local baserate = 3 * (10 + 2 * jumps) --unchanged
+function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgrades) --1CC = 1MJ
+	--previously 1CC was 3MJ, and 1MJ active charge produced (10 + 2 * jumps) pollution
+
+	local baserate = 0.7 * (10 + 2 * jumps) -- lowered by 30%, due to having to survive new 'countdown' phase afterwards
 
 	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
 	
@@ -99,21 +84,28 @@ end
 function Public.countdown_pollution_rate(jumps, difficulty)
 	local baserate = 20 * (10 + 2 * jumps)
 
-	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) -- immune to filter upgrades
+	local modifiedrate = baserate -- NOT DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution
 	
 	return modifiedrate
 end
 
-function Public.pollution_transfer_from_inside_factor(difficulty, filter_upgrades) return 3 * Public.pollution_filter_upgrade_factor(filter_upgrades) * Public.train_pollution_difficulty_scaling(difficulty) end
+function Public.post_jump_initial_pollution(jumps, difficulty)
+	local baserate = 500 * (1 + jumps)
 
-function Public.post_jump_initial_pollution(jumps, difficulty) return 500 * (1 + jumps) * Public.train_pollution_difficulty_scaling(difficulty) end -- NOT DEPENDENT ON FILTERS
+	local modifiedrate = baserate * difficulty_sloped(difficulty, 1) -- NOT DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution
+	
+	return modifiedrate
+end
 
 
-
-
-function Public.pollution_spent_per_attack(difficulty) return 50 * difficulty_exp(difficulty, -1.2) end
+function Public.pollution_spent_per_attack(difficulty) return 50 * difficulty_exp(difficulty, -1.2) end -- now scales as -1.2 rather than -1
 
 function Public.defaultai_attack_pollution_consumption_modifier(difficulty) return 0.8 end --unchanged, just exposed here. change?
+
+-- changing this now affects ONLY how many kWH you need to get to the next level:
+function Public.MJ_needed_for_full_charge(difficulty, jumps)
+	return (difficulty_sloped(difficulty, 1) * (4000 + 600 * jumps)) --unchanged at normal difficulty
+end --difficulty
 
 
 ----- GENERAL BALANCE ----
@@ -121,17 +113,41 @@ function Public.defaultai_attack_pollution_consumption_modifier(difficulty) retu
 
 Public.Chronotrain_max_HP = 10000
 Public.Chronotrain_HP_repaired_per_pack = 150
+
 Public.starting_items = {['pistol'] = 1, ['firearm-magazine'] = 32, ['grenade'] = 2, ['raw-fish'] = 4, ['wood'] = 16}
+Public.wagon_starting_items = {{name = 'firearm-magazine', count = 16},{name = 'iron-plate', count = 16},{name = 'wood', count = 16},{name = 'burner-mining-drill', count = 8}}
 
-function Public.generate_jump_countdown_length()
-	return Rand.raffle({90,120,150,180,210,240,270},{1,5,25,125,25,5,1})
+function Public.jumps_until_overstay_is_on(difficulty)
+	if difficulty < 0.75 then return 5 end
+	elseif difficulty == 0.75 then return 4 end
+	elseif difficulty == 1 then return 3 end
+	elseif difficulty > 1 then return 1 end
 end
 
-function Public.coin_reward_per_second_jumped_early(seconds, difficulty)
-	local minutes = seconds / 60
-	local amount = minutes * 10 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
-	return math_max(0,math_floor(amount))
+function Public.pistol_damage_bonus(difficulty) return 2 end -- unupgraded multiplier is this + 1
+function Public.shotgun_damage_research_multipler(difficulty) return  3 end -- affects damage from upgrades end
+
+function Public.generate_jump_countdown_length(difficulty)
+	if difficulty <= 1 then
+		return Rand.raffle({90,120,150,180,210,240,270},{1,8,64,512,64,8,1})
+	else
+		return 180 --suppress rng for speedruns
+	end
 end
+
+function Public.misfire_percentage_chance(difficulty)
+	if difficulty <= 1 and difficulty > 0.25 then
+		return 5
+	else
+		return 0 --suppress rng for speedruns
+	end
+end
+
+--function Public.coin_reward_per_second_jumped_early(seconds, difficulty)
+--	local minutes = seconds / 60
+--	local amount = minutes * 10 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
+--	return math_max(0,math_floor(amount))
+--end
 
 function Public.upgrades_coin_cost_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 3/5) end
 
@@ -216,7 +232,7 @@ function Public.market_offers()
 end
 function Public.initial_cargo_boxes()
 	return {
-		-- early-game grenades suppressed to encourage scavenging:
+		-- early-game grenades turned off to encourage treasure hunting:
 		-- {name = "grenade", count = math_random(2, 3)},
 		-- {name = "grenade", count = math_random(2, 3)},
 		-- {name = "grenade", count = math_random(2, 3)},
@@ -241,12 +257,12 @@ function Public.initial_cargo_boxes()
 		{name = "shotgun", count = 1},
 		{name = "shotgun", count = 1},
 		{name = "shotgun", count = 1},
-		{name = "shotgun-shell", count = math_random(7, 9)},
-		{name = "shotgun-shell", count = math_random(7, 9)},
-		{name = "shotgun-shell", count = math_random(7, 9)},
-		{name = "firearm-magazine", count = math_random(7, 15)},
-		{name = "firearm-magazine", count = math_random(7, 15)},
-		{name = "firearm-magazine", count = math_random(7, 15)},
+		{name = "shotgun-shell", count = math_random(3, 6)}, --make players get these more from treasure
+		{name = "shotgun-shell", count = math_random(3, 6)}, --make players get these more from treasure
+		{name = "shotgun-shell", count = math_random(3, 6)}, --make players get these more from treasure
+		{name = "firearm-magazine", count = math_random(10, 30)},
+		{name = "firearm-magazine", count = math_random(10, 30)},
+		{name = "firearm-magazine", count = math_random(10, 30)},
 		{name = "rail", count = math_random(16, 24)},
 		{name = "rail", count = math_random(16, 24)},
 		{name = "rail", count = math_random(16, 24)},
@@ -255,164 +271,234 @@ end
 
 function Public.treasure_quantity_difficulty_scaling(difficulty) return difficulty_exp(difficulty, 1.5) end
 
-function Public.treasure_chest_loot()
-	local loot_data= {
-		-- no time scaling:
-		{weight = 3, d_min = 0, d_max = 0.2, scaling = false, loot = {name = "submachine-gun", count = {min_count = 1, max_count = 3}}},
-		{weight = 0.3, d_min = 0, d_max = 0.2, scaling = false, loot = {name = "vehicle-machine-gun", count = {min_count = 1, max_count = 1}}}, --new!
-		{weight = 3, d_min = 0, d_max = 0.3, scaling = false, loot = {name = "iron-chest", count = {min_count = 8, max_count = 16}}},
-		{weight = 3, d_min = 0, d_max = 0.5, scaling = false, loot = {name = "long-handed-inserter", count = {min_count = 8, max_count = 16}}},
-		{weight = 2, d_min = 0, d_max = 0.6, scaling = false, loot = {name = "pistol", count = {min_count = 1, max_count = 2}}},
-		{weight = 1, d_min = 0, d_max = 0.8, scaling = false, loot = {name = "gun-turret", count = {min_count = 2, max_count = 4}}},
-		{weight = 5, d_min = 0, d_max = 1, scaling = false, loot = {name = "railgun-dart", count = {min_count = 4, max_count = 20}}},
-		{weight = 1, d_min = 0, d_max = 1, scaling = false, loot = {name = "explosives", count = {min_count = 20, max_count = 50}}},
-		{weight = 5, d_min = 0, d_max = 1, scaling = false, loot = {name = "grenade", count = {min_count = 16, max_count = 32}}},
-		{weight = 4, d_min = 0, d_max = 1, scaling = false, loot = {name = "stone-wall", count = {min_count = 33, max_count = 99}}},
-		{weight = 4, d_min = 0, d_max = 1, scaling = false, loot = {name = "gate", count = {min_count = 16, max_count = 32}}},
-		{weight = 1, d_min = 0, d_max = 1, scaling = false, loot = {name = "radar", count = {min_count = 1, max_count = 2}}},
-		{weight = 1, d_min = 0, d_max = 1, scaling = false, loot = {name = "effectivity-module", count = {min_count = 1, max_count = 4}}},
-		{weight = 1, d_min = 0, d_max = 1, scaling = false, loot = {name = "productivity-module", count = {min_count = 1, max_count = 4}}},
-		{weight = 1, d_min = 0, d_max = 1, scaling = false, loot = {name = "speed-module", count = {min_count = 1, max_count = 4}}},
-		{weight = 1, d_min = 0, d_max = 1, scaling = false, loot = {name = "slowdown-capsule", count = {min_count = 16, max_count = 32}}},
-		{weight = 1, d_min = 0.1, d_max = 1, scaling = false, loot = {name = "pumpjack", count = {min_count = 1, max_count = 3}}},
-		{weight = 1, d_min = 0.2, d_max = 1, scaling = false, loot = {name = "night-vision-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 1, d_min = 0.2, d_max = 1, scaling = false, loot = {name = "pump", count = {min_count = 1, max_count = 2}}},
+function Public.treasure_chest_loot(difficulty, planet)
+	
+	local function loot_data_sensible(loot_data_item)
+		return {weight = loot_data_item[1], d_min = loot_data_item[2], d_max = loot_data_item[3], scaling = loot_data_item[4], name = loot_data_item[5], min_count = loot_data_item[6], max_count = loot_data_item[7]}
+	end
+	
+	local loot_data_raw= {
+		--always there (or normally always there):
+		{5, 0, 1, false, "railgun-dart", 4, 20}, -- this should not scale with level. reward treasure hunting currency the same at all levels
+		{4, 0, 1, false, "pistol", 1, 2},
+		{1, 0, 1, false, "gun-turret", 2, 4},
+		{6, 0, 1, false, "grenade", 16, 32},
+		{4, 0, 1, false, "stone-wall", 33, 99},
+		{4, 0, 1, false, "gate", 16, 32},
+		{2, 0, 1, false, "radar", 1, 2},
+		{1, 0, 1, false, "explosives", 10, 50},
+		{6, 0, 1, false, "small-lamp", 8, 32},
+		{2, 0, 1, false, "electric-mining-drill", 2, 4},
+		{3, 0, 1, false, "long-handed-inserter", 4, 16},
+		{0.5, 0, 1, false, "filter-inserter", 4, 16},
+		{0.2, 0, 1, false, "stack-filter-inserter", 4, 8},
+		{0.5, 0, 1, false, "slowdown-capsule", 8, 16},
+		{0.5, 0, 1, false, "destroyer-capsule", 4, 8},
+		{0.5, 0, 1, false, "defender-capsule", 4, 8},
+		{0.5, 0, 1, false, "distractor-capsule", 4, 8},
+		{0.25, 0, 1, false, "rail", 50, 100},
+		{2, 0.1, 1, false, "pumpjack", 1, 3},
+		{2, 0.15, 1, false, "pump", 1, 2},
 
-		-- time scaling (linearly rises from zero to 2*weight at the midpoint, then back down again):
-		{weight = 3, d_min = -0.1, d_max = 0.1, scaling = true, loot = {name = "wooden-chest", count = {min_count = 8, max_count = 16}}},
-		{weight = 3, d_min = -0.1, d_max = 0.1, scaling = true, loot = {name = "burner-inserter", count = {min_count = 8, max_count = 16}}},
-		{weight = 3, d_min = -0.1, d_max = 0.1, scaling = true, loot = {name = "light-armor", count = {min_count = 1, max_count = 1}}},
-		{weight = 10, d_min = -0.2, d_max = 0.2, scaling = true, loot = {name = "shotgun-shell", count = {min_count = 16, max_count = 32}}},
-		{weight = 2, d_min = -0.2, d_max = 0.2, scaling = true, loot = {name = "offshore-pump", count = {min_count = 1, max_count = 3}}},
-		{weight = 3, d_min = -0.2, d_max = 0.2, scaling = true, loot = {name = "boiler", count = {min_count = 3, max_count = 6}}},
-		{weight = 3, d_min = -0.2, d_max = 0.2, scaling = true, loot = {name = "steam-engine", count = {min_count = 2, max_count = 4}}},
-		{weight = 3, d_min = -0.2, d_max = 0.2, scaling = true, loot = {name = "burner-mining-drill", count = {min_count = 2, max_count = 4}}},
-		{weight = 2, d_min = -0.3, d_max = 0.3, scaling = true, loot = {name = "lab", count = {min_count = 1, max_count = 2}}},
-		{weight = 3, d_min = -0.4, d_max = 0.4, scaling = true, loot = {name = "shotgun", count = {min_count = 1, max_count = 1}}},
-		{weight = 3, d_min = -0.4, d_max = 0.4, scaling = true, loot = {name = "stone-furnace", count = {min_count = 8, max_count = 16}}},
-		{weight = 5, d_min = -0.4, d_max = 0.4, scaling = true, loot = {name = "firearm-magazine", count = {min_count = 32, max_count = 128}}},
-		{weight = 4, d_min = -0.4, d_max = 0.4, scaling = true, loot = {name = "automation-science-pack", count = {min_count = 16, max_count = 64}}},
-		{weight = 3, d_min = -0.4, d_max = 0.4, scaling = true, loot = {name = "small-electric-pole", count = {min_count = 16, max_count = 24}}},
-		{weight = 3, d_min = -0.5, d_max = 0.5, scaling = true, loot = {name = "assembling-machine-1", count = {min_count = 2, max_count = 4}}},
-		{weight = 3, d_min = -0.5, d_max = 0.5, scaling = true, loot = {name = "underground-belt", count = {min_count = 4, max_count = 8}}},
-		{weight = 3, d_min = -0.5, d_max = 0.5, scaling = true, loot = {name = "splitter", count = {min_count = 1, max_count = 4}}},
-		{weight = 4, d_min = -0.5, d_max = 0.5, scaling = true, loot = {name = "logistic-science-pack", count = {min_count = 16, max_count = 64}}},
-		{weight = 3, d_min = -0.6, d_max = 0.6, scaling = true, loot = {name = "copper-cable", count = {min_count = 100, max_count = 200}}},
-		{weight = 3, d_min = -0.7, d_max = 0.7, scaling = true, loot = {name = "pipe", count = {min_count = 30, max_count = 50}}},
-		{weight = 3, d_min = -0.7, d_max = 0.7, scaling = true, loot = {name = "iron-gear-wheel", count = {min_count = 80, max_count = 100}}},
-		{weight = 3, d_min = -0.7, d_max = 0.7, scaling = true, loot = {name = "transport-belt", count = {min_count = 25, max_count = 75}}},
-		{weight = 3, d_min = -0.2, d_max = 0.4, scaling = true, loot = {name = "inserter", count = {min_count = 8, max_count = 16}}},
-		{weight = 10, d_min = -0.2, d_max = 0.6, scaling = true, loot = {name = "piercing-shotgun-shell", count = {min_count = 16, max_count = 32}}},
-		{weight = 4, d_min = -0.3, d_max = 0.6, scaling = true, loot = {name = "electronic-circuit", count = {min_count = 50, max_count = 150}}},
-		{weight = 4, d_min = -0.4, d_max = 0.8, scaling = true, loot = {name = "military-science-pack", count = {min_count = 16, max_count = 64}}},
-		{weight = 2, d_min = -0.2, d_max = 0.7, scaling = true, loot = {name = "defender-capsule", count = {min_count = 8, max_count = 16}}},
-		{weight = 1, d_min = -0.2, d_max = 0.6, scaling = true, loot = {name = "loader", count = {min_count = 1, max_count = 2}}},
-		{weight = 3, d_min = -0.2, d_max = 0.8, scaling = true, loot = {name = "fast-transport-belt", count = {min_count = 25, max_count = 75}}},
-		{weight = 3, d_min = -0.2, d_max = 0.8, scaling = true, loot = {name = "fast-underground-belt", count = {min_count = 4, max_count = 8}}},
-		{weight = 3, d_min = -0.2, d_max = 0.8, scaling = true, loot = {name = "fast-splitter", count = {min_count = 1, max_count = 4}}},
-		{weight = 3, d_min = 0, d_max = 0.5, scaling = true, loot = {name = "heavy-armor", count = {min_count = 1, max_count = 1}}},
-		{weight = 1, d_min = 0, d_max = 0.6, scaling = false, loot = {name = "filter-inserter", count = {min_count = 8, max_count = 16}}},
-		{weight = 2, d_min = 0, d_max = 0.7, scaling = true, loot = {name = "steel-plate", count = {min_count = 25, max_count = 75}}},
-		{weight = 3, d_min = 0, d_max = 0.7, scaling = true, loot = {name = "small-lamp", count = {min_count = 16, max_count = 32}}},
-		{weight = 2, d_min = 0, d_max = 0.7, scaling = true, loot = {name = "engine-unit", count = {min_count = 16, max_count = 32}}},
-		{weight = 1, d_min = 0.1, d_max = 0.6, scaling = true, loot = {name = "lubricant-barrel", count = {min_count = 4, max_count = 10}}},
-		{weight = 3, d_min = 0, d_max = 0.8, scaling = true, loot = {name = "combat-shotgun", count = {min_count = 1, max_count = 1}}},
-		{weight = 1, d_min = 0, d_max = 0.8, scaling = true, loot = {name = "fast-loader", count = {min_count = 1, max_count = 2}}},
-		{weight = 2, d_min = 0, d_max = 0.8, scaling = true, loot = {name = "modular-armor", count = {min_count = 1, max_count = 1}}},
-		{weight = 5, d_min = 0, d_max = 0.9, scaling = true, loot = {name = "piercing-rounds-magazine", count = {min_count = 32, max_count = 128}}},
-		{weight = 3, d_min = 0.2, d_max = 0.8, scaling = true, loot = {name = "flamethrower", count = {min_count = 1, max_count = 1}}},
-		{weight = 3, d_min = 0, d_max = 1, scaling = true, loot = {name = "rail", count = {min_count = 25, max_count = 75}}},
-		{weight = 3, d_min = 0, d_max = 1, scaling = true, loot = {name = "fast-inserter", count = {min_count = 8, max_count = 16}}},
-		{weight = 2, d_min = 0, d_max = 1, scaling = true, loot = {name = "arithmetic-combinator", count = {min_count = 4, max_count = 8}}},
-		{weight = 2, d_min = 0, d_max = 1, scaling = true, loot = {name = "constant-combinator", count = {min_count = 4, max_count = 8}}},
-		{weight = 2, d_min = 0, d_max = 1, scaling = true, loot = {name = "decider-combinator", count = {min_count = 4, max_count = 8}}},
-		{weight = 2, d_min = 0, d_max = 1, scaling = true, loot = {name = "power-switch", count = {min_count = 1, max_count = 1}}},
-		{weight = 1, d_min = 0, d_max = 1, scaling = true, loot = {name = "programmable-speaker", count = {min_count = 2, max_count = 4}}},
-		{weight = 4, d_min = 0, d_max = 1, scaling = true, loot = {name = "green-wire", count = {min_count = 10, max_count = 29}}},
-		{weight = 4, d_min = 0, d_max = 1, scaling = true, loot = {name = "red-wire", count = {min_count = 10, max_count = 29}}},
-		{weight = 2, d_min = 0, d_max = 1, scaling = true, loot = {name = "pipe-to-ground", count = {min_count = 4, max_count = 8}}},
-		{weight = 3, d_min = 0, d_max = 1.2, scaling = true, loot = {name = "rocket-launcher", count = {min_count = 1, max_count = 1}}},
-		{weight = 5, d_min = 0, d_max = 1.2, scaling = true, loot = {name = "rocket", count = {min_count = 16, max_count = 32}}},
-		{weight = 5, d_min = 0, d_max = 1.2, scaling = true, loot = {name = "land-mine", count = {min_count = 16, max_count = 32}}},
-		--{weight = 2, d_min = 0, d_max = 1, scaling = , loot = {name = "computer", count = {min_count = 1, max_count = 1}}},
-		{weight = 3, d_min = 0, d_max = 1, scaling = true, loot = {name = "steel-furnace", count = {min_count = 4, max_count = 8}}},
-		{weight = 1, d_min = 0, d_max = 1, scaling = true, loot = {name = "train-stop", count = {min_count = 1, max_count = 2}}},
-		{weight = 3, d_min = 0, d_max = 1, scaling = true, loot = {name = "assembling-machine-2", count = {min_count = 2, max_count = 4}}},
-		{weight = 2, d_min = 0, d_max = 1, scaling = true, loot = {name = "rail-signal", count = {min_count = 8, max_count = 16}}},
-		{weight = 2, d_min = 0, d_max = 1, scaling = true, loot = {name = "rail-chain-signal", count = {min_count = 8, max_count = 16}}},
-		--{weight = 1, d_min = 0.2, d_max = 1, scaling = , loot = {name = "railgun", count = {min_count = 1, max_count = 1}}},
-		{weight = 2, d_min = 0, d_max = 1, scaling = false, loot = {name = "distractor-capsule", count = {min_count = 8, max_count = 16}}},
-		{weight = 3, d_min = 0, d_max = 1, scaling = true, loot = {name = "medium-electric-pole", count = {min_count = 8, max_count = 16}}},
-		{weight = 3, d_min = 0, d_max = 1, scaling = false, loot = {name = "electric-mining-drill", count = {min_count = 2, max_count = 4}}},
-		{weight = 3, d_min = 0, d_max = 1, scaling = true, loot = {name = "accumulator", count = {min_count = 4, max_count = 8}}},
-		{weight = 3, d_min = 0, d_max = 1, scaling = true, loot = {name = "storage-tank", count = {min_count = 2, max_count = 6}}},
-		{weight = 3, d_min = 0, d_max = 1, scaling = true, loot = {name = "solar-panel", count = {min_count = 3, max_count = 6}}},
-		{weight = 1, d_min = 0.2, d_max = 1.2, scaling = true, loot = {name = "battery", count = {min_count = 50, max_count = 150}}},
-		{weight = 3, d_min = 0.2, d_max = 1.8, scaling = true, loot = {name = "poison-capsule", count = {min_count = 8, max_count = 16}}},
-		{weight = 5, d_min = 0.2, d_max = 1.8, scaling = true, loot = {name = "flamethrower-ammo", count = {min_count = 16, max_count = 32}}},
-		{weight = 5, d_min = 0.2, d_max = 1.8, scaling = true, loot = {name = "explosive-rocket", count = {min_count = 16, max_count = 32}}},
-		{weight = 2, d_min = 0.2, d_max = 1.8, scaling = true, loot = {name = "destroyer-capsule", count = {min_count = 8, max_count = 16}}},
-		{weight = 1, d_min = 0.2, d_max = 1.8, scaling = true, loot = {name = "exoskeleton-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 3, d_min = 0.2, d_max = 1.4, scaling = true, loot = {name = "advanced-circuit", count = {min_count = 50, max_count = 150}}},
-		{weight = 4, d_min = 0.2, d_max = 1.4, scaling = true, loot = {name = "chemical-science-pack", count = {min_count = 16, max_count = 64}}},
-		{weight = 3, d_min = 0.2, d_max = 1.8, scaling = true, loot = {name = "stack-inserter", count = {min_count = 4, max_count = 8}}},
-		{weight = 3, d_min = 0.2, d_max = 1.4, scaling = true, loot = {name = "big-electric-pole", count = {min_count = 4, max_count = 8}}},
-		{weight = 3, d_min = 0.2, d_max = 1.8, scaling = true, loot = {name = "steel-chest", count = {min_count = 8, max_count = 16}}},
-		{weight = 3, d_min = 0.2, d_max = 1, scaling = true, loot = {name = "chemical-plant", count = {min_count = 1, max_count = 3}}},
-		{weight = 1, d_min = 0.2, d_max = 1, scaling = true, loot = {name = "belt-immunity-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 2, d_min = 0.3, d_max = 1, scaling = true, loot = {name = "energy-shield-equipment", count = {min_count = 1, max_count = 2}}},
-		{weight = 2, d_min = 0.3, d_max = 1, scaling = true, loot = {name = "battery-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 2, d_min = 0.3, d_max = 1, scaling = true, loot = {name = "rocket-fuel", count = {min_count = 4, max_count = 10}}},
-		--{weight = 2, d_min = 0.3, d_max = 1, scaling = , loot = {name = "oil-refinery", count = {min_count = 2, max_count = 4}}},
-		{weight = 5, d_min = 0.4, d_max = 0.7, scaling = true, loot = {name = "cannon-shell", count = {min_count = 16, max_count = 32}}},
-		{weight = 5, d_min = 0.4, d_max = 0.8, scaling = true, loot = {name = "explosive-cannon-shell", count = {min_count = 16, max_count = 32}}},
-		{weight = 5, d_min = 0.4, d_max = 0.8, scaling = true, loot = {name = "solar-panel-equipment", count = {min_count = 1, max_count = 4}}},
-		{weight = 2, d_min = 0.4, d_max = 1, scaling = true, loot = {name = "electric-engine-unit", count = {min_count = 16, max_count = 32}}},
-		{weight = 5, d_min = 0.2, d_max = 1.8, scaling = true, loot = {name = "cluster-grenade", count = {min_count = 8, max_count = 16}}},
-		{weight = 1, d_min = 0.2, d_max = 1.4, scaling = true, loot = {name = "power-armor", count = {min_count = 1, max_count = 1}}},
-		{weight = 3, d_min = 0.2, d_max = 1.4, scaling = true, loot = {name = "personal-roboport-equipment", count = {min_count = 1, max_count = 2}}},
-		{weight = 5, d_min = 0.2, d_max = 1.4, scaling = true, loot = {name = "construction-robot", count = {min_count = 5, max_count = 25}}},
-		{weight = 4, d_min = 0.2, d_max = 1.4, scaling = true, loot = {name = "production-science-pack", count = {min_count = 16, max_count = 64}}},
-		{weight = 1, d_min = 0.2, d_max = 1.4, scaling = true, loot = {name = "stack-filter-inserter", count = {min_count = 4, max_count = 8}}},
-		{weight = 2, d_min = 0.4, d_max = 1, scaling = true, loot = {name = "steam-turbine", count = {min_count = 1, max_count = 2}}},
-		{weight = 1, d_min = 0.4, d_max = 1, scaling = true, loot = {name = "centrifuge", count = {min_count = 1, max_count = 1}}},
-		{weight = 1, d_min = 0.5, d_max = 1.2, scaling = true, loot = {name = "nuclear-reactor", count = {min_count = 1, max_count = 1}}},
-		{weight = 5, d_min = 0.5, d_max = 1.5, scaling = true, loot = {name = "uranium-rounds-magazine", count = {min_count = 32, max_count = 128}}},
-		{weight = 1, d_min = 0.2, d_max = 1.8, scaling = true, loot = {name = "discharge-defense-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 2, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "logistic-robot", count = {min_count = 5, max_count = 25}}},
-		{weight = 2, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "utility-science-pack", count = {min_count = 16, max_count = 64}}},
-		{weight = 2, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "substation", count = {min_count = 2, max_count = 4}}},
-		{weight = 3, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "assembling-machine-3", count = {min_count = 2, max_count = 4}}},
-		{weight = 2, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "heat-pipe", count = {min_count = 4, max_count = 8}}},
-		{weight = 2, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "heat-exchanger", count = {min_count = 2, max_count = 4}}},
-		{weight = 3, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "express-transport-belt", count = {min_count = 25, max_count = 75}}},
-		{weight = 3, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "express-underground-belt", count = {min_count = 4, max_count = 8}}},
-		{weight = 3, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "express-splitter", count = {min_count = 1, max_count = 4}}},
-		{weight = 3, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "electric-furnace", count = {min_count = 2, max_count = 4}}},
-		{weight = 1, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "express-loader", count = {min_count = 1, max_count = 2}}},
-		{weight = 3, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "flamethrower-turret", count = {min_count = 1, max_count = 1}}},
-		{weight = 3, d_min = 0.25, d_max = 1.75, scaling = true, loot = {name = "laser-turret", count = {min_count = 3, max_count = 6}}},
-		{weight = 5, d_min = 0.4, d_max = 1.6, scaling = true, loot = {name = "uranium-cannon-shell", count = {min_count = 16, max_count = 32}}},
-		{weight = 5, d_min = 0.4, d_max = 1.6, scaling = true, loot = {name = "explosive-uranium-cannon-shell", count = {min_count = 16, max_count = 32}}},
-		--{weight = 2, d_min = 0.7, d_max = 1, scaling = , loot = {name = "battery-mk2-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 1, d_min = 0.5, d_max = 1.5, scaling = true, loot = {name = "personal-laser-defense-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 3, d_min = 0.5, d_max = 1.5, scaling = true, loot = {name = "processing-unit", count = {min_count = 50, max_count = 150}}},
-		{weight = 2, d_min = 0.5, d_max = 1.5, scaling = true, loot = {name = "nuclear-fuel", count = {min_count = 1, max_count = 1}}},
-		{weight = 2, d_min = 0.5, d_max = 1.5, scaling = true, loot = {name = "beacon", count = {min_count = 1, max_count = 1}}},
-		{weight = 1, d_min = 0.6, d_max = 1.4, scaling = true, loot = {name = "atomic-bomb", count = {min_count = 1, max_count = 1}}},
-		--{weight = 2, d_min = 0.8, d_max = 1, scaling = , loot = {name = "energy-shield-mk2-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 1, d_min = 0.6, d_max = 1.4, scaling = true, loot = {name = "fusion-reactor-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 2, d_min = 0.6, d_max = 1.4, scaling = true, loot = {name = "roboport", count = {min_count = 1, max_count = 1}}},
-		--{weight = 1, d_min = 0.9, d_max = 1, scaling = , loot = {name = "personal-roboport-mk2-equipment", count = {min_count = 1, max_count = 1}}},
-		{weight = 4, d_min = 0.8, d_max = 1.2, scaling = true, loot = {name = "space-science-pack", count = {min_count = 16, max_count = 64}}},
-		{weight = 1, d_min = 0.5, d_max = 3, scaling = true, loot = {name = "power-armor-mk2", count = {min_count = 1, max_count = 1}}},
+		--shotgun meta:
+		{9, -0.4, 0.4, true, "shotgun-shell", 16, 32},
+		{3, -0.4, 0.4, true, "shotgun", 1, 1},
+		{12, 0, 1, true, "piercing-shotgun-shell", 16, 32},
+		{4, 0, 1, true, "combat-shotgun", 1, 1},
+
+		--modular armor meta:
+		{1, -3, 1, true, "modular-armor", 1, 1},
+		{1, 0,1, true, "power-armor", 1, 1},
+		{0.5, -1,3, true, "power-armor-mk2", 1, 1},
+		{2, 0, 1, true, "solar-panel-equipment", 1, 4},
+		{2, 0, 1, true, "battery-equipment", 1, 2},
+		{1.6, 0, 1, true, "energy-shield-equipment", 1, 2},
+		{0.8, 0.5, 1.5, true, "personal-laser-defense-equipment", 1, 1},
+		{0.8, 0, 1, true, "night-vision-equipment", 1, 1},
+		
+		--loader meta:
+		{math_max(difficulty - 0.75), 0, 0.2, false, "loader", 1, 2},
+		{math_max(difficulty - 0.75), 0.2, 0.5, false, "fast-loader", 1, 2},
+		{math_max(difficulty - 0.75), 0.5, 1, false, "express-loader", 1, 2},
+
+		--early-game:
+		{3, -0.1, 0.1, true, "wooden-chest", 8, 16},
+		{5, -0.1, 0.1, true, "light-armor", 1, 1},
+		{5, -0.1, 0.1, true, "burner-inserter", 8, 16},
+		{1, -0.2, 0.2, true, "offshore-pump", 1, 3},
+		{3, -0.2, 0.2, true, "boiler", 3, 6},
+		{3, -0.2, 0.2, true, "steam-engine", 2, 4},
+		{3, -0.2, 0.2, true, "burner-mining-drill", 2, 4},
+		{2.7, 0, 0.15, false, "submachine-gun", 1, 3},
+		{0.3, 0, 0.15, false, "vehicle-machine-gun", 1, 1},
+		{4, 0, 0.3, true, "iron-chest", 8, 16},
+		{4, -0.3, 0.3, true, "inserter", 8, 16},
+		{6, -0.3, 0.3, true, "lab", 1, 2},
+		{8, -0.3, 0.3, true, "small-electric-pole", 16, 24},
+		{6, -0.4, 0.4, true, "stone-furnace", 8, 16},
+		{10, -0.4, 0.4, true, "automation-science-pack", 16, 64},
+		{8, -0.5, 0.5, true, "firearm-magazine", 32, 128},
+		{1, -0.3, 0.3, true, "underground-belt", 4, 8},
+		{1, -0.3, 0.3, true, "splitter", 1, 4},
+		{1, -0.3, 0.3, true, "assembling-machine-1", 2, 4},
+		{10, -0.3, 0.3, true, "logistic-science-pack", 16, 64},
+		{5, -0.7, 0.7, true, "transport-belt", 25, 75},
+
+		--mid-game:
+		{4, -0.2, 0.7, true, "pipe", 30, 50},
+		{1, -0.2, 0.7, true, "pipe-to-ground", 4, 8},
+		{4, -0.2, 0.7, true, "iron-gear-wheel", 60, 120},
+		{4, -0.2, 0.7, true, "copper-cable", 80, 200},
+		{4, -0.2, 0.7, true, "electronic-circuit", 50, 150},
+		{3, -0.1, 0.8, true, "fast-transport-belt", 25, 75},
+		{3, -0.1, 0.8, true, "fast-underground-belt", 4, 8},
+		{3, -0.1, 0.8, true, "fast-splitter", 1, 4},
+		{1, 0, 0.6, true, "storage-tank", 2, 6},
+		{3, 0, 0.6, true, "heavy-armor", 1, 1},
+		{2, 0, 0.7, true, "steel-plate", 25, 75},
+		{4, 0, 0.8, true, "military-science-pack", 16, 64},
+		{5, 0, 0.9, true, "piercing-rounds-magazine", 32, 128},
+		{2, 0.2, 0.6, true, "engine-unit", 16, 32},
+		{3, 0, 1, true, "fast-inserter", 8, 16},
+		{4, 0, 1, true, "steel-furnace", 4, 8},
+		{4, 0, 1, true, "assembling-machine-2", 2, 4},
+		{4, 0, 1, true, "medium-electric-pole", 8, 16},
+		{4, 0, 1, true, "accumulator", 4, 8},
+		{4, 0, 1, true, "solar-panel", 3, 6},
+		{7, 0, 1, true, "steel-chest", 8, 16},
+		{2, 0.2, 1, true, "chemical-plant", 1, 3},
+
+		--late-game:
+		{3, 0, 1.2, true, "rocket-launcher", 1, 1},
+		{5, 0, 1.2, true, "rocket", 16, 32},
+		{3, 0, 1.2, true, "land-mine", 16, 32},
+		{4, 0.2, 1.2, true, "lubricant-barrel", 4, 10},
+		{1, 0.2, 1.2, true, "battery", 50, 150},
+		{5, 0.2, 1.8, true, "explosive-rocket", 16, 32},
+		{4, 0.2, 1.4, true, "advanced-circuit", 50, 150},
+		{4, 0.2, 1.4, true, "chemical-science-pack", 16, 64},
+		{3, 0.2, 1.8, true, "stack-inserter", 4, 8},
+		{3, 0.2, 1.4, true, "big-electric-pole", 4, 8},
+		{2, 0.3, 1, true, "rocket-fuel", 4, 10},
+		{5, 0.4, 0.7, true, "cannon-shell", 16, 32},
+		{5, 0.4, 0.8, true, "explosive-cannon-shell", 16, 32},
+		{2, 0.4, 1, true, "electric-engine-unit", 16, 32},
+		{5, 0.2, 1.8, true, "cluster-grenade", 8, 16},
+		{5, 0.2, 1.4, true, "construction-robot", 5, 25},
+		{4, 0.2, 1.4, true, "production-science-pack", 16, 64},
+		{2, 0.25, 1.75, true, "logistic-robot", 5, 25},
+		{2, 0.25, 1.75, true, "utility-science-pack", 16, 64},
+		{2, 0.25, 1.75, true, "substation", 2, 4},
+		{3, 0.25, 1.75, true, "assembling-machine-3", 2, 4},
+		{3, 0.25, 1.75, true, "express-transport-belt", 20, 80},
+		{3, 0.25, 1.75, true, "express-underground-belt", 4, 8},
+		{3, 0.25, 1.75, true, "express-splitter", 1, 4},
+		{3, 0.25, 1.75, true, "electric-furnace", 2, 4},
+		{3, 0.25, 1.75, true, "laser-turret", 3, 6},
+		{4, 0.4, 1.6, true, "processing-unit", 50, 150},
+		{2, 0.6, 1.4, true, "roboport", 1, 1},
+		{6, 0.8, 1.2, true, "space-science-pack", 16, 64},
+
+		--{2, 0, 1, , "computer", 1, 1},
+		--{1, 0.2, 1, , "railgun", 1, 1},
+		--{2, 0.3, 1, , "oil-refinery", 2, 4},
+		--{2, 0.8, 1, , "energy-shield-mk2-equipment", 1, 1},
+		--{2, 0.7, 1, , "battery-mk2-equipment", 1, 1},
+		--{1, 0.9, 1, , "personal-roboport-mk2-equipment", 1, 1},
 	}
+	local specialised_loot_raw = {}
+
+	if planet.type.id == 3 then
+		local specialised_loot_raw = {
+			{4, 0, 1, false, "effectivity-module", 1, 4},
+			{4, 0, 1, false, "productivity-module", 1, 4},
+			{4, 0, 1, false, "speed-module", 1, 4},
+			{0.5, 0, 1, false, "effectivity-module-2", 1, 4},
+			{0.5, 0, 1, false, "productivity-module-2", 1, 4},
+			{0.5, 0, 1, false, "speed-module-2", 1, 4},
+			{0.1, 0, 1, false, "effectivity-module-3", 1, 4},
+			{0.1, 0, 1, false, "productivity-module-3", 1, 4},
+			{0.1, 0, 1, false, "speed-module-3", 1, 4},
+			{0.7, 0, 1, false, "beacon", 1, 1},
+
+			{4, 0, 1, false, "stone-wall", 33, 99},
+		}
+	end
+
+	if planet.type.id == 5 then
+		local specialised_loot_raw = {
+			{6, -0.5, 1, true, "steam-turbine", 1, 2},
+			{6, -0.5, 1, true, "heat-exchanger", 2, 4},
+			{6, -0.5, 1, true, "heat-pipe", 4, 8},
+			{6, 0, 2, true, "uranium-rounds-magazine", 32, 128},
+			{3, 0.2, 1, false, "nuclear-reactor", 1, 1},
+			{3, 0.2, 1, false, "centrifuge", 1, 1},
+			{5, 0.3, 1, false, "nuclear-fuel", 1, 1},
+			{3, 0.3, 1, false, "fusion-reactor-equipment", 1, 1},
+			{2, 0.5, 1, false, "atomic-bomb", 1, 1},
+			{4, 0, 1, true, "uranium-cannon-shell", 16, 32},
+			{10, 0.4, 1.6, true, "explosive-uranium-cannon-shell", 16, 32},
+		}
+	end
+
+	if planet.type.id == 12 then
+		local specialised_loot_raw = {
+			{6, -1, 3, true, "flamethrower-turret", 1, 1},
+			{6, -1, 3, true, "flamethrower", 1, 1},
+			{14, -1, 3, true, "flamethrower-ammo", 16, 32},
+		}
+	end
+
+	if planet.type.id == 14 then
+		local specialised_loot_raw = {
+			{5, 0, 1, false, "programmable-speaker", 2, 4},
+			{10, 0, 1, false, "arithmetic-combinator", 4, 8},
+			{10, 0, 1, false, "constant-combinator", 4, 8},
+			{10, 0, 1, false, "decider-combinator", 4, 8},
+			{10, 0, 1, false, "power-switch", 1, 1},
+			{30, 0, 1, false, "green-wire", 10, 29},
+			{30, 0, 1, false, "red-wire", 10, 29},
+
+			{4, 0, 1, false, "exoskeleton-equipment", 1, 1},
+			{4, 0, 1, false, "belt-immunity-equipment", 1, 1},
+			{4, 0, 1, true, "energy-shield-equipment", 1, 2},
+			{4, 0, 1, false, "night-vision-equipment", 1, 1},
+			{4, 0, 1, false, "discharge-defense-equipment", 1, 1},
+			{4, 0.2, 1, false, "personal-roboport-equipment", 1, 2},
+			{4, 0.4, 1, false, "personal-laser-defense-equipment", 1, 1},
+			{8, 0, 1, false, "solar-panel-equipment", 1, 4},
+			{8, 0, 1, false, "battery-equipment", 1, 1},
+
+			{3, -3, 1, true, "modular-armor", 1, 1},
+			{3, 0,1, true, "power-armor", 1, 1},
+			{3, -1,3, true, "power-armor-mk2", 1, 1},
+
+			--double the chance of:
+			{4, -0, 1, true, "copper-cable", 100, 200},
+			{4, -0.3, 0.6, true, "electronic-circuit", 50, 150},
+			{4, 0.2, 1.4, true, "advanced-circuit", 50, 150},
+			{4, 0.5, 1.5, true, "processing-unit", 50, 150},
+		}
+	end
+
+	if planet.type.id == 16 then
+		local specialised_loot_raw = {
+			{14, 0, 1, false, "poison-capsule", 8, 16},
+		}
+	end
+
+	local loot_data = {}
+	for l=1,#loot_data_raw,1 do
+		table.insert(loot_data, loot_data_sensible(loot_data_raw[l]))
+	end
+	for l=1,#specialised_loot_raw,1 do
+		table.insert(loot_data, loot_data_sensible(specialised_loot_raw[l]))
+	end
 
 	return loot_data
 end
 
 Public.scrap_yield_amounts = {
-	--nerfed:
 	["iron-plate"] = 8,
 	["iron-gear-wheel"] = 4,
 	["iron-stick"] = 8,
@@ -421,20 +507,19 @@ Public.scrap_yield_amounts = {
 	["electronic-circuit"] = 4,
 	["steel-plate"] = 4,
 	["pipe"] = 4,
-	["solid-fuel"] = 2,
-	["empty-barrel"] = 2,
-	["crude-oil-barrel"] = 2,
-	["lubricant-barrel"] = 2,
-	["petroleum-gas-barrel"] = 2,
-	["sulfuric-acid-barrel"] = 2,
-	["heavy-oil-barrel"] = 2,
-	["light-oil-barrel"] = 2,
-	["water-barrel"] = 2,
-	-- not nerfed:
-	["grenade"] = 2,
-	["battery"] = 1,
-	["explosives"] = 2,
-	["advanced-circuit"] = 2,
+	["solid-fuel"] = 4,
+	["empty-barrel"] = 4,
+	["crude-oil-barrel"] = 4,
+	["lubricant-barrel"] = 4,
+	["petroleum-gas-barrel"] = 4,
+	["sulfuric-acid-barrel"] = 4,
+	["heavy-oil-barrel"] = 4,
+	["light-oil-barrel"] = 4,
+	["water-barrel"] = 4,
+	["grenade"] = 4,
+	["battery"] = 4,
+	["explosives"] = 4,
+	["advanced-circuit"] = 4,
 	["nuclear-fuel"] = 0.1,
 	["pipe-to-ground"] = 1,
 	["plastic-bar"] = 4,
@@ -466,28 +551,27 @@ Public.scrap_yield_amounts = {
 }
 
 Public.scrap_mining_chance_weights = {
-	-- chances of cool stuff improved:
-	{name = "iron-plate", chance = 400},
-	{name = "iron-gear-wheel", chance = 300},	
-	{name = "copper-plate", chance = 300},
+	{name = "iron-plate", chance = 600},
+	{name = "iron-gear-wheel", chance = 400},	
+	{name = "copper-plate", chance = 400},
 	{name = "copper-cable", chance = 200},	
-	{name = "electronic-circuit", chance = 125},
-	{name = "steel-plate", chance = 75},
+	{name = "electronic-circuit", chance = 150},
+	{name = "steel-plate", chance = 100},
 	{name = "pipe", chance = 50},
-	{name = "solid-fuel", chance = 30},
+	{name = "solid-fuel", chance = 25},
 	{name = "iron-stick", chance = 25},
 	{name = "battery", chance = 10},
 	{name = "crude-oil-barrel", chance = 10},
-	{name = "lubricant-barrel", chance = 7},
 	{name = "petroleum-gas-barrel", chance = 7},
 	{name = "sulfuric-acid-barrel", chance = 7},
 	{name = "heavy-oil-barrel", chance = 7},
 	{name = "light-oil-barrel", chance = 7},
-	{name = "empty-barrel", chance = 5},
-	{name = "water-barrel", chance = 5},
-	{name = "green-wire", chance = 5},
-	{name = "red-wire", chance = 5},
-	{name = "grenade", chance = 5},
+	{name = "lubricant-barrel", chance = 4},
+	{name = "empty-barrel", chance = 4},
+	{name = "water-barrel", chance = 4},
+	{name = "green-wire", chance = 4},
+	{name = "red-wire", chance = 4},
+	{name = "grenade", chance = 3},
 	{name = "pipe-to-ground", chance = 3},
 	{name = "explosives", chance = 3},
 	{name = "advanced-circuit", chance = 3},

@@ -6,6 +6,7 @@ local math_abs = math.abs
 local math_max = math.max
 local math_min = math.min
 local Upgrades = require "maps.chronosphere.upgrade_list"
+local Balance = require "maps.chronosphere.balance"
 
 local function create_gui(player)
 	local frame = player.gui.top.add({ type = "frame", name = "chronosphere"})
@@ -179,7 +180,7 @@ local function update_planet_gui(player)
 	frame["planet_time"].caption = {"chronosphere.gui_planet_5", planet.day_speed.name}
 	
 	if objective.jump_countdown_start_time == -1 then
-		if objective.chronojumps >= 3 then
+		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
 			local time_until_overstay = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate - objective.passivetimer)
 			if time_until_overstay < 0 then
 				frame["overstay_time"].caption = {"chronosphere.gui_overstayed","",""}
@@ -190,7 +191,7 @@ local function update_planet_gui(player)
 			frame["overstay_time"].caption = {"chronosphere.gui_planet_7","",""}
 		end
 	else
-		if objective.chronojumps >= 3 then
+		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
 			local overstayed = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate < objective.jump_countdown_start_time)
 			if overstayed < 0 then
 				frame["overstay_time"].caption = {"chronosphere.gui_overstayed","",""}
@@ -235,8 +236,12 @@ function Public_gui.update_gui(player)
 		gui.charger_value.caption =  objective.chronocharges .. "/" .. objective.chronochargesneeded .. " MJ"
 	elseif (objective.chronochargesneeded<10000) then
 		gui.charger_value.caption =  math_floor(objective.chronocharges/100)/10 .. " / " .. math_floor(objective.chronochargesneeded/100)/10 .. " GJ"
-	else
+	elseif (objective.chronochargesneeded<1000000) then
 		gui.charger_value.caption =  math_floor(objective.chronocharges/1000) .. " / " .. math_floor(objective.chronochargesneeded/1000) .. " GJ"
+	elseif (objective.chronochargesneeded<10000000) then
+		gui.charger_value.caption =  math_floor(objective.chronocharges/100000)/10 .. " / " .. math_floor(objective.chronochargesneeded/100000)/10 .. " TJ"
+	else
+		gui.charger_value.caption =  math_floor(objective.chronocharges/1000000) .. " / " .. math_floor(objective.chronochargesneeded/1000000) .. " TJ"
 	end
 
 	if objective.jump_countdown_start_time == -1 then
@@ -270,7 +275,7 @@ function Public_gui.update_gui(player)
 				end
 			end
 		end
-		if objective.chronojumps >= 3 then
+		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
 			local time_until_overstay = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate - objective.passivetimer)
 			local time_until_evo = (objective.chronochargesneeded * 0.5 / objective.passive_chronocharge_rate - objective.passivetimer)
 

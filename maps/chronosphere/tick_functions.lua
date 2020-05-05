@@ -14,6 +14,11 @@ local math_exp = math.exp
 function Public_tick.realtime_events()
   local objective = Chrono_table.get_table()
 
+  -- debug testing for natural jumps (e.g. for misfires):
+  --if objective.passivetimer == 5 then
+  --  objective.chronocharges = objective.chronochargesneeded - 10
+  --end
+
   if objective.planet[1].type.id == 19 then
     if objective.passivetimer == 3 then
     game.print({"chronosphere.message_danger1"}, {r=0.98, g=0.66, b=0.22})
