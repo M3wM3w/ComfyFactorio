@@ -90,7 +90,7 @@ end
 
 Public.destroy_inactive_biters = function()
   local objective = Chrono_table.get_table()
-  if objective.chronotimer < 100 then return end
+  if objective.chronocharges < 100 then return end
   for _, group in pairs(objective.unit_groups) do
 		set_active_biters(group)
 	end
@@ -169,7 +169,7 @@ local function colonize(unit_group)
     end
   end
   if #commands > 0 then
-    --game.print("Attacking [gps=" .. commands[1].target.position.x .. "," .. commands[1].target.position.y .. "]")
+    game.print("Attacking [gps=" .. commands[1].target.position.x .. "," .. commands[1].target.position.y .. "]")
     unit_group.set_command({
       type = defines.command.compound,
       structure_type = defines.compound_command.return_last,
@@ -195,21 +195,22 @@ Public.send_near_biters_to_objective = function()
   local pollution = surface.get_pollution(random_target.position)
   local success = false
 
-  if pollution > 4 * Balance.pollution_spent_per_attack() or objective.planet[1].type.id == 17 then
-    local pollution_to_eat = Balance.pollution_spent_per_attack()
+  local difficulty = global.difficulty_vote_value
+  if pollution > 4 * Balance.pollution_spent_per_attack(difficulty) or objective.planet[1].type.id == 17 then
+    local pollution_to_eat = Balance.pollution_spent_per_attack(difficulty)
     surface.pollute(random_target.position, -pollution_to_eat)
-    game.pollution_statistics.set_input_count("biter-spawner",- pollution_to_eat + game.pollution_statistics.get_input_count("biter-spawner"))
-    --game.print("sending objective wave")
+    game.pollution_statistics.on_flow("biter-spawner", -pollution_to_eat)
     success = true
   else
     if objective.chronojumps < 50 then
       if math_random(1, 50 - objective.chronojumps) == 1 then success = true end
-      --game.print("not enough pollution for objective attack")
+      game.print("not enough pollution for objective attack")
     else
       success = true
     end
   end
   if success then
+    game.print("sending objective wave")
     game.surfaces[objective.active_surface_index].set_multi_command({
       command={
         type=defines.command.attack,
@@ -241,15 +242,17 @@ end
 
 
 local function select_units_around_spawner(spawner)
+  local objective = Chrono_table.get_table()
+  local difficulty = global.difficulty_vote_value
+
 	local biters = spawner.surface.find_enemy_units(spawner.position, 160, "player")
 	if not biters[1] then return false end
 	local valid_biters = {}
-  local objective = Chrono_table.get_table()
 
 	local unit_count = 0
 
 	for _, biter in pairs(biters) do
-		if unit_count >= Balance.max_new_attack_group_size() then break end
+		if unit_count >= Balance.max_new_attack_group_size(difficulty) then break end
 		if biter.force.name == "enemy" and objective.active_biters[biter.unit_number] == nil then
 			valid_biters[#valid_biters + 1] = biter
 			objective.active_biters[biter.unit_number] = {entity = biter, active_since = game.tick}
@@ -260,7 +263,7 @@ local function select_units_around_spawner(spawner)
 	--Manual spawning of additional units
   local size_of_biter_raffle = #objective.biter_raffle
 	if size_of_biter_raffle > 0 then
-		for _ = 1, Balance.max_new_attack_group_size() - unit_count, 1 do
+		for _ = 1, Balance.max_new_attack_group_size(difficulty) - unit_count, 1 do
 			local biter_name = objective.biter_raffle[math_random(1, size_of_biter_raffle)]
 			local position = spawner.surface.find_non_colliding_position(biter_name, spawner.position, 128, 2)
 			if not position then break end
@@ -316,23 +319,32 @@ end
 
 local function send_group(unit_group, nearest_player_unit)
   local objective = Chrono_table.get_table()
+  local difficulty = global.difficulty_vote_value
 
   local target = generate_attack_target(nearest_player_unit)
+
   if not target.valid then colonize(unit_group) return end
   local surface = target.surface
   local pollution = surface.get_pollution(target.position)
 
-  if pollution > 4 * Balance.pollution_spent_per_attack() or objective.planet[1].type.id == 17 then
-    local pollution_to_eat = Balance.pollution_spent_per_attack()
-    surface.pollute(target.position, -pollution_to_eat)
-    if #unit_group.members > 0 then game.pollution_statistics.set_input_count(unit_group.members[1].name,- pollution_to_eat + game.pollution_statistics.get_input_count(unit_group.members[1].name)) end
-    --game.print("sending unit group attack")
-	   local commands = {}
+  if pollution > 4 * Balance.pollution_spent_per_attack(difficulty) or objective.planet[1].type.id == 17 then
 
-	    local vector = attack_vectors[math_random(1, size_of_vectors)]
-	    local position = {target.position.x + vector[1], target.position.y + vector[2]}
-	    position = unit_group.surface.find_non_colliding_position("stone-furnace", position, 96, 1)
+    local pollution_to_eat = Balance.pollution_spent_per_attack(difficulty)
+    surface.pollute(target.position, -pollution_to_eat)
+    game.pollution_statistics.on_flow("biter-spawner", -pollution_to_eat)
+    
+  
+    if #unit_group.members > 0 then game.pollution_statistics.on_flow(unit_group.members[1].name or "small-biter", - pollution_to_eat) end
+
+    local commands = {}
+
+    local vector = attack_vectors[math_random(1, size_of_vectors)]
+    local position = {target.position.x + vector[1], target.position.y + vector[2]}
+    position = unit_group.surface.find_non_colliding_position("stone-furnace", position, 96, 1)
     if position then
+
+      game.print("group of " .. #unit_group.members .. " to " .. position.x .. ", " .. position.y)
+
       commands[#commands + 1] = {
         type = defines.command.attack_area,
         destination = position,
@@ -340,6 +352,8 @@ local function send_group(unit_group, nearest_player_unit)
         distraction = defines.distraction.by_enemy
     }
     end
+
+    game.print("group of " .. #unit_group.members .. " to " .. target.position.x .. ", " .. target.position.y)
 
     commands[#commands + 1] = {
     type = defines.command.attack_area,
@@ -426,7 +440,7 @@ end
 
 -- Public.rogue_group = function()
 --   local objective = Chrono_table.get_table()
---   if objective.chronotimer < 100 then return end
+--   if objective.passivetimer < 100 then return end
 --   if not objective.locomotive then return end
 --   local surface = game.surfaces[objective.active_surface_index]
 --   local spawner = get_random_close_spawner(surface)
@@ -451,21 +465,21 @@ end
 
 Public.pre_main_attack = function()
   local objective = Chrono_table.get_table()
-  if objective.chronotimer < 100 then return end
+  if objective.chronocharges < 100 then return end
 	local surface = game.surfaces[objective.active_surface_index]
   set_biter_raffle_table(surface)
 end
 
 Public.perform_main_attack = function()
   local objective = Chrono_table.get_table()
-  if objective.chronotimer < 100 then return end
+  if objective.chronocharges < 100 then return end
 	local surface = game.surfaces[objective.active_surface_index]
 	create_attack_group(surface)
 end
 
 Public.wake_up_sleepy_groups = function()
   local objective = Chrono_table.get_table()
-  if objective.chronotimer < 100 then return end
+  if objective.chronocharges < 100 then return end
   local entity
 	local unit_group
 	for _, biter in pairs(objective.active_biters) do

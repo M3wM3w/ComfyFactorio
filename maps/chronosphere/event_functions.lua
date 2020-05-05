@@ -1,4 +1,5 @@
 local Chrono_table = require 'maps.chronosphere.table'
+local Balance = require 'maps.chronosphere.balance'
 local Public_event = {}
 
 local tick_tack_trap = require "functions.tick_tack_trap"
@@ -251,13 +252,8 @@ end
 
 function Public_event.flamer_nerfs()
 	local objective = Chrono_table.get_table()
-	local flamer_power = 0
 	local difficulty = global.difficulty_vote_value
-	if difficulty > 1 then
-		difficulty = 1 + ((difficulty - 1) / 2)
-	elseif difficulty < 1 then
-		difficulty = 1 - ((1 - difficulty) / 2)
-	end
+	
 	local flame_researches = {
 		[1] = {name = "refined-flammables-1", bonus = 0.2},
 		[2] = {name = "refined-flammables-2", bonus = 0.2},
@@ -267,14 +263,17 @@ function Public_event.flamer_nerfs()
 		[6] = {name = "refined-flammables-6", bonus = 0.4},
 		[7] = {name = "refined-flammables-7", bonus = 0.2}
 	}
+
+	local flamer_power = 0
 	for i = 1, 6, 1 do
 		if game.forces.player.technologies[flame_researches[i].name].researched then
 			flamer_power = flamer_power + flame_researches[i].bonus
 		end
 	end
 	flamer_power = flamer_power + (game.forces.player.technologies[flame_researches[7].name].level - 7) * 0.2
-	game.forces.player.set_ammo_damage_modifier("flamethrower", flamer_power - 0.02 * difficulty * objective.chronojumps)
-	game.forces.player.set_turret_attack_modifier("flamethrower-turret", flamer_power - 0.02 * difficulty * objective.chronojumps)
+
+	game.forces.player.set_ammo_damage_modifier("flamethrower", flamer_power - Balance.flamers_nerfs_size(objective.chronojumps, difficulty))
+	game.forces.player.set_turret_attack_modifier("flamethrower-turret", flamer_power - Balance.flamers_nerfs_size(objective.chronojumps, difficulty))
 end
 
 local mining_researches = {

@@ -11,7 +11,7 @@ function Public.shuffle(tbl)
 end
 
 
-function Public.raffle(values,weights) --arguments of the form {[1] = a, [2] = b, ...} and {[1] = a_weight, [2] = b_weight, ...} or just {a,b,c,...} and {1,2,3...}
+function Public.raffle(values,weights) --arguments of the form {[a] = A, [b] = B, ...} and {[a] = a_weight, [b] = b_weight, ...} or just {a,b,c,...} and {1,2,3...}
 
 	local total_weight = 0
 	for k,w in pairs(weights) do

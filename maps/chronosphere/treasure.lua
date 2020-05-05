@@ -5,6 +5,7 @@ local math_random = math.random
 local math_abs = math.abs
 local math_max = math.max
 local math_min = math.min
+local math_ceil = math.ceil
 
 local Public = {}
 
@@ -41,7 +42,14 @@ function Public.treasure_chest(surface, position, container_name)
 	local i = e.get_inventory(defines.inventory.chest)
 	for _ = 1, math_random(2,6), 1 do
 		local loot = Rand.raffle(loot_types,loot_weights)
-		i.insert(loot)
+		local difficulty_scaling = Balance.treasure_quantity_difficulty_scaling(global.difficulty_vote_value)
+		if objective.chronojumps == 0 then difficulty_scaling = 1 end
+		local low = math_max(1, math_ceil(loot.count.min_count * difficulty_scaling))
+		local high = math_max(1, math_ceil(loot.count.max_count * difficulty_scaling))
+		log(low)
+		log(high)
+		local _count = math_random(low, high)
+		i.insert({name = loot.name, count = _count})
 	end
 end
 

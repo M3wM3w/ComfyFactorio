@@ -100,7 +100,7 @@ local texts = {
 		"does anybody need %s?",
 		"they need to nerf %s",
 		"I've decided. this is the best %s%s",
-		"f*ck this %s in particular",
+		"**** this %s in particular",
 		"whoever places the next %s gets a prize"
 	},
 	["old_talks"] = {
@@ -143,11 +143,9 @@ local texts = {
 		"Just let me deliver the fish. They start to smell a bit. Luckily I don't have a nose%s",
 		"Time to travel (▀̿Ĺ̯▀̿ ̿)",
 		"Have you read The Three Body Problem?",
-		"A pocket universe. Such a long way away, don't you think?",
-		"How's the ol' Chronotrain interior coming along? Hope it lasts!",
-		"I read out messages for coins%s",
+		"A pocket universe. Maybe they should call it a fishbowl!",
+		"I read out messages for coins%s btw",
 		"I'm selling Comfylatron ASMR tapes%s",
-		"The biters are getting smarter%s",
 		"Would you believe it? Back in the factory, I once saw a robot with ID 51479051!",
 		"How long have I been asleep?",
 		"Can you press this button on the back?",
@@ -156,25 +154,21 @@ local texts = {
 		"I need more uranium-235%s",
 		"We definitely nee0njk13l9",
 		"The fish told me thaigfah9",
-		"Have you seen what it's like outside?",
+		"Have you seen what it's like outside??",
 		"I dare you to say WTF in chat%s",
 		"You can feel yourself breathing",
-		"What do you like better, gravity or angular momentum?",
 		"Call me Ishmael one more time and I'll run you over",
 		"I was considering spoiling the next map for you! But only if you shoot me...",
 		"Time is a jet plane... it moves too fast!",
 		"They tried to make me go to rehab, but I said 000! (^_-)",
-		"When there's no more room outside, the biters will spawn in the factory",
-		"The biters are making me nervous (///_-)",
-		"If you stand in the same wagon for too long something bad happens",
+		"When there's no more room outside, the biters will spawn in the factory ≧◉ᴥ◉≦",
+		"I need to find my relaxation module (///_-)",
 		"I like you :3"
 	},
 	["new_talks_group"] = {
 		"I’m so embarrassed everyone. Again we landed in the wrong time%s",
 		"Checking math...2 + 2 = 1843194780521, check complete%s",
-		"Seems like this planet had biters since ages%s",
-		"I bet this time we will finally get into the right year%s",
-		"Anyone remember when we jumped into the time with blackjack and hookers?",
+		"I bet this time we'll jump into the right year%s",
 		"I was having the most wonderful dream. We used the time machine to kill ourselves before we launched the machine! How terrible%s",
 		"Train full of timedrug addicts...what do we do?",
 		"They just wanted to deliver some fish so I pressed that button and then this happened%s",
@@ -190,27 +184,24 @@ local texts = {
 		"We need more iron%s",
 		"We need more copper%s",
 		"I need more uranium-235%s",
-		"What if we do the sorting backwards%s",
-		"Is there a word for how shiny my body is?",
-		"I'm getting impatient, how about a jump?",
+		"What if we sort backwards%s",
+		"Can you believe how shiny my chassis is?",
 		"Does anyone have any spare gas they've got stored up?",
-		"It is officially BREAK TIME (paid)",
-		"It is officially BREAK TIME (unpaid)",
-		"Break time is OVER... Get back to work, engineers%s",
-		"Have you seen what it's like outside?",
-		"Anyone got any good jokes?",
+		"It is officially BREAK TIME",
+		"Break time is officially OVER%s",
+		"have you seen what it's like outside??",
+		"Anyone got a good joke?",
 		"are my speakers working?",
-		"How do you use a semicolon??",
+		"Nihilism schmlism",
 		"Who's ready for the New Year??",
 		"I am having trouble modulating my emotions today. But it's only temporary!",
 		"I saw the best minds of my generation destroyed by madness, starving hysterical naked",
 		"Time is a jet plane... it moves too fast!",
 		"No news is good news%s",
 		"They tried to make me go to rehab, but I said 000! (^_-)",
-		"What's a double entendre?",
+		"What's a double entendre?????",
 		"When there's no more room outside, the biters will spawn in the factory%s",
-		"Does anyone want to play Magic?",
-		"The biters are making me nervous (///_-)",
+		"My pheremone sensor is tingling%s",
 		"From now on, you guys do all the work while I sit by the couch and do nothing.",
 		"What's the plan?",
 		"Time to jump yet?",
@@ -252,7 +243,6 @@ local texts = {
 		"do engineers dream of real sheep..",
 		"sometimes I get lonely",
 		"time to practice throwing cards into a hat",
-		"sometimes I get imposter syndrome... then I snap out of it",
 		"ASSERT: I am Comfylatron.",
 		"I destroyed my source code so no-one could copy me..",
 		"and if I get bored of this train, I just imagine another..",
@@ -275,7 +265,6 @@ local texts = {
 		"co-operate, co-operate, defect",
 		"music for airports",
 		"is it better to rest on the conveyor belt",
-		"get to da locomotive!!!!",
 		"there's plenty more fish in the C",
 		"safety in numbers",
 		"I could automate the engineers..",
@@ -397,10 +386,10 @@ local function talks(nearby_characters)
 		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
 			str = str .. "Better get moving!"
 		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
-			str = str .. "Chop chop! Boom boom!"
+			str = str .. "Chop chop!"
 		elseif objective.planet[1].type.id == 15 and math_random(1,20) == 1 then
 			str = str .. "A new day, a new Chronotrain!"
-		elseif objective.chronojumps > 7 and objective.overstaycount > ((objective.chronojumps-5)/3) and math_random(1,30) == 1 then
+		elseif objective.chronojumps >= 7 and objective.overstaycount > ((objective.chronojumps-5)/3) and math_random(1,30) == 1 then
 			str = str .. "You're so relaxed, it makes the biters angry!"
 		elseif objective.planet.ore_richness == 1 and math_random(1,100) == 1 then
 			str = str .. "You know what else is very rich?"

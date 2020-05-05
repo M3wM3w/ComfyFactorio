@@ -39,7 +39,7 @@ function Public.locomotive_spawn(surface, position, wagons)
 	objective.locomotive.minable = false
 
 	--if not objective.comfychests then objective.comfychests = {} end
-	--if not objective.acumulators then objective.acumulators = {} end
+	--if not objective.accumulators then objective.accumulators = {} end
 	for i = 1, 24, 1 do
 		local yi = 0
 		local xi = 5
@@ -114,7 +114,7 @@ function Public.create_wagon_room()
 	local width = 64
 	local height = 384
 	objective.comfychests2 = {}
-	objective.acumulators = {}
+	objective.accumulators = {}
 	local map_gen_settings = {
 		["width"] = width,
 		["height"] = height + 128,
@@ -194,7 +194,7 @@ function Public.create_wagon_room()
 		for y = height * -0.5 + 7, height * -0.5 + 10, 1 do
 			local p = {x,y}
 			surface.set_tiles({{name = "water", position = p}})
-			if math_random(1, 3) == 1 then surface.create_entity({name = "fish", position = p}) end
+			if math_random(1, 3) == 1 and (x ~= width * -0.4 + 6) and (y ~= height * -0.5 + 7) then surface.create_entity({name = "fish", position = p}) end
 		end
 	end
 
@@ -283,14 +283,14 @@ function Public.create_wagon_room()
 			end
 			acumulator.minable = false
 			acumulator.destructible = false
-			table.insert(objective.acumulators, acumulator)
+			table.insert(objective.accumulators, acumulator)
 		end
 		for k = 1, 4, 1 do
 			local xx = x + 2 * k
 			local acumulator = surface.create_entity({name = "accumulator", position = {xx,y}, force="player", create_build_effect_smoke = false})
 			acumulator.minable = false
 			acumulator.destructible = false
-			table.insert(objective.acumulators, acumulator)
+			table.insert(objective.accumulators, acumulator)
 		end
 
 	end
@@ -400,41 +400,7 @@ function Public.create_wagon_room()
 	end
 	table.shuffle_table(positions)
 
-	local cargo_boxes = {
-		{name = "grenade", count = math_random(2, 3)},
-		{name = "grenade", count = math_random(2, 3)},
-		{name = "grenade", count = math_random(2, 3)},
-		{name = "submachine-gun", count = 1},
-		{name = "submachine-gun", count = 1},
-		{name = "submachine-gun", count = 1},
-		{name = "land-mine", count = math_random(8, 12)},
-		{name = "iron-gear-wheel", count = math_random(7, 15)},
-		{name = "iron-gear-wheel", count = math_random(7, 15)},
-		{name = "iron-gear-wheel", count = math_random(7, 15)},
-		{name = "iron-gear-wheel", count = math_random(7, 15)},
-		{name = "iron-plate", count = math_random(15, 23)},
-		{name = "iron-plate", count = math_random(15, 23)},
-		{name = "iron-plate", count = math_random(15, 23)},
-		{name = "iron-plate", count = math_random(15, 23)},
-		{name = "iron-plate", count = math_random(15, 23)},
-		{name = "copper-plate", count = math_random(15, 23)},
-		{name = "copper-plate", count = math_random(15, 23)},
-		{name = "copper-plate", count = math_random(15, 23)},
-		{name = "copper-plate", count = math_random(15, 23)},
-		{name = "copper-plate", count = math_random(15, 23)},
-		{name = "shotgun", count = 1},
-		{name = "shotgun", count = 1},
-		{name = "shotgun", count = 1},
-		{name = "shotgun-shell", count = math_random(5, 7)},
-		{name = "shotgun-shell", count = math_random(5, 7)},
-		{name = "shotgun-shell", count = math_random(5, 7)},
-		{name = "firearm-magazine", count = math_random(7, 15)},
-		{name = "firearm-magazine", count = math_random(7, 15)},
-		{name = "firearm-magazine", count = math_random(7, 15)},
-		{name = "rail", count = math_random(16, 24)},
-		{name = "rail", count = math_random(16, 24)},
-		{name = "rail", count = math_random(16, 24)},
-	}
+	local cargo_boxes = Balance.initial_cargo_boxes()
 
 	local i = 1
 	for _ = 1, 16, 1 do
@@ -465,10 +431,19 @@ function Public.set_player_spawn_and_refill_fish()
 	if not objective.locomotive_cargo[1] then return end
 	local cargo = objective.locomotive_cargo[1]
 	if not cargo.valid then return end
-	cargo.get_inventory(defines.inventory.cargo_wagon).insert({name = "raw-fish", count = math_random(1, 2)})
+	cargo.get_inventory(defines.inventory.cargo_wagon).insert({name = "raw-fish", count = 1})
 	local position = cargo.surface.find_non_colliding_position("stone-furnace", cargo.position, 16, 2)
 	if not position then return end
 	game.forces.player.set_spawn_position({x = position.x, y = position.y}, cargo.surface)
+end
+
+function Public.award_coins(_count)
+	if not (_count >= 1) then return end
+	local objective = Chrono_table.get_table()
+	if not objective.locomotive_cargo[1] then return end
+	local cargo = objective.locomotive_cargo[1]
+	if not cargo.valid then return end
+	cargo.get_inventory(defines.inventory.cargo_wagon).insert({name = "coin", count = math_floor(_count)})
 end
 
 function Public.enter_cargo_wagon(player, vehicle)

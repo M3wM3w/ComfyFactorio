@@ -46,49 +46,49 @@ local biome_types = {
   nukewrld = {id = 19, name = {"chronosphere.map_19"}, dname = "ERROR DESTINATION NOT FOUND", iron = 0, copper = 0, coal = 0, stone = 0, uranium = 0, oil = 0, biters = 0, moisture = 0}
   }
 
-local time_speed_variants = {
-  [1] = {name = {"chronosphere.daynight_static"}, dname = "static", timer = 0},
-  [2] = {name = {"chronosphere.daynight_normal"}, dname = "normal", timer = 100},
-  [3] = {name = {"chronosphere.daynight_slow"}, dname = "slow", timer = 200},
-  [4] = {name = {"chronosphere.daynight_superslow"}, dname = "superslow", timer = 400},
-  [5] = {name = {"chronosphere.daynight_fast"}, dname = "fast", timer = 50},
-  [6] = {name = {"chronosphere.daynight_superfast"}, dname = "superfast", timer = 25}
+local time_speed_variants = { --lengths of days increased by 50%. previously normal dayspeed had only a couple minutes of daylight
+  static = {name = {"chronosphere.daynight_static"}, dname = "static", timer = 0},
+  normal = {name = {"chronosphere.daynight_normal"}, dname = "normal", timer = 150},
+  slow = {name = {"chronosphere.daynight_slow"}, dname = "slow", timer = 300},
+  superslow = {name = {"chronosphere.daynight_superslow"}, dname = "superslow", timer = 600},
+  fast = {name = {"chronosphere.daynight_fast"}, dname = "fast", timer = 80},
+  superfast = {name = {"chronosphere.daynight_superfast"}, dname = "superfast", timer = 40}
 }
 
 local ore_richness_variants = {
-  [1] = {name = {"chronosphere.ore_richness_very_rich"}, dname = "very rich", factor = 4},
-  [2] = {name = {"chronosphere.ore_richness_rich"}, dname = "rich", factor = 2},
-  [3] = {name = {"chronosphere.ore_richness_normal"}, dname = "normal", factor = 1},
-  [4] = {name = {"chronosphere.ore_richness_poor"}, dname = "poor", factor = 0.6},
-  [5] = {name = {"chronosphere.ore_richness_very_poor"}, dname = "very poor", factor = 0.3},
-  [6] = {name = {"chronosphere.ore_richness_none"}, dname = "none", factor = 0}
+  vrich = {name = {"chronosphere.ore_richness_very_rich"}, dname = "very rich", factor = 4},
+  rich = {name = {"chronosphere.ore_richness_rich"}, dname = "rich", factor = 2},
+  normal = {name = {"chronosphere.ore_richness_normal"}, dname = "normal", factor = 1},
+  poor = {name = {"chronosphere.ore_richness_poor"}, dname = "poor", factor = 0.6},
+  vpoor = {name = {"chronosphere.ore_richness_very_poor"}, dname = "very poor", factor = 0.3},
+  none = {name = {"chronosphere.ore_richness_none"}, dname = "none", factor = 0}
 }
 
 
 function Public.determine_planet(choice)
   local objective = Chrono_table.get_table()
-  if not global.difficulty_vote_value then global.difficulty_vote_value = 1 end
   local difficulty = global.difficulty_vote_value
 
-  local ores = Rand.raffle(ore_richness_variants,Balance.ore_richness_weights())
-  local dayspeed = Rand.raffle(time_speed_variants,Balance.dayspeed_weights)
+  local ores = Rand.raffle(ore_richness_variants, Balance.ore_richness_weights(difficulty))
+  local dayspeed = Rand.raffle(time_speed_variants, Balance.dayspeed_weights)
   local daytime = math_random(1,100) / 100
 
   local planet_choice
   if objective.game_lost then
-    choice = 15
-    ores = ore_richness_variants[2]
+    choice = "startwrld"
+    ores = ore_richness_variants["rich"]
+    dayspeed = time_speed_variants["normal"]
     daytime = 0
   end
   if objective.upgrades[16] == 1 then
-    choice = 17
-    ores = ore_richness_variants[6]
+    choice = "endwrld"
+    ores = ore_richness_variants["none"]
   end
   if objective.config.jumpfailure == true and objective.game_lost == false then
     if objective.chronojumps == 21 or objective.chronojumps == 29 or objective.chronojumps == 36 or objective.chronojumps == 42 then
-      choice = 19
-      ores = ore_richness_variants[6]
-      dayspeed = time_speed_variants[1]
+      choice = "nukewrld"
+      ores = ore_richness_variants["none"]
+      dayspeed = time_speed_variants["static"]
       daytime = 0.15
     end
   end
@@ -97,14 +97,14 @@ function Public.determine_planet(choice)
     planet_choice = Rand.raffle(biome_types,Balance.biome_weights)
   else
     if biome_types[choice] then
-      planet_choice = biome_types[choice][1]
+      planet_choice = biome_types[choice]
     else
       planet_choice = Rand.raffle(biome_types,Balance.biome_weights)
     end
   end
-  if planet_choice.id == 10 then ores = ore_richness_variants[6] end
-  if objective.upgrades[13] == 1 and ores == ore_richness_variants[5] then ores = ore_richness_variants[4] end
-  if objective.upgrades[14] == 1 and (ore_richness_variants[4] or ore_richness_variants[5]) then ores = ore_richness_variants[3] end
+  if planet_choice.id == 10 then ores = ore_richness_variants["none"] end
+  if objective.upgrades[13] == 1 and ores == ore_richness_variants["vpoor"] then ores = ore_richness_variants["poor"] end
+  if objective.upgrades[14] == 1 and (ore_richness_variants["vpoor"] or ore_richness_variants["poor"]) then ores = ore_richness_variants["normal"] end
 
   local planet = {
     [1] = {
