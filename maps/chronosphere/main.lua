@@ -673,14 +673,13 @@ end
 local function on_built_entity(event)
 	if global.blueprints_vote_allowed then return end
 	if not event.created_entity.valid then return end
-	game.print(event.created_entity.name)
 	if event.created_entity.name == "entity-ghost" then
 
 		event.created_entity.destroy()
 
 		if not event.player_index then return end
 		local player = game.players[event.player_index]
-		player.print("Blueprints are turned off for this run.", { r=0.22, g=0.99, b=0.99})
+		player.print("Ghosts are turned off for this run.", { r=0.22, g=0.99, b=0.99})
 	end
 end
 

@@ -45,7 +45,7 @@ local function scaling_curve_type(jumps,a,b,c,d,e,pivot)
 
 	return val
 end
--- when used, imgur links of curve shape included
+-- when used, include imgur links of curve shape
 
 
 
