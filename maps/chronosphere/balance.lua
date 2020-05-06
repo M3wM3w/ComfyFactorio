@@ -109,7 +109,7 @@ function Public.MJ_needed_for_full_charge(difficulty, jumps)
 
 	local modifiedrate
 	if difficulty <= 1 then modifiedrate = baserate end
-	if difficulty > 1 and jumps>0 then modifiedrate = baserate + 2000 end
+	if difficulty > 1 and jumps>0 then modifiedrate = baserate + 2000 + 100 * jumps end
 	return modifiedrate
 end --difficulty
 
