@@ -40,13 +40,13 @@ end
 
 ---- CHRONO/POLLUTION BALANCE ----
 
-function Public.train_pollution_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 3/5) end
+function Public.charging_pollution_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 3/5) end
 
 function Public.pollution_filter_upgrade_factor(upgrades2)
 	return 1 / (upgrades2 / 3 + 1) -- 20/05/05: unchanged
 end
 
-function Public.pollution_transfer_from_inside_factor(difficulty, filter_upgrades) return 3 * Public.pollution_filter_upgrade_factor(filter_upgrades) * Public.train_pollution_difficulty_scaling(difficulty) end
+function Public.machine_pollution_transfer_from_inside_factor(difficulty, filter_upgrades) return 3 * Public.pollution_filter_upgrade_factor(filter_upgrades) * difficulty_sloped(difficulty, 2/5) end
 
 
 -- 20/05/05: Now that we have a dynamic passive charge rate, we can separate the energy needed to charge from the default length of stay. So we can choose the following however we like:
@@ -66,7 +66,7 @@ end
 function Public.passive_pollution_rate(jumps, difficulty, filter_upgrades)
 	local baserate = 2 * jumps -- 20/05/05: unchanged
 
-	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
+	local modifiedrate = baserate * Public.charging_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
   
 	return modifiedrate
 end
@@ -76,7 +76,7 @@ function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgr
 
 	local baserate = 0.75 * (10 + 2 * jumps) -- 20/05/05: lowered by 25%. gotta survive new 'countdown' phase afterwards
 
-	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
+	local modifiedrate = baserate * Public.charging_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
 	
 	return modifiedrate
 end
@@ -90,7 +90,7 @@ function Public.countdown_pollution_rate(jumps, difficulty)
 end
 
 function Public.post_jump_initial_pollution(jumps, difficulty)
-	local baserate = 400 * (1 + jumps) --down from 450
+	local baserate = 350 * (1 + jumps) --down from 450
 
 	local modifiedrate = baserate * difficulty_sloped(difficulty, 1) -- NO LONGER DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution. Tooltip worded accordingly. 20/05/05: This is better for balance since initial pollution provides the initial mound that further pollution flows over.
 	
@@ -412,7 +412,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 	}
 	local specialised_loot_raw = {}
 
-	if planet.type.id == 3 then
+	if planet.type.id == 3 then --stonewrld
 		local specialised_loot_raw = {
 			{4, 0, 1, false, "effectivity-module", 1, 4},
 			{4, 0, 1, false, "productivity-module", 1, 4},
@@ -429,7 +429,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 5 then
+	if planet.type.id == 5 then --uraniumwrld
 		local specialised_loot_raw = {
 			{3, -0.5, 1, true, "steam-turbine", 1, 2},
 			{3, -0.5, 1, true, "heat-exchanger", 2, 4},
@@ -445,7 +445,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 12 then
+	if planet.type.id == 14 then --lavawrld
 		local specialised_loot_raw = {
 			{6, -1, 3, true, "flamethrower-turret", 1, 1},
 			{6, -1, 3, true, "flamethrower", 1, 1},
@@ -453,7 +453,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 14 then
+	if planet.type.id == 16 then --mazewrld
 		local specialised_loot_raw = {
 			{5, 0, 1, false, "programmable-speaker", 2, 4},
 			{10, 0, 1, false, "arithmetic-combinator", 4, 8},
@@ -487,7 +487,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 16 then
+	if planet.type.id == 16 then --swampwrld
 		local specialised_loot_raw = {
 			{24, 0, 1, false, "poison-capsule", 8, 16},
 		}
@@ -504,8 +504,8 @@ function Public.treasure_chest_loot(difficulty, planet)
 	return loot_data
 end
 
-function Public.scrap_quantity_bonus(evolution_factor, mining_drill_productivity_bonus)
-	return 4 * evolution_factor + 2 * mining_drill_productivity_bonus
+function Public.scrap_quantity_multiplier(evolution_factor, mining_drill_productivity_bonus)
+	return 1 + 7 * evolution_factor --removed dependence on mining drill tech bonus to nerf tech slightly and make the map more distinct
 end
 
 Public.scrap_yield_amounts = {

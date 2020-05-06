@@ -24,7 +24,7 @@ function Public.raffle(values,weights) --arguments of the form {[a] = A, [b] = B
 	assert(total_weight > 0)
 
 	local cumulative_probability = 0
-	local rng = math_random() --0 to 1
+	local rng = math_random()
 	for k,v in pairs(values) do
 		assert(weights[k])
 		cumulative_probability = cumulative_probability + (weights[k] / total_weight)

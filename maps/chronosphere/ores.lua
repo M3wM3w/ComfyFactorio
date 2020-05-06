@@ -155,9 +155,10 @@ local function on_player_mined_entity(event)
 	local scrap = scrap_raffle[math.random(1, size_of_scrap_raffle)]
   
   
-	local amount_bonus = Balance.scrap_quantity_bonus(game.forces.enemy.evolution_factor, game.forces.player.mining_drill_productivity_bonus)
-	local r1 = math.ceil(Balance.scrap_yield_amounts[scrap] * (0.3 + (amount_bonus * 0.3)))
-	local r2 = math.ceil(Balance.scrap_yield_amounts[scrap] * (1.7 + (amount_bonus * 1.7)))	
+  local amount_bonus_multiplier = Balance.scrap_quantity_multiplier(game.forces.enemy.evolution_factor, game.forces.player.mining_drill_productivity_bonus)
+  print(amount_bonus)
+	local r1 = math.ceil(Balance.scrap_yield_amounts[scrap] * 0.3 * amount_bonus)
+	local r2 = math.ceil(Balance.scrap_yield_amounts[scrap] * 1.7 * amount_bonus)	
 	local amount = math.random(r1, r2)
 	
 	local player = game.players[event.player_index]	

@@ -52,7 +52,7 @@ local function generate_overworld(surface, optplanet)
 	local message = {"chronosphere.planet_jump", planet[1].type.name, planet[1].ore_richness.name, planet[1].day_speed.name}
 	game.print(message, {r=0.98, g=0.66, b=0.22})
 
-	local discordmessage = "Destination: "..planet[1].type.dname..", Ore Richness: "..planet[1].ore_richness.dname..", Daynight cycle: "..planet[1].day_speed.dname
+	local discordmessage = "Destination: "..planet[1].type.dname..", Ore Richness: "..planet[1].ore_richness.dname..", Day length: "..planet[1].day_speed.dname
 	Server.to_discord_embed(discordmessage)
 	if planet[1].type.id == 12 then
 		game.print({"chronosphere.message_choppy"}, {r=0.98, g=0.66, b=0.22})

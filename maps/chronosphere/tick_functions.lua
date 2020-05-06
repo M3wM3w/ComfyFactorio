@@ -57,7 +57,7 @@ function Public_tick.transfer_pollution()
 
   local total_interior_pollution = surface.get_total_pollution()
 
-  local exterior_pollution =  total_interior_pollution * Balance.pollution_transfer_from_inside_factor(difficulty, objective.upgrades[2])
+  local exterior_pollution =  total_interior_pollution * Balance.machine_pollution_transfer_from_inside_factor(difficulty, objective.upgrades[2])
   
   game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, exterior_pollution)
   -- attribute the difference to the locomotive:
