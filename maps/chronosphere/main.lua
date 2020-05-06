@@ -11,7 +11,7 @@ require "maps.chronosphere.terrain"
 require "maps.chronosphere.weapon_buffs"
 require "on_tick_schedule"
 require "modules.biter_noms_you"
-require "modules.custom_death_messages"
+-- require "modules.custom_death_messages"
 local Server = require 'utils.server'
 local Ai = require "maps.chronosphere.ai"
 local Planets = require "maps.chronosphere.chronobubles"
