@@ -255,8 +255,10 @@ local function process_hedgemaze_position(p, seed, tiles, entities, treasure, pl
           end
         end
       else
-        if math_sqrt(p.x * p.x + p.y * p.y) > 150 and math_random(1, 4096) == 1 then treasure[#treasure + 1] = p end -- 20/04/04: spread out treasure over map more and increased frequency. maze is a good level to buff since it's fun, so we want players to spend more time on it. nerfed treasure in camps to make it less clear whether to attack
-        if math_sqrt(p.x * p.x + p.y * p.y) > 250 and math_random(1, 150) == 1 then
+        if math_random(1, 2 * 1024) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 125 then
+          entities[#entities + 1] = {name = worm_raffle[math_random(1 + math_floor(game.forces["enemy"].evolution_factor * 8), math_floor(1 + game.forces["enemy"].evolution_factor * 16))], position = p}
+        elseif math_random(1, 4 * 1024) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 150 then treasure[#treasure + 1] = p end -- 20/04/04: spread out treasure over map more and increased frequency. maze is a good level to buff since it's fun, so we want players to spend more time on it. nerfed treasure in camps to make it less clear whether to attack
+        elseif math_random(1, 150) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 250 then
           entities[#entities + 1] = {name = worm_raffle[math_random(1 + math_floor(game.forces["enemy"].evolution_factor * 8), math_floor(1 + game.forces["enemy"].evolution_factor * 16))], position = p}
         end
       end
@@ -295,7 +297,7 @@ local function process_rocky_position(p, seed, tiles, entities, treasure, planet
 	if math_abs(noise_large_caves) > 0.375 then
 		tiles[#tiles + 1] = {name = "dirt-7", position = p}
 		if math_random(1,5) > 1 then entities[#entities + 1] = {name = rock_raffle[math_random(1, size_of_rock_raffle)], position = p} end
-		if math_random(1,2048) == 1 then treasure[#treasure + 1] = p end
+		if math_random(1, 2 * 1024) == 1 then treasure[#treasure + 1] = p end
 		return
 	end
 
@@ -334,7 +336,7 @@ local function process_rocky_position(p, seed, tiles, entities, treasure, planet
 			return
 		end
 
-		if math_random(1,2048) == 1 then treasure[#treasure + 1] = p end
+		if math_random(1, 2 * 1024) == 1 then treasure[#treasure + 1] = p end
 		tiles[#tiles + 1] = {name = "dirt-7", position = p}
 		if math_random(1,100) > 50 then entities[#entities + 1] = {name = rock_raffle[math_random(1, size_of_rock_raffle)], position = p} end
 		return
@@ -426,7 +428,7 @@ local function process_river_position(p, seed, tiles, entities, treasure, planet
 		if math_random(1,52 - biters) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 200 then entities[#entities + 1] = {name = spawner_raffle[math_random(1, 4)], position = p} end
 	end
 	if math_sqrt(p.x * p.x + p.y * p.y) > 175 and cave_rivers > -0.70 and cave_rivers < 0.70 then
-    if math_random(1,4096) == 1 then treasure[#treasure + 1] = p end
+    if math_random(1, 4 * 1024) == 1 then treasure[#treasure + 1] = p end
   end
   if noise_forest_location > 0.9 then
 		if math_random(1,100) > 42 then entities[#entities + 1] = {name = tree_raffle[math_random(1, s_tree_raffle)], position = p} end
