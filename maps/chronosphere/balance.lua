@@ -75,7 +75,7 @@ end
 function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgrades) --1CC = 1MJ
 	--previously 1CC was 3MJ, and 1MJ active charge produced (10 + 2 * jumps) pollution
 
-	local baserate = 0.8 * (10 + 2 * jumps) -- lowered by 20%, due to having to survive new 'countdown' phase afterwards
+	local baserate = 0.75 * (10 + 2 * jumps) -- lowered by 25%. gotta survive new 'countdown' phase afterwards
 
 	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
 	
@@ -83,7 +83,7 @@ function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgr
 end
 
 function Public.countdown_pollution_rate(jumps, difficulty)
-	local baserate = 20 * (10 + 2 * jumps)
+	local baserate = 25 * (10 + 2 * jumps)
 
 	local modifiedrate = baserate -- NOT DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution
 	
