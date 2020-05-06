@@ -204,17 +204,17 @@ local function process_hedgemaze_position(p, seed, tiles, entities, treasure, pl
           if p.x % 32 > 12 and p.x % 32 < 20 and p.y % 32 > 12 and p.y % 32 < 20 then
             if math_random(1,16) == 1 then treasure[#treasure + 1] = p end
           elseif p.x % 32 == 12 or p.x % 32 == 12 or p.y % 32 == 11 or p.y % 32 == 12 or p.x % 32 == 19 or p.x % 32 == 20 or p.y % 32 == 19 or p.y % 32 == 20 then
-            if math_random(1,128) == 1 then entities[#entities + 1] = {name = "land-mine", position = p, force = "scrapyard"} end
+            if math_random(1,8) == 1 then entities[#entities + 1] = {name = "land-mine", position = p, force = "scrapyard"} end
           end
         elseif things == "crashsite" then
           if math_random(1,10) == 1 then
             entities[#entities + 1] = {name="mineable-wreckage", position=p}
           end
         elseif things == "treasure" then
-          local roll = math_random(1,256)
-          if roll == 1 then
+          local roll = math_random(1,512)
+          if roll <= 2 then
             treasure[#treasure + 1] = p
-          elseif roll >=2 and roll <= 10 then
+          elseif roll == 3 then
             entities[#entities + 1] = {name = "land-mine", position = p, force = "scrapyard"}
           end
         end
