@@ -420,13 +420,13 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{4, 0, 1, false, "effectivity-module", 1, 4},
 			{4, 0, 1, false, "productivity-module", 1, 4},
 			{4, 0, 1, false, "speed-module", 1, 4},
+			{2, 0, 1, false, "beacon", 1, 1},
 			{0.5, 0, 1, false, "effectivity-module-2", 1, 4},
 			{0.5, 0, 1, false, "productivity-module-2", 1, 4},
 			{0.5, 0, 1, false, "speed-module-2", 1, 4},
 			{0.1, 0, 1, false, "effectivity-module-3", 1, 4},
 			{0.1, 0, 1, false, "productivity-module-3", 1, 4},
 			{0.1, 0, 1, false, "speed-module-3", 1, 4},
-			{0.7, 0, 1, false, "beacon", 1, 1},
 
 			{4, 0, 1, false, "stone-wall", 33, 99},
 		}
