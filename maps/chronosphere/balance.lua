@@ -320,7 +320,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 
 		--modular armor meta:
 		{1, -3, 1, true, "modular-armor", 1, 1},
-		{1, 0,1, true, "power-armor", 1, 1},
+		{1, 0.3, 1, true, "power-armor", 1, 1},
 		-- {0.5, -1,3, true, "power-armor-mk2", 1, 1},
 		{2, 0, 1, true, "solar-panel-equipment", 1, 2},
 		{2, 0, 1, true, "battery-equipment", 1, 1},
@@ -473,7 +473,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 
 			{4, -3, 0, true, "modular-armor", 1, 1},
 			{4, 0,1, true, "power-armor", 1, 1},
-			{4, 0,3, true, "power-armor-mk2", 1, 1},
+			{3, 0,3, true, "power-armor-mk2", 1, 1},
 
 			{4, 0, 1, false, "exoskeleton-equipment", 1, 1},
 			{4, 0, 1, false, "belt-immunity-equipment", 1, 1},
