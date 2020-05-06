@@ -285,7 +285,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 	
 	local loot_data_raw= {
 		{5, 0, 1, false, "railgun-dart", 4, 20}, -- this should not scale with level. reward treasure hunting currency the same at all levels
-		
+
 		--always there (or normally always there):
 		{4, 0, 1, false, "pistol", 1, 2},
 		{1, 0, 1, false, "gun-turret", 2, 4},
@@ -324,9 +324,9 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{0.8, 0, 1, true, "night-vision-equipment", 1, 1},
 		
 		--loader meta:
-		{math_max(difficulty - 0.75), 0, 0.2, false, "loader", 1, 2},
-		{math_max(difficulty - 0.75), 0.2, 0.5, false, "fast-loader", 1, 2},
-		{math_max(difficulty - 0.75), 0.5, 1, false, "express-loader", 1, 2},
+		{math_max(difficulty - 0.75, 0), 0, 0.2, false, "loader", 1, 2},
+		{math_max(difficulty - 0.75, 0), 0.2, 0.5, false, "fast-loader", 1, 2},
+		{math_max(difficulty - 0.75, 0), 0.5, 1, false, "express-loader", 1, 2},
 
 		--early-game:
 		{3, -0.1, 0.1, true, "wooden-chest", 8, 16},
