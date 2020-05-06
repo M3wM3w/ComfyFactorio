@@ -57,7 +57,7 @@ local time_speed_variants = { -- 20/05/05: lengths of days increased by 50%. pre
 
 local ore_richness_variants = { -- 20/04/04: less variance in the factors here is really important I think because this variance can kill runs
   vrich = {name = {"chronosphere.ore_richness_very_rich"}, dname = "very rich", factor = 3},
-  rich = {name = {"chronosphere.ore_richness_rich"}, dname = "rich", factor = 1.6},
+  rich = {name = {"chronosphere.ore_richness_rich"}, dname = "rich", factor = 1.5},
   normal = {name = {"chronosphere.ore_richness_normal"}, dname = "normal", factor = 1},
   poor = {name = {"chronosphere.ore_richness_poor"}, dname = "poor", factor = 0.8},
   vpoor = {name = {"chronosphere.ore_richness_very_poor"}, dname = "very poor", factor = 0.6},
