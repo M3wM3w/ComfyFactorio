@@ -84,15 +84,15 @@ end
 function Public.countdown_pollution_rate(jumps, difficulty)
 	local baserate = 25 * (10 + 2 * jumps)
 
-	local modifiedrate = baserate -- NOT DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution. Tooltip worded accordingly
+	local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpreting this as hyperwarp portal pollution
 	
 	return modifiedrate
 end
 
 function Public.post_jump_initial_pollution(jumps, difficulty)
-	local baserate = 450 * (1 + jumps) --unchanged
+	local baserate = 300 * (2 + jumps)
 
-	local modifiedrate = baserate * difficulty_sloped(difficulty, 1) -- NO LONGER DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution. Tooltip worded accordingly. 20/05/05: This is better for balance since initial pollution provides the initial mound that further pollution flows over.
+	local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpreting this as hyperwarp portal pollution
 	
 	return modifiedrate
 end
@@ -129,14 +129,14 @@ function Public.jumps_until_overstay_is_on(difficulty) --both overstay penalties
 	end
 end
 
-function Public.pistol_damage_multiplier(difficulty) return 2.5 end --as you go from 2.5 to 3, you one-shot small biters
+function Public.pistol_damage_multiplier(difficulty) return 2.5 end --3 will one-shot biters
 function Public.damage_research_effect_on_shotgun_multipler(difficulty) return 3 end
 
 function Public.generate_jump_countdown_length(difficulty)
 	if difficulty <= 1 then
 		return Rand.raffle({90,120,150,180,210},{1,8,64,8,1})
 	else
-		return 150 -- thesixthroc: suppresses rng for speedruns
+		return 150 -- thesixthroc: suppress rng for speedrunners
 	end
 end
 
@@ -144,7 +144,7 @@ function Public.misfire_percentage_chance(difficulty)
 	if difficulty <= 1 and difficulty > 0.25 then
 		return 5
 	else
-		return 0 -- thesixthroc: suppresses rng for speedruns
+		return 0 -- thesixthroc: suppress rng for speedrunners
 	end
 end
 
@@ -259,22 +259,28 @@ function Public.initial_cargo_boxes()
 		{name = "copper-plate", count = math_random(15, 23)},
 		{name = "copper-plate", count = math_random(15, 23)},
 		{name = "copper-plate", count = math_random(15, 23)},
-		{name = "shotgun", count = 1},
-		{name = "shotgun", count = 1},
-		{name = "shotgun", count = 1},
-		{name = "shotgun-shell", count = math_random(4, 5)}, -- 20/05/05: make players get these more from treasure
-		{name = "shotgun-shell", count = math_random(4, 5)}, -- 20/05/05: make players get these more from treasure
-		{name = "shotgun-shell", count = math_random(4, 5)}, -- 20/05/05: make players get these more from treasure
+		-- 20/05/05: shotguns relatively weak until first tech upgrade, and let's make players get these more from treasure hunting:
+		-- {name = "shotgun", count = 1},
+		-- {name = "shotgun", count = 1},
+		-- {name = "shotgun", count = 1},
+		{name = "shotgun-shell", count = math_random(4, 5)},
+		{name = "shotgun-shell", count = math_random(4, 5)},
 		{name = "firearm-magazine", count = math_random(10, 30)},
 		{name = "firearm-magazine", count = math_random(10, 30)},
 		{name = "firearm-magazine", count = math_random(10, 30)},
 		{name = "rail", count = math_random(16, 24)},
 		{name = "rail", count = math_random(16, 24)},
 		{name = "rail", count = math_random(16, 24)},
+
+
+		-- 20/05/05: compensate for removed items, aiming to slightly mix up the initial play patterns:
+		{name = "piercing-shotgun-shell", count = math_random(4, 5)},
+		{name = "fast-inserter", count = 2},
+		{name = "loader", count = 1},
 	}
 end
 
-function Public.treasure_quantity_difficulty_scaling(difficulty) return difficulty_exp(difficulty, 1.5) end
+function Public.treasure_quantity_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 1) end
 
 function Public.treasure_chest_loot(difficulty, planet)
 	
@@ -307,8 +313,8 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{2, 0.15, 1, false, "pump", 1, 2},
 
 		--shotgun meta:
-		{12, -0.4, 0.4, true, "shotgun-shell", 16, 32},
-		{8, -0.2, 0.2, true, "shotgun", 1, 1},
+		{12, -0.2, 0.4, true, "shotgun-shell", 16, 32},
+		{8, 0, 0.4, true, "shotgun", 1, 1},
 		{12, 0, 1.2, true, "piercing-shotgun-shell", 16, 32},
 		{8, 0, 1.2, true, "combat-shotgun", 1, 1},
 
@@ -324,30 +330,37 @@ function Public.treasure_chest_loot(difficulty, planet)
 		
 		--loader meta:
 		{math_max(1.5 * difficulty - 1.25, 0), 0, 0.2, false, "loader", 1, 2},
-		{math_max(1.5 * difficulty - 1.25, 0), 0.2, 0.5, false, "fast-loader", 1, 2},
-		{math_max(1.5 * difficulty - 1.25, 0), 0.5, 1, false, "express-loader", 1, 2},
+		{math_max(1.5 * difficulty - 1.25, 0), 0.2, 0.6, false, "fast-loader", 1, 2},
+		{math_max(1.5 * difficulty - 1.25, 0), 0.6, 1, false, "express-loader", 1, 2},
+
+		--science meta:
+		{8, -0.5, 0.5, true, "automation-science-pack", 4, 12},
+		{8, -0.6, 0.6, true, "logistic-science-pack", 4, 12},
+		{6, -0.1, 1, true, "military-science-pack", 8, 8}, --careful with this
+		{6, 0.2, 1.4, true, "chemical-science-pack", 16, 24},
+		{6, 0.3, 1.5, true, "production-science-pack", 16, 24},
+		{4, 0.4, 1.5, true, "utility-science-pack", 16, 24},
+		{10, 0.5, 1.5, true, "space-science-pack", 16, 24},
 
 		--early-game:
 		{3, -0.1, 0.1, true, "wooden-chest", 8, 16},
-		{5, -0.1, 0.1, true, "light-armor", 1, 1},
 		{5, -0.1, 0.1, true, "burner-inserter", 8, 16},
 		{1, -0.2, 0.2, true, "offshore-pump", 1, 3},
 		{3, -0.2, 0.2, true, "boiler", 3, 6},
+		{6, -0.2, 0.2, true, "lab", 1, 2},
 		{3, -0.2, 0.2, true, "steam-engine", 2, 4},
 		{3, -0.2, 0.2, true, "burner-mining-drill", 2, 4},
 		{2.7, 0, 0.15, false, "submachine-gun", 1, 3},
 		{0.3, 0, 0.15, false, "vehicle-machine-gun", 1, 1},
 		{4, 0, 0.3, true, "iron-chest", 8, 16},
+		{4, -0.3, 0.3, true, "light-armor", 1, 1},
 		{4, -0.3, 0.3, true, "inserter", 8, 16},
-		{6, -0.3, 0.3, true, "lab", 1, 2},
 		{8, -0.3, 0.3, true, "small-electric-pole", 16, 24},
 		{6, -0.4, 0.4, true, "stone-furnace", 8, 16},
-		{10, -0.4, 0.4, true, "automation-science-pack", 16, 64},
 		{8, -0.5, 0.5, true, "firearm-magazine", 32, 128},
 		{1, -0.3, 0.3, true, "underground-belt", 4, 8},
 		{1, -0.3, 0.3, true, "splitter", 1, 4},
 		{1, -0.3, 0.3, true, "assembling-machine-1", 2, 4},
-		{10, -0.3, 0.3, true, "logistic-science-pack", 16, 64},
 		{5, -0.7, 0.7, true, "transport-belt", 25, 75},
 
 		--mid-game:
@@ -362,7 +375,6 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{1, 0, 0.6, true, "storage-tank", 2, 6},
 		{3, 0, 0.6, true, "heavy-armor", 1, 1},
 		{2, 0, 0.7, true, "steel-plate", 25, 75},
-		{4, 0, 0.8, true, "military-science-pack", 16, 64},
 		{5, 0, 0.9, true, "piercing-rounds-magazine", 32, 128},
 		{2, 0.2, 0.6, true, "engine-unit", 16, 32},
 		{3, 0, 1, true, "fast-inserter", 8, 16},
@@ -382,7 +394,6 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{1, 0.2, 1.2, true, "battery", 50, 150},
 		{5, 0.2, 1.8, true, "explosive-rocket", 16, 32},
 		{4, 0.2, 1.4, true, "advanced-circuit", 50, 150},
-		{4, 0.2, 1.4, true, "chemical-science-pack", 16, 64},
 		{3, 0.2, 1.8, true, "stack-inserter", 4, 8},
 		{3, 0.2, 1.4, true, "big-electric-pole", 4, 8},
 		{2, 0.3, 1, true, "rocket-fuel", 4, 10},
@@ -391,9 +402,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{2, 0.4, 1, true, "electric-engine-unit", 16, 32},
 		{5, 0.2, 1.8, true, "cluster-grenade", 8, 16},
 		{5, 0.2, 1.4, true, "construction-robot", 5, 25},
-		{4, 0.2, 1.4, true, "production-science-pack", 16, 64},
 		{2, 0.25, 1.75, true, "logistic-robot", 5, 25},
-		{2, 0.25, 1.75, true, "utility-science-pack", 16, 64},
 		{2, 0.25, 1.75, true, "substation", 2, 4},
 		{3, 0.25, 1.75, true, "assembling-machine-3", 2, 4},
 		{3, 0.25, 1.75, true, "express-transport-belt", 20, 80},
@@ -403,7 +412,6 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{3, 0.25, 1.75, true, "laser-turret", 3, 6},
 		{4, 0.4, 1.6, true, "processing-unit", 50, 150},
 		{2, 0.6, 1.4, true, "roboport", 1, 1},
-		{6, 0.8, 1.2, true, "space-science-pack", 16, 64},
 
 		--{2, 0, 1, , "computer", 1, 1},
 		--{1, 0.2, 1, , "railgun", 1, 1},
@@ -413,7 +421,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 	local specialised_loot_raw = {}
 
 	if planet.type.id == 3 then --stonewrld
-		local specialised_loot_raw = {
+		specialised_loot_raw = {
 			{4, 0, 1, false, "effectivity-module", 1, 4},
 			{4, 0, 1, false, "productivity-module", 1, 4},
 			{4, 0, 1, false, "speed-module", 1, 4},
@@ -430,7 +438,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 	end
 
 	if planet.type.id == 5 then --uraniumwrld
-		local specialised_loot_raw = {
+		specialised_loot_raw = {
 			{3, -0.5, 1, true, "steam-turbine", 1, 2},
 			{3, -0.5, 1, true, "heat-exchanger", 2, 4},
 			{3, -0.5, 1, true, "heat-pipe", 4, 8},
@@ -446,7 +454,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 	end
 
 	if planet.type.id == 14 then --lavawrld
-		local specialised_loot_raw = {
+		specialised_loot_raw = {
 			{6, -1, 3, true, "flamethrower-turret", 1, 1},
 			{6, -1, 3, true, "flamethrower", 1, 1},
 			{12, -1, 3, true, "flamethrower-ammo", 16, 32},
@@ -454,14 +462,14 @@ function Public.treasure_chest_loot(difficulty, planet)
 	end
 
 	if planet.type.id == 16 then --mazewrld
-		local specialised_loot_raw = {
-			{5, 0, 1, false, "programmable-speaker", 2, 4},
-			{10, 0, 1, false, "arithmetic-combinator", 4, 8},
-			{10, 0, 1, false, "constant-combinator", 4, 8},
-			{10, 0, 1, false, "decider-combinator", 4, 8},
-			{10, 0, 1, false, "power-switch", 1, 1},
-			{30, 0, 1, false, "green-wire", 10, 29},
-			{30, 0, 1, false, "red-wire", 10, 29},
+		specialised_loot_raw = {
+			{4, 0, 1, false, "programmable-speaker", 2, 4},
+			{8, 0, 1, false, "arithmetic-combinator", 4, 8},
+			{8, 0, 1, false, "constant-combinator", 4, 8},
+			{8, 0, 1, false, "decider-combinator", 4, 8},
+			{8, 0, 1, false, "power-switch", 1, 1},
+			{20, 0, 1, false, "green-wire", 10, 29},
+			{20, 0, 1, false, "red-wire", 10, 29},
 
 			{4, -3, 0, true, "modular-armor", 1, 1},
 			{4, 0,1, true, "power-armor", 1, 1},
@@ -487,8 +495,8 @@ function Public.treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 16 then --swampwrld
-		local specialised_loot_raw = {
+	if planet.type.id == 18 then --swampwrld
+		specialised_loot_raw = {
 			{24, 0, 1, false, "poison-capsule", 8, 16},
 		}
 	end

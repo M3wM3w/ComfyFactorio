@@ -201,18 +201,20 @@ local function process_hedgemaze_position(p, seed, tiles, entities, treasure, pl
         elseif things == "prospect" then
           if math_random(1,252 - biters) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 300 then entities[#entities + 1] = {name = spawner_raffle[math_random(1, 4)], position = p} end
         elseif things == "camp" then
-          if p.x % 32 > 12 and p.x % 32 < 20 and p.y % 32 > 12 and p.y % 32 < 20 and math_random(1,6) == 1 then
-            treasure[#treasure + 1] = p
+          if p.x % 32 > 12 and p.x % 32 < 20 and p.y % 32 > 12 and p.y % 32 < 20 then
+            if math_random(1,16) == 1 then treasure[#treasure + 1] = p end
+          elseif p.x % 32 == 12 or p.x % 32 == 12 or p.y % 32 == 11 or p.y % 32 == 12 or p.x % 32 == 19 or p.x % 32 == 20 or p.y % 32 == 19 or p.y % 32 == 20 then
+            if math_random(1,128) == 1 then entities[#entities + 1] = {name = "land-mine", position = p, force = "scrapyard"} end
           end
         elseif things == "crashsite" then
           if math_random(1,10) == 1 then
             entities[#entities + 1] = {name="mineable-wreckage", position=p}
           end
         elseif things == "treasure" then
-          local roll = math_random(1,128)
+          local roll = math_random(1,256)
           if roll == 1 then
             treasure[#treasure + 1] = p
-          elseif roll == 2 then
+          elseif roll >=2 and roll <= 10 then
             entities[#entities + 1] = {name = "land-mine", position = p, force = "scrapyard"}
           end
         end
@@ -240,7 +242,7 @@ local function process_hedgemaze_position(p, seed, tiles, entities, treasure, pl
         elseif things == "prospect" then
           if math_random(1,252 - biters) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 300 then entities[#entities + 1] = {name = spawner_raffle[math_random(1, 4)], position = p} end
         elseif things == "camp" then
-          if p.x % 32 > 12 and p.x % 32 < 20 and p.y % 32 > 12 and p.y % 32 < 20 and math_random(1,6) == 1 then
+          if p.x % 32 > 12 and p.x % 32 < 20 and p.y % 32 > 12 and p.y % 32 < 20 and math_random(1,16) == 1 then
             treasure[#treasure + 1] = p
           end
         elseif things == "crashsite" then
@@ -248,12 +250,13 @@ local function process_hedgemaze_position(p, seed, tiles, entities, treasure, pl
             entities[#entities + 1] = {name="mineable-wreckage", position=p}
           end
         elseif things == "treasure" then
-          if math_random(1,128) == 1 then
+          if math_random(1,256) == 1 then
             treasure[#treasure + 1] = p
           end
         end
       else
-        if math_random(1, 150) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 200 then
+        if math_sqrt(p.x * p.x + p.y * p.y) > 150 and math_random(1, 4096) == 1 then treasure[#treasure + 1] = p end -- 20/04/04: spread out treasure over map more and increased frequency. maze is a good level to buff since it's fun, so we want players to spend more time on it. nerfed treasure in camps to make it less clear whether to attack
+        if math_sqrt(p.x * p.x + p.y * p.y) > 250 and math_random(1, 150) == 1 then
           entities[#entities + 1] = {name = worm_raffle[math_random(1 + math_floor(game.forces["enemy"].evolution_factor * 8), math_floor(1 + game.forces["enemy"].evolution_factor * 16))], position = p}
         end
       end
@@ -421,8 +424,10 @@ local function process_river_position(p, seed, tiles, entities, treasure, planet
       entities[#entities + 1] = {name = "stone", position = p, amount = richness}
     end
 		if math_random(1,52 - biters) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 200 then entities[#entities + 1] = {name = spawner_raffle[math_random(1, 4)], position = p} end
-		if math_random(1,2048) == 1 then treasure[#treasure + 1] = p end
 	end
+	if math_sqrt(p.x * p.x + p.y * p.y) > 175 and cave_rivers > -0.70 and cave_rivers < 0.70 then
+    if math_random(1,4096) == 1 then treasure[#treasure + 1] = p end
+  end
   if noise_forest_location > 0.9 then
 		if math_random(1,100) > 42 then entities[#entities + 1] = {name = tree_raffle[math_random(1, s_tree_raffle)], position = p} end
 		return

@@ -88,7 +88,7 @@ function Public_chrono.restart_settings()
 	game.map_settings.pollution.pollution_with_max_forest_damage = 10
 	game.map_settings.pollution.pollution_per_tree_damage = 0.1
 	game.map_settings.pollution.ageing = 0.1
-	game.map_settings.pollution.diffusion_ratio = 0.15 -- 20/05/05: up a bit... any higher and it's too anisotropic
+	game.map_settings.pollution.diffusion_ratio = 0.12 -- 20/05/05: up a bit... any higher and it's too anisotropic
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 5
 	game.forces.neutral.character_inventory_slots_bonus = 500
 	game.forces.enemy.evolution_factor = 0.0001
@@ -160,7 +160,7 @@ function Public_chrono.process_jump()
 	objective.jump_countdown_start_time = -1
 	objective.jump_countdown_length = -1
   	objective.dangertimer = 1200
-	local message = "Comfylatron: Wheeee! Time Jump underway! This is Jump number " .. objective.chronojumps
+	local message = "Comfylatron: Wheeee! Time jump underway! This is Jump number " .. objective.chronojumps
 	game.print(message, {r=0.98, g=0.66, b=0.22})
 	Server.to_discord_embed(message)
 

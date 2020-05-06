@@ -5,6 +5,7 @@ local event = require 'utils.event'
 
 local function on_entity_damaged(event)
 	if not event.cause then return end
+	if not event.cause.valid then return end
 	if event.cause.name ~= "character" then return end
 	if event.damage_type.name ~= "physical" then return end
 

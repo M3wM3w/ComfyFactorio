@@ -29,9 +29,9 @@ function Public.treasure_chest(surface, position, container_name)
 		table.insert(loot_types, {["name"] = loot_data[i].name, ["min_count"] = loot_data[i].min_count, ["max_count"] = loot_data[i].max_count})
 
 		if loot_data[i].scaling then -- scale down weights away from the midpoint 'peak' (without changing the mean)
-			local midpoint = (loot_data[i].d_min + loot_data[i].d_max)
+			local midpoint = (loot_data[i].d_max + loot_data[i].d_min) / 2
 			local difference = (loot_data[i].d_max - loot_data[i].d_min)
-			table.insert(loot_weights,2 * loot_data[i].weight * math_max(0, 1 - math_abs(distance_to_center - midpoint) / difference))
+			table.insert(loot_weights,loot_data[i].weight * math_max(0, 1 - (math_abs(distance_to_center - midpoint) / (difference / 2))))
 		else -- no scaling
 			if loot_data[i].d_min <= distance_to_center and loot_data[i].d_max >= distance_to_center then
 				table.insert(loot_weights, loot_data[i].weight)
@@ -44,7 +44,7 @@ function Public.treasure_chest(surface, position, container_name)
 	local e = surface.create_entity({name = container_name, position=position, force="neutral", create_build_effect_smoke = false})
 	e.minable = false
 	local i = e.get_inventory(defines.inventory.chest)
-	for _ = 1, math_random(2,6), 1 do
+	for _ = 1, math_random(2,5), 1 do -- 20/04/04: max 5 items better than 6, so that if you observe 4 items in alt-mode the chance of an extra one is 1/2 rather than 2/3
 		local loot = Rand.raffle(loot_types,loot_weights)
 		log(loot.name)
 		log(loot.min_count)
