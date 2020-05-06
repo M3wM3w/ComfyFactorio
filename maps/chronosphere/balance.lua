@@ -259,7 +259,7 @@ function Public.initial_cargo_boxes()
 		{name = "copper-plate", count = math_random(15, 23)},
 		{name = "copper-plate", count = math_random(15, 23)},
 		{name = "copper-plate", count = math_random(15, 23)},
-		-- 20/05/05: shotguns relatively weak until first tech upgrade, and let's make players get these more from treasure hunting:
+		-- 20/05/05: shotguns relatively weak until first tech upgrade, so let's avoid disappointment and's make players get these more from treasure hunting:
 		-- {name = "shotgun", count = 1},
 		-- {name = "shotgun", count = 1},
 		-- {name = "shotgun", count = 1},
@@ -275,7 +275,7 @@ function Public.initial_cargo_boxes()
 
 		-- 20/05/05: compensate for removed items, aiming to slightly mix up the initial play patterns:
 		{name = "piercing-shotgun-shell", count = math_random(4, 5)},
-		{name = "fast-inserter", count = 2},
+		{name = "fast-inserter", count = 4},
 		{name = "loader", count = 1},
 	}
 end
