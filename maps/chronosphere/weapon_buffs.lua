@@ -3,7 +3,7 @@ local Balance = require 'maps.chronosphere.balance'
 
 local function on_research_finished(event)
     local difficulty = global.difficulty_vote_value
-	local multiplier = Balance.shotgun_damage_research_multipler(difficulty)
+	local multiplier = Balance.damage_research_effect_on_shotgun_multipler(difficulty)
 
 	local research = event.research
 	if string.sub(research.name, 0, 26) ~= "physical-projectile-damage" then return end

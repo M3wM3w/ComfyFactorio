@@ -44,7 +44,7 @@ function Public.treasure_chest(surface, position, container_name)
 	local e = surface.create_entity({name = container_name, position=position, force="neutral", create_build_effect_smoke = false})
 	e.minable = false
 	local i = e.get_inventory(defines.inventory.chest)
-	for _ = 1, math_random(2,4), 1 do
+	for _ = 1, math_random(2,6), 1 do
 		local loot = Rand.raffle(loot_types,loot_weights)
 		log(loot.name)
 		log(loot.min_count)

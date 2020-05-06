@@ -129,8 +129,8 @@ function Public.jumps_until_overstay_is_on(difficulty) --both overstay penalties
 	end
 end
 
-function Public.pistol_damage_bonus(difficulty) return 1.5 end --as you go from 1.5 to 2, you one-shot small biters
-function Public.shotgun_damage_research_multipler(difficulty) return  3 end
+function Public.pistol_damage_multiplier(difficulty) return 2.5 end --as you go from 2.5 to 3, you one-shot small biters
+function Public.damage_research_effect_on_shotgun_multipler(difficulty) return 3 end
 
 function Public.generate_jump_countdown_length(difficulty)
 	if difficulty <= 1 then
@@ -283,7 +283,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 	end
 	
 	local loot_data_raw= {
-		{5, 0, 1, false, "railgun-dart", 4, 20}, -- thesixthroc: this should not scale with jumps. reward treasure hunting currency the same at all jump numbers
+		{5, 0, 1, false, "railgun-dart", 8, 20}, -- thesixthroc: this should not scale with jumps. reward treasure hunting currency the same at all jump numbers
 
 		--always there (or normally always there):
 		{4, 0, 1, false, "pistol", 1, 2},
@@ -307,10 +307,10 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{2, 0.15, 1, false, "pump", 1, 2},
 
 		--shotgun meta:
-		{9, -0.4, 0.4, true, "shotgun-shell", 16, 32},
-		{3, -0.4, 0.4, true, "shotgun", 1, 1},
+		{12, -0.4, 0.4, true, "shotgun-shell", 16, 32},
+		{8, -0.2, 0.2, true, "shotgun", 1, 1},
 		{12, 0, 1.2, true, "piercing-shotgun-shell", 16, 32},
-		{4, 0, 1.2, true, "combat-shotgun", 1, 1},
+		{8, 0, 1.2, true, "combat-shotgun", 1, 1},
 
 		--modular armor meta:
 		{1, -3, 1, true, "modular-armor", 1, 1},
