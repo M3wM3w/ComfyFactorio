@@ -17,7 +17,7 @@ end
 
 local function on_entity_damaged(event)
     local difficulty = global.difficulty_vote_value
-    local bonus = Balance.pistol_damage_bonus(difficulty)
+    local bonus = Balance.pistol_damage_multiplier(difficulty) - 1
 
 	if not event.cause then return end
 	if not event.cause.valid then return end

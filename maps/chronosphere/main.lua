@@ -379,15 +379,15 @@ end
 function Public.get_total_accu_charge()
 	local objective = Chrono_table.get_table()
 	local acus = objective.accumulators
-	if #objective.accumulator_energy_history == 0 and #acus > 0 then
-	  local e = 0
+	local e = 0
+	if #acus > 0 then
 	  for i = 1,#acus,1 do
 		if acus[i].valid then
 		  e = e + acus[i].energy
 		end
 	  end
-	  return e
 	end
+	return e
 end
 
 
