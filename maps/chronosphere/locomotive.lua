@@ -307,7 +307,7 @@ function Public.create_wagon_room()
   repairchest.destructible = false
   objective.upgradechest[0] = repairchest
   rendering.draw_text{
-    text = "Repair chest",
+    text = "Repair Chest",
     surface = surface,
     target = repairchest,
     target_offset = {0, -2.5},
@@ -334,7 +334,7 @@ function Public.create_wagon_room()
   end
 
 	local market1_text = rendering.draw_text{
-		text = "Resources",
+		text = "Market",
 		surface = surface,
 		target = market,
 		target_offset = {0, -3.5},
@@ -356,7 +356,7 @@ function Public.create_wagon_room()
 		scale_with_zoom = false
 	}
 	local upgrade_sub_text = rendering.draw_text{
-		text = "Click [Upgrades] on top of screen",
+		text = "Click [Upgrades] at top of screen",
 		surface = surface,
 		target = objective.upgradechest[8],
 		target_offset = {0, -2.5},

@@ -90,7 +90,7 @@ function Public.countdown_pollution_rate(jumps, difficulty)
 end
 
 function Public.post_jump_initial_pollution(jumps, difficulty)
-	local baserate = 350 * (1 + jumps) --down from 450
+	local baserate = 450 * (1 + jumps) --unchanged
 
 	local modifiedrate = baserate * difficulty_sloped(difficulty, 1) -- NO LONGER DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution. Tooltip worded accordingly. 20/05/05: This is better for balance since initial pollution provides the initial mound that further pollution flows over.
 	
@@ -129,7 +129,7 @@ function Public.jumps_until_overstay_is_on(difficulty) --both overstay penalties
 	end
 end
 
-function Public.pistol_damage_bonus(difficulty) return 2 end
+function Public.pistol_damage_bonus(difficulty) return 1.5 end --as you go from 1.5 to 2, you one-shot small biters
 function Public.shotgun_damage_research_multipler(difficulty) return  3 end
 
 function Public.generate_jump_countdown_length(difficulty)
@@ -148,7 +148,7 @@ function Public.misfire_percentage_chance(difficulty)
 	end
 end
 
-function Public.coin_reward_per_second_jumped_early(seconds, difficulty) -- thesixthroc: the reason for this it to make it seem to the players like there's always a bit of an advantage to charging sooner rather than later, but the effect is fairly mild.
+function Public.coin_reward_per_second_jumped_early(seconds, difficulty)
 	local minutes = seconds / 60
 	local amount = minutes * 10 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
 	return math_max(0,math_floor(amount))

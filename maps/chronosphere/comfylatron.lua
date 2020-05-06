@@ -440,7 +440,7 @@ local function desync(event)
 			movement = {m2 - (math.random(0, m) * 0.01), m2 - (math.random(0, m) * 0.01)}
 		})
 	end
-	if not event or math_random(1,4) == 1 then
+	if not event or math_random(1,2) == 1 then -- 20/04/04: nerf comfylatron
 		objective.comfylatron.surface.create_entity({name = "medium-explosion", position = objective.comfylatron.position})
 		objective.comfylatron.surface.create_entity({name = "flying-text", position = objective.comfylatron.position, text = "desync", color = {r = 150, g = 0, b = 0}})
 		objective.comfylatron.destroy()
