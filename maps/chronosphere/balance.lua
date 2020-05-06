@@ -54,10 +54,10 @@ function Public.pollution_transfer_from_inside_factor(difficulty, filter_upgrade
 function Public.passive_planet_jumptime(jumps)
 	local mins
 
-	if jumps < 15 then
+	if jumps < 20 then
 		mins = 30 + 4 * jumps
 	else
-		mins = 90
+		mins = 110
 	end
 
 	return mins * 60
@@ -150,7 +150,7 @@ end
 
 function Public.coin_reward_per_second_jumped_early(seconds, difficulty) -- thesixthroc: the reason for this it to make it seem to the players like there's always a bit of an advantage to charging sooner rather than later, but the effect is fairly mild.
 	local minutes = seconds / 60
-	local amount = minutes * 5 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
+	local amount = minutes * 10 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
 	return math_max(0,math_floor(amount))
 end
 
@@ -303,14 +303,14 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{0.5, 0, 1, false, "defender-capsule", 4, 8},
 		{0.5, 0, 1, false, "distractor-capsule", 4, 8},
 		{0.25, 0, 1, false, "rail", 50, 100},
-		{2, 0.1, 1, false, "pumpjack", 1, 3},
+		{2, 0.15, 1, false, "pumpjack", 1, 3},
 		{2, 0.15, 1, false, "pump", 1, 2},
 
 		--shotgun meta:
 		{9, -0.4, 0.4, true, "shotgun-shell", 16, 32},
 		{3, -0.4, 0.4, true, "shotgun", 1, 1},
-		{12, 0, 1, true, "piercing-shotgun-shell", 16, 32},
-		{4, 0, 1, true, "combat-shotgun", 1, 1},
+		{12, 0, 1.2, true, "piercing-shotgun-shell", 16, 32},
+		{4, 0, 1.2, true, "combat-shotgun", 1, 1},
 
 		--modular armor meta:
 		{1, -3, 1, true, "modular-armor", 1, 1},
@@ -323,9 +323,9 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{0.8, 0, 1, true, "night-vision-equipment", 1, 1},
 		
 		--loader meta:
-		{math_max(difficulty - 0.75, 0), 0, 0.2, false, "loader", 1, 2},
-		{math_max(difficulty - 0.75, 0), 0.2, 0.5, false, "fast-loader", 1, 2},
-		{math_max(difficulty - 0.75, 0), 0.5, 1, false, "express-loader", 1, 2},
+		{math_max(1.5 * difficulty - 1.25, 0), 0, 0.2, false, "loader", 1, 2},
+		{math_max(1.5 * difficulty - 1.25, 0), 0.2, 0.5, false, "fast-loader", 1, 2},
+		{math_max(1.5 * difficulty - 1.25, 0), 0.5, 1, false, "express-loader", 1, 2},
 
 		--early-game:
 		{3, -0.1, 0.1, true, "wooden-chest", 8, 16},
@@ -502,6 +502,10 @@ function Public.treasure_chest_loot(difficulty, planet)
 	end
 
 	return loot_data
+end
+
+function Public.scrap_quantity_bonus(evolution_factor, mining_drill_productivity_bonus)
+	return 4 * evolution_factor + 2 * mining_drill_productivity_bonus
 end
 
 Public.scrap_yield_amounts = {

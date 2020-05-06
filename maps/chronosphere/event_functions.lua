@@ -12,7 +12,7 @@ local math_floor = math.floor
 local function get_ore_amount()
 	local objective = Chrono_table.get_table()
 	local scaling = 5 * objective.chronojumps
-	local amount = (30 + scaling ) * (1 + game.forces.player.mining_drill_productivity_bonus / 2) * objective.planet[1].ore_richness.factor
+	local amount = (30 + scaling) * (1 + game.forces.player.mining_drill_productivity_bonus / 2) * objective.planet[1].ore_richness.factor
 	if amount > 600 then amount = 600 end
 	amount = math_random(math_floor(amount * 0.7), math_floor(amount * 1.3))
 	return amount

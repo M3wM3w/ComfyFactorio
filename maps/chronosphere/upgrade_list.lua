@@ -215,9 +215,9 @@ function Public.upgrades()
       jump_limit = 25,
       cost = {
         item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 2000 * Balance.upgrades_coin_cost_difficulty_scaling()},
-        item2 = {name = "low-density-structure", tt = "item-name", sprite = "item/low-density-structure", count = 100},
-        item3 = {name = "rocket-control-unit", tt = "item-name", sprite = "item/rocket-control-unit", count = 100},
-        item4 = {name = "uranium-fuel-cell", tt = "item-name", sprite = "item/uranium-fuel-cell", count = 50}
+        item2 = {name = "low-density-structure", tt = "item-name", sprite = "item/low-density-structure", count = 50},
+        item3 = {name = "rocket-control-unit", tt = "item-name", sprite = "item/rocket-control-unit", count = 50},
+        item4 = {name = "uranium-fuel-cell", tt = "item-name", sprite = "item/uranium-fuel-cell", count = 25} -- 20/05/05: I halved each cost here. In this update I have nerfed the yield from scrapyard and the forest map. But the main reason is I'm trying to suppress total game length. Not only to increase public server turnover, but also because the early-mid game tends to be more varied. Have a think if this makes sense?
       }
     },
     [16] = {
