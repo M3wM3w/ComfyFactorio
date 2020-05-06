@@ -414,6 +414,9 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{4, 0.4, 1.6, true, "processing-unit", 50, 150},
 		{2, 0.6, 1.4, true, "roboport", 1, 1},
 
+		-- super late-game:
+		{1, 0.9, 1.1, true, "power-armor-mk2", 1, 1},
+
 		--{2, 0, 1, , "computer", 1, 1},
 		--{1, 0.2, 1, , "railgun", 1, 1},
 		--{2, 0.3, 1, , "oil-refinery", 2, 4},
@@ -488,7 +491,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 
 			{6, 0, 0.6, true, "modular-armor", 1, 1},
 			{6, -0.2,1, true, "power-armor", 1, 1},
-			{6, 0.3,1, true, "power-armor-mk2", 1, 1},
+			{4, 0.3,1, true, "power-armor-mk2", 1, 1},
 
 			{4, 0, 1, false, "exoskeleton-equipment", 1, 1},
 			{4, 0, 1, false, "belt-immunity-equipment", 1, 1},
@@ -500,8 +503,8 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{8, 0, 1, false, "solar-panel-equipment", 1, 2},
 			{8, 0, 1, false, "battery-equipment", 1, 1},
 
-			{1, 0, 1, false, "energy-shield-mk2-equipment", 1, 1},
-			{1, 0, 1, false, "battery-mk2-equipment", 1, 1},
+			{1, 0.5, 1, false, "energy-shield-mk2-equipment", 1, 1},
+			{1, 0.5, 1, false, "battery-mk2-equipment", 1, 1},
 
 			{4, -0, 1, true, "copper-cable", 20, 80},
 			{4, -0.3, 0.6, true, "electronic-circuit", 50, 100},
