@@ -313,8 +313,7 @@ local function initiate_jump_countdown()
 
 	objective.jump_countdown_start_time = objective.passivetimer
 	objective.jump_countdown_length = length
-
-	game.print(string.format("Comfylatron: OK, firing her up!! Looks like %s seconds 'till jump!",length), {r=0.98, g=0.66, b=0.22})
+	game.print({"chronosphere.message_initiate_jump_countdown", length}, {r=0.98, g=0.66, b=0.22})
 end
 
 local function check_if_overstayed()
@@ -440,7 +439,7 @@ local function tick()
 						check_if_overstayed()
 						initiate_jump_countdown()
 					end
-					
+
 					local pos = objective.locomotive.position or {x=0,y=0}
 					local exterior_pollution = Balance.passive_pollution_rate(objective.chronojumps, difficulty, objective.upgrades[2])
 					game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)

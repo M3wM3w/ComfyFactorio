@@ -43,7 +43,7 @@ function Public_tick.realtime_events()
     elseif objective.passivetimer == objective.jump_countdown_start_time + objective.jump_countdown_length - 30 then
       game.print({"chronosphere.message_jump30"}, {r=0.98, g=0.66, b=0.22})
     elseif objective.passivetimer >= objective.jump_countdown_start_time + objective.jump_countdown_length - 10 and objective.jump_countdown_start_time + objective.jump_countdown_length - objective.passivetimer > 0 then
-      game.print("Comfylatron: Jump in " .. objective.jump_countdown_start_time + objective.jump_countdown_length - objective.passivetimer .. " seconds!", {r=0.98, g=0.66, b=0.22})
+      game.print({"chronosphere.message_jump_10orless", objective.jump_countdown_start_time + objective.jump_countdown_length - objective.passivetimer}, {r=0.98, g=0.66, b=0.22})
     end
   end
 end

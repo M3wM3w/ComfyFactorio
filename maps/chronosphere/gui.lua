@@ -155,6 +155,8 @@ end
 
 local function update_planet_gui(player)
 	local objective = Chrono_table.get_table()
+	local difficulty = global.difficulty_vote_value
+
 	if not player.gui.screen["gui_planet"] then return end
 	local planet = objective.planet[1]
 	local evolution = game.forces["enemy"].evolution_factor
@@ -180,7 +182,7 @@ local function update_planet_gui(player)
 	frame["planet_time"].caption = {"chronosphere.gui_planet_5", planet.day_speed.name}
 	
 	if objective.jump_countdown_start_time == -1 then
-		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(difficulty) then
 			local time_until_overstay = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate - objective.passivetimer)
 			if time_until_overstay < 0 then
 				frame["overstay_time"].caption = {"chronosphere.gui_overstayed","",""}
@@ -188,10 +190,10 @@ local function update_planet_gui(player)
 				frame["overstay_time"].caption = {"chronosphere.gui_planet_6", math_floor(time_until_overstay / 60), math_floor(time_until_overstay % 60)}
 			end
 		else
-			frame["overstay_time"].caption = {"chronosphere.gui_planet_7","",""}
+			frame["overstay_time"].caption = {"chronosphere.gui_planet_7",Balance.jumps_until_overstay_is_on(difficulty),""}
 		end
 	else
-		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(difficulty) then
 			local overstayed = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate < objective.jump_countdown_start_time)
 			if overstayed < 0 then
 				frame["overstay_time"].caption = {"chronosphere.gui_overstayed","",""}
@@ -218,6 +220,8 @@ end
 
 function Public_gui.update_gui(player)
   local objective = Chrono_table.get_table()
+  local difficulty = global.difficulty_vote_value
+
   local tick = game.tick
 	update_planet_gui(player)
 	update_upgrades_gui(player)
@@ -275,7 +279,7 @@ function Public_gui.update_gui(player)
 				end
 			end
 		end
-		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(difficulty) then
 			local time_until_overstay = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate - objective.passivetimer)
 			local time_until_evo = (objective.chronochargesneeded * 0.5 / objective.passive_chronocharge_rate - objective.passivetimer)
 

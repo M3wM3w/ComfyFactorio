@@ -160,7 +160,7 @@ function Public_chrono.process_jump()
 	objective.jump_countdown_start_time = -1
 	objective.jump_countdown_length = -1
   	objective.dangertimer = 1200
-	local message = "Comfylatron: Wheeee! Time Jump Active! This is Jump number " .. objective.chronojumps
+	local message = "Comfylatron: Wheeee! Time Jump underway! This is Jump number " .. objective.chronojumps
 	game.print(message, {r=0.98, g=0.66, b=0.22})
 	Server.to_discord_embed(message)
 

@@ -13,7 +13,7 @@ local functions = {
 			objective.config.offline_loot = false
 		end
     else
-      game.players[event.player_index].print("You are not admin!")
+      game.players[event.player_index].print("You are not an admin!")
     end
 	end,
 
@@ -26,7 +26,7 @@ local functions = {
 				objective.config.jumpfailure = false
 			end
     else
-      game.players[event.player_index].print("You are not admin!")
+      game.players[event.player_index].print("You are not an admin!")
     end
 	end,
 
@@ -43,7 +43,7 @@ local functions = {
 				frame["comfy_panel_game_lost_confirm_table"].visible = false
 			end
     else
-      game.players[event.player_index].print("You are not admin!")
+      game.players[event.player_index].print("You are not an admin!")
     end
 	end,
 	["comfy_panel_game_lost_confirm"] = function(event)
