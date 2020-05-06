@@ -309,6 +309,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{0.5, 0, 1, false, "defender-capsule", 4, 8},
 		{0.5, 0, 1, false, "distractor-capsule", 4, 8},
 		{0.25, 0, 1, false, "rail", 50, 100},
+		{0.25, 0, 1, false, "uranium-rounds-magazine", 1, 4},
 		{2, 0.15, 1, false, "pumpjack", 1, 3},
 		{2, 0.15, 1, false, "pump", 1, 2},
 
@@ -442,7 +443,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{3, -0.5, 1, true, "steam-turbine", 1, 2},
 			{3, -0.5, 1, true, "heat-exchanger", 2, 4},
 			{3, -0.5, 1, true, "heat-pipe", 4, 8},
-			{3, 0, 2, true, "uranium-rounds-magazine", 32, 128},
+			{2, 0, 2, true, "uranium-rounds-magazine", 8, 64},
 			{2, 0.2, 1, false, "nuclear-reactor", 1, 1},
 			{2, 0.2, 1, false, "centrifuge", 1, 1},
 			{3, 0.3, 1, false, "nuclear-fuel", 1, 1},
@@ -453,11 +454,25 @@ function Public.treasure_chest_loot(difficulty, planet)
 		}
 	end
 
+	if planet.type.id == 14 then --ancient battlefield
+		specialised_loot_raw = {
+			{5, -0.7, 0.7, true, "light-armor", 1, 1},
+			{5, -0.3, 0.9, true, "heavy-armor", 1, 1},
+			{8, -0.7, 0.7, true, "firearm-magazine", 32, 128},
+			{5, 0.4, 0.7, true, "cannon-shell", 16, 32},
+			{4, -0.2, 1.2, true, "piercing-rounds-magazine", 32, 128},
+			{3, 0.2, 1.8, true, "uranium-rounds-magazine", 32, 128},
+			{3, 0, 2, true, "rocket-launcher", 1, 1},
+			{1, -1, 3, true, "flamethrower", 1, 1},
+			{1, -1, 3, true, "flamethrower-ammo", 16, 32},
+		}
+	end
+
 	if planet.type.id == 14 then --lavawrld
 		specialised_loot_raw = {
 			{6, -1, 3, true, "flamethrower-turret", 1, 1},
-			{6, -1, 3, true, "flamethrower", 1, 1},
-			{12, -1, 3, true, "flamethrower-ammo", 16, 32},
+			{6, -1, 2, true, "flamethrower", 1, 1},
+			{12, -1, 2, true, "flamethrower-ammo", 16, 32},
 		}
 	end
 
@@ -473,7 +488,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 
 			{4, -3, 0, true, "modular-armor", 1, 1},
 			{4, 0,1, true, "power-armor", 1, 1},
-			{3, 0,3, true, "power-armor-mk2", 1, 1},
+			{5, 0,3, true, "power-armor-mk2", 1, 1},
 
 			{4, 0, 1, false, "exoskeleton-equipment", 1, 1},
 			{4, 0, 1, false, "belt-immunity-equipment", 1, 1},
@@ -513,7 +528,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 end
 
 function Public.scrap_quantity_multiplier(evolution_factor, mining_drill_productivity_bonus)
-	return 1 + 3 * evolution_factor --removed dependence on mining drill tech bonus to nerf tech slightly and make the map more distinctive
+	return 1 + 4 * evolution_factor --removed dependence on mining drill tech bonus to nerf tech slightly and make the map more distinctive
 end
 
 Public.scrap_yield_amounts = {
