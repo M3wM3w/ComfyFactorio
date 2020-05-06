@@ -48,34 +48,6 @@ function Public_tick.realtime_events()
   end
 end
 
-function Public_tick.record_energy_history1()
-  local objective = Chrono_table.get_table()
-  local acus = objective.accumulators
-  if #objective.accumulator_energy_history == 0 and #acus > 0 then
-    local e = 0
-    for i = 1,#acus,1 do
-      if acus[i].valid then
-        e = e + acus[i].energy
-      end
-    end
-    objective.accumulator_energy_history[1] = e
-  end
-end
-
-function Public_tick.record_energy_history2()
-  local objective = Chrono_table.get_table()
-  local acus = objective.accumulators
-  if #objective.accumulator_energy_history == 1 and #acus > 0 then
-    local e = 0
-    for i = 1,#acus,1 do
-      if acus[i].valid then
-        e = e + acus[i].energy
-      end
-    end
-    objective.accumulator_energy_history[2] = e
-  end
-end
-
 function Public_tick.transfer_pollution()
   local objective = Chrono_table.get_table()
   local difficulty = global.difficulty_vote_value
