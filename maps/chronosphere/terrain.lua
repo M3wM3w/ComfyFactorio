@@ -256,7 +256,7 @@ local function process_hedgemaze_position(p, seed, tiles, entities, treasure, pl
         if math_random(1, 2 * 1024) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 125 then
           entities[#entities + 1] = {name = worm_raffle[math_random(1 + math_floor(game.forces["enemy"].evolution_factor * 8), math_floor(1 + game.forces["enemy"].evolution_factor * 16))], position = p}
         elseif math_random(1, 4 * 1024) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 150 then treasure[#treasure + 1] = p end -- 20/04/04: spread out treasure over map more and increased frequency. maze is a good level to buff since it's fun, so we want players to spend more time on it. nerfed treasure in camps to make it less clear whether to attack
-        elseif math_random(1, 150) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 250 then
+        if math_random(1, 150) == 1 and math_sqrt(p.x * p.x + p.y * p.y) > 250 then
           entities[#entities + 1] = {name = worm_raffle[math_random(1 + math_floor(game.forces["enemy"].evolution_factor * 8), math_floor(1 + game.forces["enemy"].evolution_factor * 16))], position = p}
         end
       end
