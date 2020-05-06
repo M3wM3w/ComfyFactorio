@@ -48,7 +48,7 @@ function Public_tick.realtime_events()
   end
 end
 
-function Public_tick.record_energy_historyA()
+function Public_tick.record_energy_history1()
   local objective = Chrono_table.get_table()
   local acus = objective.accumulators
   if #objective.accumulator_energy_history == 0 and #acus > 0 then
@@ -62,7 +62,7 @@ function Public_tick.record_energy_historyA()
   end
 end
 
-function Public_tick.record_energy_historyB()
+function Public_tick.record_energy_history2()
   local objective = Chrono_table.get_table()
   local acus = objective.accumulators
   if #objective.accumulator_energy_history == 1 and #acus > 0 then

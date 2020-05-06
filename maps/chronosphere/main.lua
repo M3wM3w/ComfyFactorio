@@ -377,6 +377,21 @@ function Public.attempt_to_jump()
 end
 
 
+function Public.get_total_accu_charge()
+	local objective = Chrono_table.get_table()
+	local acus = objective.accumulators
+	if #objective.accumulator_energy_history == 0 and #acus > 0 then
+	  local e = 0
+	  for i = 1,#acus,1 do
+		if acus[i].valid then
+		  e = e + acus[i].energy
+		end
+	  end
+	  return e
+	end
+end
+
+
 local function tick()
 	local objective = Chrono_table.get_table()
 	local tick = game.tick
@@ -395,10 +410,10 @@ local function tick()
 		Tick_functions.spawn_poison()
 	end
 	if tick % 60 == 2 then
-		Tick_functions.record_energy_historyA()
+		objective.accumulator_energy_history[1] = Public.get_total_accu_charge()
 	end
 	if tick % 60 == 56 then
-		Tick_functions.record_energy_historyB()
+		objective.accumulator_energy_history[2] = Public.get_total_accu_charge()
 	end
 
 	if objective.chronocharges < objective.chronochargesneeded and objective.planet[1].type.id ~= 17 then
