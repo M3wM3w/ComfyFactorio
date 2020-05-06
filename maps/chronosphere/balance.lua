@@ -137,7 +137,7 @@ function Public.generate_jump_countdown_length(difficulty)
 	if difficulty <= 1 then
 		return Rand.raffle({90,120,150,180,210},{1,8,64,8,1})
 	else
-		return 180 --suppress rng for speedruns
+		return 150 --suppress rng for speedruns
 	end
 end
 
