@@ -156,7 +156,7 @@ function Public_event.rocky_loot(event)
 	local surface = game.surfaces[objective.active_surface_index]
 	local player = game.players[event.player_index]
 	surface.spill_item_stack(player.position,{name = "raw-fish", count = math_random(1,3)},true)
-	local amount = get_ore_amount() --rebalanced
+	local amount = get_ore_amount()
 	local rock_mining = {"iron-ore", "iron-ore", "iron-ore", "iron-ore", "copper-ore", "copper-ore", "copper-ore", "stone", "stone", "coal", "coal"}
 	local mined_loot = rock_mining[math_random(1,#rock_mining)]
 	surface.create_entity({
