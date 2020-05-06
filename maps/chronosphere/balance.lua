@@ -284,8 +284,9 @@ function Public.treasure_chest_loot(difficulty, planet)
 	end
 	
 	local loot_data_raw= {
-		--always there (or normally always there):
 		{5, 0, 1, false, "railgun-dart", 4, 20}, -- this should not scale with level. reward treasure hunting currency the same at all levels
+		
+		--always there (or normally always there):
 		{4, 0, 1, false, "pistol", 1, 2},
 		{1, 0, 1, false, "gun-turret", 2, 4},
 		{6, 0, 1, false, "grenade", 16, 32},
