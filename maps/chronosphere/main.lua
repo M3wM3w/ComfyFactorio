@@ -159,7 +159,7 @@ local function reset_map()
 	game.forces.player.set_spawn_position({12, 10}, surface)
 	Locomotive.locomotive_spawn(surface, {x = 16, y = 10}, Chrono.get_wagons(true))
 	render_train_hp()
-	game.reset_time_played() --shouldn't this also be applied to offline players when they are killed?
+	game.reset_time_played()
 	Locomotive.create_wagon_room()
 	Event_functions.mining_buffs(nil)
 	if objective.game_won then
