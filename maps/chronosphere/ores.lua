@@ -145,6 +145,8 @@ end
 
 local size_of_scrap_raffle = #scrap_raffle
 
+
+
 local function on_player_mined_entity(event)
 	local entity = event.entity
 	if not entity.valid then return end
@@ -156,16 +158,16 @@ local function on_player_mined_entity(event)
   
   
   local amount_bonus_multiplier = Balance.scrap_quantity_multiplier(game.forces.enemy.evolution_factor, game.forces.player.mining_drill_productivity_bonus)
-  print(amount_bonus)
-	local r1 = math.ceil(Balance.scrap_yield_amounts[scrap] * 0.3 * amount_bonus)
-	local r2 = math.ceil(Balance.scrap_yield_amounts[scrap] * 1.7 * amount_bonus)	
+
+	local r1 = math.ceil(Balance.scrap_yield_amounts[scrap] * 0.3 * amount_bonus_multiplier)
+	local r2 = math.ceil(Balance.scrap_yield_amounts[scrap] * 1.7 * amount_bonus_multiplier)	
 	local amount = math.random(r1, r2)
 	
 	local player = game.players[event.player_index]	
 	local inserted_count = player.insert({name = scrap, count = amount})
 	
 	if inserted_count ~= amount then
-		local amount_to_spill = amount - inserted_count			
+		local amount_to_spill = amount - inserted_count
 		entity.surface.spill_item_stack(entity.position,{name = scrap, count = amount_to_spill}, true)
 	end
 	
