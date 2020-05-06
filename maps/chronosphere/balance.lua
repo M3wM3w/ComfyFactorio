@@ -122,7 +122,7 @@ Public.Chronotrain_HP_repaired_per_pack = 150
 Public.starting_items = {['pistol'] = 1, ['firearm-magazine'] = 32, ['grenade'] = 2, ['raw-fish'] = 4, ['wood'] = 16}
 Public.wagon_starting_items = {{name = 'firearm-magazine', count = 16},{name = 'iron-plate', count = 16},{name = 'wood', count = 16},{name = 'burner-mining-drill', count = 8}}
 
-function Public.jumps_until_overstay_is_on(difficulty)
+function Public.jumps_until_overstay_is_on(difficulty) --both overstay penalties, and evoramp
 	if difficulty > 1 then return 2
 	elseif difficulty == 1 then return 3
 	else return 5

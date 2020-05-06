@@ -164,7 +164,7 @@ function Public_chrono.process_jump()
 	game.print(message, {r=0.98, g=0.66, b=0.22})
 	Server.to_discord_embed(message)
 
-	if objective.chronojumps == 3 then
+	if objective.chronojumps == Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
 		game.print({"chronosphere.message_evolve"}, {r=0.98, g=0.36, b=0.22})
 	elseif objective.chronojumps >= 15 and objective.computermessage == 0 then
 		game.print({"chronosphere.message_quest1"}, {r=0.98, g=0.36, b=0.22})
