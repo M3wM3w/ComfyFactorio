@@ -434,17 +434,17 @@ function Public.treasure_chest_loot(difficulty, planet)
 
 	if planet.type.id == 5 then
 		local specialised_loot_raw = {
-			{6, -0.5, 1, true, "steam-turbine", 1, 2},
-			{6, -0.5, 1, true, "heat-exchanger", 2, 4},
-			{6, -0.5, 1, true, "heat-pipe", 4, 8},
-			{6, 0, 2, true, "uranium-rounds-magazine", 32, 128},
-			{3, 0.2, 1, false, "nuclear-reactor", 1, 1},
-			{3, 0.2, 1, false, "centrifuge", 1, 1},
-			{5, 0.3, 1, false, "nuclear-fuel", 1, 1},
-			{3, 0.3, 1, false, "fusion-reactor-equipment", 1, 1},
-			{2, 0.5, 1, false, "atomic-bomb", 1, 1},
-			{4, 0, 1, true, "uranium-cannon-shell", 16, 32},
-			{10, 0.4, 1.6, true, "explosive-uranium-cannon-shell", 16, 32},
+			{3, -0.5, 1, true, "steam-turbine", 1, 2},
+			{3, -0.5, 1, true, "heat-exchanger", 2, 4},
+			{3, -0.5, 1, true, "heat-pipe", 4, 8},
+			{3, 0, 2, true, "uranium-rounds-magazine", 32, 128},
+			{2, 0.2, 1, false, "nuclear-reactor", 1, 1},
+			{2, 0.2, 1, false, "centrifuge", 1, 1},
+			{3, 0.3, 1, false, "nuclear-fuel", 1, 1},
+			{2, 0.3, 1, false, "fusion-reactor-equipment", 1, 1},
+			{1, 0.5, 1, false, "atomic-bomb", 1, 1},
+			{2, 0, 1, true, "uranium-cannon-shell", 16, 32},
+			{5, 0.4, 1.6, true, "explosive-uranium-cannon-shell", 16, 32},
 		}
 	end
 
@@ -452,7 +452,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		local specialised_loot_raw = {
 			{6, -1, 3, true, "flamethrower-turret", 1, 1},
 			{6, -1, 3, true, "flamethrower", 1, 1},
-			{14, -1, 3, true, "flamethrower-ammo", 16, 32},
+			{12, -1, 3, true, "flamethrower-ammo", 16, 32},
 		}
 	end
 
@@ -492,7 +492,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 
 	if planet.type.id == 16 then
 		local specialised_loot_raw = {
-			{14, 0, 1, false, "poison-capsule", 8, 16},
+			{24, 0, 1, false, "poison-capsule", 8, 16},
 		}
 	end
 
