@@ -128,7 +128,7 @@ function Public_event.choppy_loot(event)
 	if choppy_entity_yield[entity.name] then
 		if event.buffer then event.buffer.clear() end
 		if not event.player_index then return end
-		local amount = get_ore_amount() / 3 --rebalanced
+		local amount = get_ore_amount() / 3 -- 20/05/05: rebalanced
 		local second_item_amount = math_random(2,5)
 		local second_item = "wood"
 		local main_item = choppy_entity_yield[entity.name][math_random(1,#choppy_entity_yield[entity.name])]

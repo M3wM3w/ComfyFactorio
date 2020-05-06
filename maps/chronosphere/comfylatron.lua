@@ -598,7 +598,7 @@ local function spawn_comfylatron(surface_index, x, y)
 	if not objective.comfylatron_habitat then
 		objective.comfylatron_habitat = {
 			left_top = {x = -32, y = -192},
-			right_bottom = {x = 32, y = -24} --stops comfytron getting stuck in chests
+			right_bottom = {x = 32, y = -24} -- stops comfytron getting stuck in chests
 		}
 	end
 	objective.comfylatron = surface.create_entity({

@@ -81,14 +81,14 @@ function Public_chrono.restart_settings()
 	game.map_settings.enemy_expansion.settler_group_max_size = 8
 	game.map_settings.enemy_expansion.settler_group_min_size = 16
 	game.map_settings.pollution.enabled = true
-	game.map_settings.pollution.expected_max_per_chunk = 500
+	game.map_settings.pollution.expected_max_per_chunk = 500 -- 20/05/05: scales the pollution view on map, could still be tuned
 	game.map_settings.pollution.pollution_restored_per_tree_damage = 0.02
 	game.map_settings.pollution.min_pollution_to_damage_trees = 1
 	game.map_settings.pollution.max_pollution_to_restore_trees = 0
 	game.map_settings.pollution.pollution_with_max_forest_damage = 10
 	game.map_settings.pollution.pollution_per_tree_damage = 0.1
 	game.map_settings.pollution.ageing = 0.1
-	game.map_settings.pollution.diffusion_ratio = 0.15 -- up a bit... any higher and it's too anisotropic
+	game.map_settings.pollution.diffusion_ratio = 0.15 -- 20/05/05: up a bit... any higher and it's too anisotropic
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 5
 	game.forces.neutral.character_inventory_slots_bonus = 500
 	game.forces.enemy.evolution_factor = 0.0001
@@ -102,7 +102,7 @@ function Public_chrono.restart_settings()
 	game.forces.player.technologies["railway"].researched = true
 	game.forces.player.recipes["pistol"].enabled = false
 
-	--fixing the bug where partial tech progress is not reset:
+	-- 20/05/05: fixing the bug where partial tech progress is not reset:
 	for _, tech in pairs(game.forces.player.technologies) do 
 		game.forces.player.set_saved_technology_progress(tech, 0)
 	end
@@ -151,7 +151,7 @@ function Public_chrono.process_jump()
 
 	objective.chronojumps = objective.chronojumps + 1
 	objective.passivetimer = 0
-	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps) -- since 1CC = 1MJ now
+	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps) -- 20/05/05: since 1CC = 1MJ now
 	objective.passive_chronocharge_rate = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps) / Balance.passive_planet_jumptime(objective.chronojumps)
 	objective.active_biters = {}
 	objective.unit_groups = {}

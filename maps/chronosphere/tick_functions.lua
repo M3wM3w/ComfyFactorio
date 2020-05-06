@@ -60,7 +60,7 @@ function Public_tick.transfer_pollution()
   local exterior_pollution =  total_interior_pollution * Balance.pollution_transfer_from_inside_factor(difficulty, objective.upgrades[2])
   
   game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, exterior_pollution)
-  -- attribute the difference to the locomotive in the stats:
+  -- attribute the difference to the locomotive:
 	game.pollution_statistics.on_flow("locomotive", exterior_pollution - total_interior_pollution)
   surface.clear_pollution()
 end
@@ -147,7 +147,7 @@ function Public_tick.spawn_poison()
   local tile = surface.get_tile(random_x, random_y)
   if not tile.valid then return end
   if tile.name == "water-shallow" or tile.name == "water-mud" then
-    --wider poison clouds, different shapes
+    -- 20/05/05: wider poison clouds, different shapes
     random_angles = {math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359))}
 
     surface.create_entity({name = "poison-cloud", position = {x = random_x, y = random_y}})

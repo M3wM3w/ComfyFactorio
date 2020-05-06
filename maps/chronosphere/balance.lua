@@ -43,14 +43,13 @@ end
 function Public.train_pollution_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 3/5) end
 
 function Public.pollution_filter_upgrade_factor(upgrades2)
-	return 1 / (upgrades2 / 3 + 1) --unchanged
+	return 1 / (upgrades2 / 3 + 1) -- 20/05/05: unchanged
 end
 
 function Public.pollution_transfer_from_inside_factor(difficulty, filter_upgrades) return 3 * Public.pollution_filter_upgrade_factor(filter_upgrades) * Public.train_pollution_difficulty_scaling(difficulty) end
 
 
--- Now that we have a dynamic passive charge rate, we can separate the energy needed to charge from the default length of stay. So we can choose the following however we like:
-
+-- 20/05/05: Now that we have a dynamic passive charge rate, we can separate the energy needed to charge from the default length of stay. So we can choose the following however we like:
 
 function Public.passive_planet_jumptime(jumps)
 	local mins
@@ -65,17 +64,17 @@ function Public.passive_planet_jumptime(jumps)
 end
 
 function Public.passive_pollution_rate(jumps, difficulty, filter_upgrades)
-	local baserate = 2 * jumps --unchanged
+	local baserate = 2 * jumps -- 20/05/05: unchanged
 
 	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
   
 	return modifiedrate
 end
 
-function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgrades) --1CC = 1MJ
+function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgrades) -- 20/05/05: 1CC = 1MJ
 	--previously 1CC was 3MJ, and 1MJ active charge produced (10 + 2 * jumps) pollution
 
-	local baserate = 0.75 * (10 + 2 * jumps) -- lowered by 25%. gotta survive new 'countdown' phase afterwards
+	local baserate = 0.75 * (10 + 2 * jumps) -- 20/05/05: lowered by 25%. gotta survive new 'countdown' phase afterwards
 
 	local modifiedrate = baserate * Public.train_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
 	
@@ -85,33 +84,33 @@ end
 function Public.countdown_pollution_rate(jumps, difficulty)
 	local baserate = 25 * (10 + 2 * jumps)
 
-	local modifiedrate = baserate -- NOT DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution
+	local modifiedrate = baserate -- NOT DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution. Tooltip worded accordingly
 	
 	return modifiedrate
 end
 
 function Public.post_jump_initial_pollution(jumps, difficulty)
-	local baserate = 400 * (1 + jumps) --down from 400 to 450
+	local baserate = 400 * (1 + jumps) --down from 450
 
-	local modifiedrate = baserate * difficulty_sloped(difficulty, 1) -- NO LONGER DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution
+	local modifiedrate = baserate * difficulty_sloped(difficulty, 1) -- NO LONGER DEPENDENT ON FILTER UPGRADES. Interpreting this as hyperwarp portal pollution. Tooltip worded accordingly. 20/05/05: This is better for balance since initial pollution provides the initial mound that further pollution flows over.
 	
 	return modifiedrate
 end
 
 
-function Public.pollution_spent_per_attack(difficulty) return 50 * difficulty_exp(difficulty, -1.2) end -- now scales as -1.2 rather than -1
+function Public.pollution_spent_per_attack(difficulty) return 50 * difficulty_exp(difficulty, -1.2) end -- 20/05/05: now scales as -1.2 rather than -1
 
-function Public.defaultai_attack_pollution_consumption_modifier(difficulty) return 0.8 end --unchanged, just exposed here. change?
+function Public.defaultai_attack_pollution_consumption_modifier(difficulty) return 0.8 end -- 20/05/05: unchanged, just exposed here. change?
 
--- changing this now affects ONLY how many kWH you need to get to the next level:
+-- 20/05/05: changing this now affects ONLY how many kWH you need to get to the next level:
 function Public.MJ_needed_for_full_charge(difficulty, jumps)
-	local baserate = 2000 + 500 * jumps -- I think this is right
+	local baserate = 2000 + 500 * jumps -- thesixthroc: I believe around here is good
 
 	local modifiedrate
 	if difficulty <= 1 then modifiedrate = baserate end
 	if difficulty > 1 and jumps>0 then modifiedrate = baserate + 2000 + 100 * jumps end
 	return modifiedrate
-end --difficulty
+end
 
 
 
@@ -130,14 +129,14 @@ function Public.jumps_until_overstay_is_on(difficulty)
 	end
 end
 
-function Public.pistol_damage_bonus(difficulty) return 2 end -- unupgraded multiplier is this + 1
-function Public.shotgun_damage_research_multipler(difficulty) return  3 end -- affects damage from upgrades end
+function Public.pistol_damage_bonus(difficulty) return 2 end
+function Public.shotgun_damage_research_multipler(difficulty) return  3 end
 
 function Public.generate_jump_countdown_length(difficulty)
 	if difficulty <= 1 then
 		return Rand.raffle({90,120,150,180,210},{1,8,64,8,1})
 	else
-		return 150 --suppress rng for speedruns
+		return 150 -- thesixthroc: suppresses rng for speedruns
 	end
 end
 
@@ -145,11 +144,11 @@ function Public.misfire_percentage_chance(difficulty)
 	if difficulty <= 1 and difficulty > 0.25 then
 		return 5
 	else
-		return 0 --suppress rng for speedruns
+		return 0 -- thesixthroc: suppresses rng for speedruns
 	end
 end
 
-function Public.coin_reward_per_second_jumped_early(seconds, difficulty) --the reason for this it to make it seem to the players like there's always a bit of an advantage to charging sooner rather than later, but the effect is fairly mild.
+function Public.coin_reward_per_second_jumped_early(seconds, difficulty) -- thesixthroc: the reason for this it to make it seem to the players like there's always a bit of an advantage to charging sooner rather than later, but the effect is fairly mild.
 	local minutes = seconds / 60
 	local amount = minutes * 5 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
 	return math_max(0,math_floor(amount))
@@ -159,7 +158,7 @@ function Public.upgrades_coin_cost_difficulty_scaling(difficulty) return difficu
 
 function Public.flamers_nerfs_size(jumps, difficulty) return 0.02 * jumps * difficulty_sloped(difficulty, 1/2) end
 
-function Public.max_new_attack_group_size(difficulty) return math_max(256,math_floor(128 * difficulty_sloped(difficulty, 4/5))) end
+function Public.max_new_attack_group_size(difficulty) return math_max(188,math_floor(120 * difficulty_sloped(difficulty, 4/5))) end
 
 function Public.evoramp50_multiplier_per_second(difficulty) return (1 + 1/500 * difficulty_sloped(difficulty, 2/5)) end
 
@@ -174,7 +173,7 @@ Public.biome_weights = {
 	dumpwrld = 1,
 	coalwrld = 1,
 	scrapwrld = 3,
-	cavewrld = 1, --reduced from 2 to 1, this map is the most laggy...
+	cavewrld = 1, -- 20/05/05: reduced from 2 to 1, this map is the most laggy...
 	forestwrld = 2,
 	riverwrld = 2,
 	hellwrld = 1,
@@ -224,13 +223,13 @@ function Public.market_offers()
     {price = {{"coin", 40}}, offer = {type = 'give-item', item = 'wood', count = 50}},
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'iron-ore', count = 50}},
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'copper-ore', count = 50}},
-    -- {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'stone', count = 50}}, --not needed I think?
+    {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'stone', count = 50}}, -- 20/05/05: not needed I think
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'coal', count = 50}},
     {price = {{"coin", 400}}, offer = {type = 'give-item', item = 'uranium-ore', count = 50}},
     {price = {{"coin", 50}, {"empty-barrel", 1}}, offer = {type = 'give-item', item = 'crude-oil-barrel', count = 1}},
-    {price = {{"coin", 300}, {"steel-plate", 20}, {"electronic-circuit", 20}}, offer = {type = 'give-item', item = 'loader', count = 1}}, --balancing loaders for higher difficulties
-    {price = {{"coin", 800}, {"steel-plate", 40}, {"advanced-circuit", 10}, {"loader", 1}}, offer = {type = 'give-item', item = 'fast-loader', count = 1}}, --balancing loaders for higher difficulties
-    {price = {{"coin", 1600}, {"express-transport-belt", 10}, {"fast-loader", 1}}, offer = {type = 'give-item', item = 'express-loader', count = 1}}, --balancing loaders for higher difficulties
+    {price = {{"coin", 300}, {"steel-plate", 20}, {"electronic-circuit", 20}}, offer = {type = 'give-item', item = 'loader', count = 1}}, -- thesixthroc: balancing loaders for higher difficulties
+    {price = {{"coin", 800}, {"steel-plate", 40}, {"advanced-circuit", 10}, {"loader", 1}}, offer = {type = 'give-item', item = 'fast-loader', count = 1}}, -- thesixthroc: balancing loaders for higher difficulties
+    {price = {{"coin", 1600}, {"express-transport-belt", 10}, {"fast-loader", 1}}, offer = {type = 'give-item', item = 'express-loader', count = 1}}, -- thesixthroc: balancing loaders for higher difficulties
     --{price = {{"coin", 5}, {"stone", 100}}, offer = {type = 'give-item', item = 'landfill', count = 1}},
     {price = {{"coin", 2}, {"steel-plate", 1}, {"explosives", 10}}, offer = {type = 'give-item', item = 'land-mine', count = 1}},
     {price = {{"pistol", 1}}, offer = {type = "give-item", item = "iron-plate", count = 100}}
@@ -238,7 +237,7 @@ function Public.market_offers()
 end
 function Public.initial_cargo_boxes()
 	return {
-		-- early-game grenades turned off to encourage treasure hunting:
+		-- 20/05/05: early-game grenades turned off to encourage treasure hunting:
 		-- {name = "grenade", count = math_random(2, 3)},
 		-- {name = "grenade", count = math_random(2, 3)},
 		-- {name = "grenade", count = math_random(2, 3)},
@@ -263,9 +262,9 @@ function Public.initial_cargo_boxes()
 		{name = "shotgun", count = 1},
 		{name = "shotgun", count = 1},
 		{name = "shotgun", count = 1},
-		{name = "shotgun-shell", count = math_random(3, 6)}, --make players get these more from treasure
-		{name = "shotgun-shell", count = math_random(3, 6)}, --make players get these more from treasure
-		{name = "shotgun-shell", count = math_random(3, 6)}, --make players get these more from treasure
+		{name = "shotgun-shell", count = math_random(4, 5)}, -- 20/05/05: make players get these more from treasure
+		{name = "shotgun-shell", count = math_random(4, 5)}, -- 20/05/05: make players get these more from treasure
+		{name = "shotgun-shell", count = math_random(4, 5)}, -- 20/05/05: make players get these more from treasure
 		{name = "firearm-magazine", count = math_random(10, 30)},
 		{name = "firearm-magazine", count = math_random(10, 30)},
 		{name = "firearm-magazine", count = math_random(10, 30)},
@@ -284,7 +283,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 	end
 	
 	local loot_data_raw= {
-		{5, 0, 1, false, "railgun-dart", 4, 20}, -- this should not scale with level. reward treasure hunting currency the same at all levels
+		{5, 0, 1, false, "railgun-dart", 4, 20}, -- thesixthroc: this should not scale with jumps. reward treasure hunting currency the same at all jump numbers
 
 		--always there (or normally always there):
 		{4, 0, 1, false, "pistol", 1, 2},
@@ -409,8 +408,6 @@ function Public.treasure_chest_loot(difficulty, planet)
 		--{2, 0, 1, , "computer", 1, 1},
 		--{1, 0.2, 1, , "railgun", 1, 1},
 		--{2, 0.3, 1, , "oil-refinery", 2, 4},
-		--{2, 0.8, 1, , "energy-shield-mk2-equipment", 1, 1},
-		--{2, 0.7, 1, , "battery-mk2-equipment", 1, 1},
 		--{1, 0.9, 1, , "personal-roboport-mk2-equipment", 1, 1},
 	}
 	local specialised_loot_raw = {}

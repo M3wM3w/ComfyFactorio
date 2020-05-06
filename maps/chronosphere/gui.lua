@@ -185,7 +185,7 @@ local function update_planet_gui(player)
 			if time_until_overstay < 0 then
 				frame["overstay_time"].caption = {"chronosphere.gui_overstayed","",""}
 			else
-				frame["overstay_time"].caption = {"chronosphere.gui_planet_6", math_floor(time_until_overstay / 60), math_floor(time_until_overstay % 60)}--check this
+				frame["overstay_time"].caption = {"chronosphere.gui_planet_6", math_floor(time_until_overstay / 60), math_floor(time_until_overstay % 60)}
 			end
 		else
 			frame["overstay_time"].caption = {"chronosphere.gui_planet_7","",""}
@@ -245,7 +245,7 @@ function Public_gui.update_gui(player)
 	end
 
 	if objective.jump_countdown_start_time == -1 then
-		if tick % 60 == 58 then -- charge timer updates
+		if tick % 60 == 58 then -- charge history updates
 			local history = objective.accumulator_energy_history
 			objective.accumulator_energy_history = {}
 			local powerobserved,storedbattery,seconds_ETA = 0,0,0

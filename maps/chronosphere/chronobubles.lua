@@ -46,7 +46,7 @@ local biome_types = {
   nukewrld = {id = 19, name = {"chronosphere.map_19"}, dname = "ERROR DESTINATION NOT FOUND", iron = 0, copper = 0, coal = 0, stone = 0, uranium = 0, oil = 0, biters = 0, moisture = 0}
   }
 
-local time_speed_variants = { --lengths of days increased by 50%. previously normal dayspeed had only a couple minutes of daylight
+local time_speed_variants = { -- 20/05/05: lengths of days increased by 50%. previously normal dayspeed had only a couple minutes of daylight
   static = {name = {"chronosphere.daynight_static"}, dname = "static", timer = 0},
   normal = {name = {"chronosphere.daynight_normal"}, dname = "normal", timer = 150},
   slow = {name = {"chronosphere.daynight_slow"}, dname = "slow", timer = 300},

@@ -434,17 +434,17 @@ local function tick()
 			
 			Tick_functions.realtime_events()
 
-			-- pollution
 			if objective.locomotive ~= nil and objective.locomotive.valid then
 				if objective.jump_countdown_start_time == -1 then
-					local pos = objective.locomotive.position or {x=0,y=0}
-					local exterior_pollution = Balance.passive_pollution_rate(objective.chronojumps, difficulty, objective.upgrades[2])
-					game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)
-					game.pollution_statistics.on_flow("locomotive", exterior_pollution)
 					if objective.chronocharges == objective.chronochargesneeded then
 						check_if_overstayed()
 						initiate_jump_countdown()
 					end
+					
+					local pos = objective.locomotive.position or {x=0,y=0}
+					local exterior_pollution = Balance.passive_pollution_rate(objective.chronojumps, difficulty, objective.upgrades[2])
+					game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)
+					game.pollution_statistics.on_flow("locomotive", exterior_pollution)
 				else
 					if objective.passivetimer == objective.jump_countdown_start_time + objective.jump_countdown_length then
 						Public.attempt_to_jump()
