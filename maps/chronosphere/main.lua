@@ -261,9 +261,6 @@ function Public.chronojump(choice)
 			if player.controller_type == defines.controllers.editor then player.toggle_map_editor() end
 			local wagons = {objective.locomotive_cargo[1], objective.locomotive_cargo[2], objective.locomotive_cargo[3]}
 			Locomotive.enter_cargo_wagon(player, wagons[math.random(1,3)])
-			-- would this cause too much griefing? it seems very funny
-			-- player.clean_cursor()
-			-- player.character.clear_items_inside()
 		end
 	end
 	objective.lab_cells = {}
