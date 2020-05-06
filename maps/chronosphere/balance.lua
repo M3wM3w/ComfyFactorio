@@ -150,7 +150,7 @@ end
 
 function Public.coin_reward_per_second_jumped_early(seconds, difficulty)
 	local minutes = seconds / 60
-	local amount = minutes * 10 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
+	local amount = minutes * 20 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
 	return math_max(0,math_floor(amount))
 end
 
@@ -227,9 +227,9 @@ function Public.market_offers()
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'coal', count = 50}},
     {price = {{"coin", 400}}, offer = {type = 'give-item', item = 'uranium-ore', count = 50}},
     {price = {{"coin", 50}, {"empty-barrel", 1}}, offer = {type = 'give-item', item = 'crude-oil-barrel', count = 1}},
-    {price = {{"coin", 300}, {"steel-plate", 20}, {"electronic-circuit", 20}}, offer = {type = 'give-item', item = 'loader', count = 1}}, -- thesixthroc: balancing loaders for higher difficulties
-    {price = {{"coin", 800}, {"steel-plate", 40}, {"advanced-circuit", 10}, {"loader", 1}}, offer = {type = 'give-item', item = 'fast-loader', count = 1}}, -- thesixthroc: balancing loaders for higher difficulties
-    {price = {{"coin", 1600}, {"express-transport-belt", 10}, {"fast-loader", 1}}, offer = {type = 'give-item', item = 'express-loader', count = 1}}, -- thesixthroc: balancing loaders for higher difficulties
+    {price = {{"coin", 500}, {"steel-plate", 20}, {"electronic-circuit", 20}}, offer = {type = 'give-item', item = 'loader', count = 1}}, -- thesixthroc: balancing loaders for higher difficulties
+    {price = {{"coin", 1000}, {"steel-plate", 40}, {"advanced-circuit", 10}, {"loader", 1}}, offer = {type = 'give-item', item = 'fast-loader', count = 1}}, -- thesixthroc: balancing loaders for higher difficulties
+    {price = {{"coin", 3000}, {"express-transport-belt", 10}, {"fast-loader", 1}}, offer = {type = 'give-item', item = 'express-loader', count = 1}}, -- thesixthroc: balancing loaders for higher difficulties
     --{price = {{"coin", 5}, {"stone", 100}}, offer = {type = 'give-item', item = 'landfill', count = 1}},
     {price = {{"coin", 2}, {"steel-plate", 1}, {"explosives", 10}}, offer = {type = 'give-item', item = 'land-mine', count = 1}},
     {price = {{"pistol", 1}}, offer = {type = "give-item", item = "iron-plate", count = 100}}
