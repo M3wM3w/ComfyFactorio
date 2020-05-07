@@ -128,7 +128,7 @@ function Public_event.choppy_loot(event)
 	if choppy_entity_yield[entity.name] then
 		if event.buffer then event.buffer.clear() end
 		if not event.player_index then return end
-		local amount = math_floor(get_ore_amount() / 4) -- 20/05/05: rebalanced
+		local amount = math_floor(get_ore_amount() / 6) -- 20/05/05: rebalanced
 		local second_item_amount = math_random(2,5)
 		local second_item = "wood"
 		local main_item = choppy_entity_yield[entity.name][math_random(1,#choppy_entity_yield[entity.name])]
@@ -156,7 +156,7 @@ function Public_event.rocky_loot(event)
 	local surface = game.surfaces[objective.active_surface_index]
 	local player = game.players[event.player_index]
 	surface.spill_item_stack(player.position,{name = "raw-fish", count = math_random(1,3)},true)
-	local amount = get_ore_amount() / 2 -- 20/05/05: rebalanced
+	local amount = get_ore_amount() / 3 -- 20/05/05: rebalanced
 	local rock_mining = {"iron-ore", "iron-ore", "iron-ore", "iron-ore", "copper-ore", "copper-ore", "copper-ore", "stone", "stone", "coal", "coal"}
 	local mined_loot = rock_mining[math_random(1,#rock_mining)]
 	surface.create_entity({
