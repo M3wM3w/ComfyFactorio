@@ -387,7 +387,7 @@ local function talks(nearby_characters)
 		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
 			str = str .. "Better get moving!"
 		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
-			str = str .. "Chop chop!"
+			str = str .. "Nuke day today!"
 		elseif objective.planet[1].type.id == 15 and math_random(1,20) == 1 then
 			str = str .. "A new day, a new Chronotrain!"
 		elseif objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) + 3 and objective.overstaycount > ((objective.chronojumps-Balance.jumps_until_overstay_is_on(global.difficulty_vote_value))/3) and math_random(1,30) == 1 then
