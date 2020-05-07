@@ -39,7 +39,7 @@ local function poll_blueprints(player)
 		return 
 	end
 	
-	local frame = player.gui.center.add { type = "frame", caption = "Importing blueprints:", name = "blueprints_poll", direction = "vertical" }
+	local frame = player.gui.center.add { type = "frame", caption = "Vote on importing blueprints:", name = "blueprints_poll", direction = "vertical" }
 	for i = 1, 2, 1 do
 		local b
 		b = frame.add({type = "button", name = tostring(i), caption = options[i].name})
