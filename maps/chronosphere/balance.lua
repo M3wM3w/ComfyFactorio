@@ -488,12 +488,12 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{6, 0, 1, false, "constant-combinator", 4, 8},
 			{6, 0, 1, false, "decider-combinator", 4, 8},
 			{6, 0, 1, false, "power-switch", 1, 1},
-			{12, 0, 1, false, "green-wire", 10, 29},
-			{12, 0, 1, false, "red-wire", 10, 29},
+			{9, 0, 1, false, "green-wire", 10, 29},
+			{9, 0, 1, false, "red-wire", 10, 29},
 
-			{9, 0, 0.6, true, "modular-armor", 1, 1},
-			{7, -0.2,1, true, "power-armor", 1, 1},
-			{5, 0,2, true, "power-armor-mk2", 1, 1},
+			{12, 0, 0.6, true, "modular-armor", 1, 1},
+			{8, -0.2,1, true, "power-armor", 1, 1},
+			{4, 0,2, true, "power-armor-mk2", 1, 1},
 
 			{4, 0, 1, false, "exoskeleton-equipment", 1, 1},
 			{4, 0, 1, false, "belt-immunity-equipment", 1, 1},
