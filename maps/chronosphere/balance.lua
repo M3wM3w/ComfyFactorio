@@ -276,9 +276,11 @@ function Public.initial_cargo_boxes()
 
 
 		-- 20/05/05: compensate for removed items, aiming to slightly mix up the initial play patterns:
-		{name = "piercing-shotgun-shell", count = math_random(4, 5)},
-		{name = "fast-inserter", count = 4},
+		{name = "fast-inserter", count = math_random(3, 4)},
 		{name = "loader", count = 1},
+		{name = "coal", count = math_random(32, 64)},
+		{name = "iron-ore", count = math_random(32, 64)},
+		{name = "empty-barrel", count = math_random(16, 32)},
 	}
 end
 
