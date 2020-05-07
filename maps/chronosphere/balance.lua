@@ -162,6 +162,8 @@ function Public.max_new_attack_group_size(difficulty) return math_max(188,math_f
 
 function Public.evoramp50_multiplier_per_second(difficulty) return (1 + 1/500 * difficulty_sloped(difficulty, 2/5)) end
 
+function Public.nukes_looted_per_silo(difficulty) return math_max(10, 10 * math_ceil(difficulty_sloped(difficulty, 2)))
+
 Public.biome_weights = {
 	ironwrld = 1,
 	copperwrld = 1,

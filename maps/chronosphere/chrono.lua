@@ -140,7 +140,7 @@ local function check_nuke_silos()
 	if objective.dangers and #objective.dangers > 1 then
 		for i = 1, #objective.dangers, 1 do
 		if objective.dangers[i].destroyed == true then
-			objective.looted_nukes = objective.looted_nukes + 5
+			objective.looted_nukes = objective.looted_nukes + Balance.nukes_looted_per_silo(global.difficulty_vote_value)
 		end
 		end
 	end

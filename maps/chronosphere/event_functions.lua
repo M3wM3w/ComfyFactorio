@@ -210,7 +210,7 @@ function Public_event.danger_silo(entity)
 		if objective.dangers and #objective.dangers > 1 then
 	    for i = 1, #objective.dangers, 1 do
 	      if entity == objective.dangers[i].silo then
-					game.print({"chronosphere.message_silo"}, {r=0.98, g=0.66, b=0.22})
+					game.print({"chronosphere.message_silo", Balance.nukes_looted_per_silo(global.difficulty_vote_value)}, {r=0.98, g=0.66, b=0.22})
 					objective.dangers[i].destroyed = true
 					objective.dangers[i].silo = nil
 					objective.dangers[i].speaker.destroy()
