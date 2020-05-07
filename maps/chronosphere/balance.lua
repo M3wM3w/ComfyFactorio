@@ -483,17 +483,17 @@ function Public.treasure_chest_loot(difficulty, planet)
 
 	if planet.type.id == 16 then --mazewrld
 		specialised_loot_raw = {
-			{4, 0, 1, false, "programmable-speaker", 2, 4},
-			{8, 0, 1, false, "arithmetic-combinator", 4, 8},
-			{8, 0, 1, false, "constant-combinator", 4, 8},
-			{8, 0, 1, false, "decider-combinator", 4, 8},
-			{8, 0, 1, false, "power-switch", 1, 1},
-			{15, 0, 1, false, "green-wire", 10, 29},
-			{15, 0, 1, false, "red-wire", 10, 29},
+			{2, 0, 1, false, "programmable-speaker", 2, 4},
+			{6, 0, 1, false, "arithmetic-combinator", 4, 8},
+			{6, 0, 1, false, "constant-combinator", 4, 8},
+			{6, 0, 1, false, "decider-combinator", 4, 8},
+			{6, 0, 1, false, "power-switch", 1, 1},
+			{12, 0, 1, false, "green-wire", 10, 29},
+			{12, 0, 1, false, "red-wire", 10, 29},
 
-			{6, 0, 0.6, true, "modular-armor", 1, 1},
-			{6, -0.2,1, true, "power-armor", 1, 1},
-			{4, 0.3,1, true, "power-armor-mk2", 1, 1},
+			{9, 0, 0.6, true, "modular-armor", 1, 1},
+			{7, -0.2,1, true, "power-armor", 1, 1},
+			{5, 0,2, true, "power-armor-mk2", 1, 1},
 
 			{4, 0, 1, false, "exoskeleton-equipment", 1, 1},
 			{4, 0, 1, false, "belt-immunity-equipment", 1, 1},
@@ -508,10 +508,10 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{1, 0.5, 1, false, "energy-shield-mk2-equipment", 1, 1},
 			{1, 0.5, 1, false, "battery-mk2-equipment", 1, 1},
 
-			{4, -0, 1, true, "copper-cable", 20, 80},
-			{4, -0.3, 0.6, true, "electronic-circuit", 50, 100},
-			{4, 0.2, 1.4, true, "advanced-circuit", 50, 100},
-			{4, 0.5, 1.5, true, "processing-unit", 50, 100},
+			{3, -0, 1, true, "copper-cable", 20, 80},
+			{3, -0.3, 0.6, true, "electronic-circuit", 50, 100},
+			{3, 0.2, 1.4, true, "advanced-circuit", 50, 100},
+			{3, 0.5, 1.5, true, "processing-unit", 50, 100},
 		}
 	end
 
