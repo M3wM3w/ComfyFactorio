@@ -46,9 +46,6 @@ function Public.treasure_chest(surface, position, container_name)
 	local i = e.get_inventory(defines.inventory.chest)
 	for _ = 1, math_random(2,5), 1 do -- 20/04/04: max 5 items better than 6, so that if you observe 4 items in alt-mode the chance of an extra one is 1/2 rather than 2/3
 		local loot = Rand.raffle(loot_types,loot_weights)
-		log(loot.name)
-		log(loot.min_count)
-		log(loot.max_count)
 		local difficulty_scaling = Balance.treasure_quantity_difficulty_scaling(difficulty)
 		if objective.chronojumps == 0 then difficulty_scaling = 1 end
 		local low = math_max(1, math_ceil(loot.min_count * difficulty_scaling))
