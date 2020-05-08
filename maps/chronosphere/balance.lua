@@ -133,19 +133,21 @@ function Public.pistol_damage_multiplier(difficulty) return 2.5 end --3 will one
 function Public.damage_research_effect_on_shotgun_multipler(difficulty) return 3 end
 
 function Public.generate_jump_countdown_length(difficulty)
-	if difficulty <= 1 then
-		return Rand.raffle({90,120,150,180,210},{1,8,64,8,1})
-	else
-		return 150 -- thesixthroc: suppress rng for speedrunners
-	end
+--	if difficulty <= 1 then
+--		return Rand.raffle({90,120,150,180,210},{1,8,64,8,1})
+--	else
+--		return 150 -- thesixthroc: suppress rng for speedrunners
+--	end
+	return 180
 end
 
 function Public.misfire_percentage_chance(difficulty)
-	if difficulty <= 1 and difficulty > 0.25 then
-		return 5
-	else
-		return 0 -- thesixthroc: suppress rng for speedrunners
-	end
+-- 	if difficulty <= 1 and difficulty > 0.25 then
+-- 		return 5
+-- 	else
+-- 		return 0 -- thesixthroc: suppress rng for speedrunners
+-- 	end
+	return 0
 end
 
 function Public.coin_reward_per_second_jumped_early(seconds, difficulty)
