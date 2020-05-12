@@ -101,11 +101,6 @@ function Public_chrono.restart_settings()
 	game.forces.player.technologies["power-armor-mk2"].enabled = false
 	game.forces.player.technologies["railway"].researched = true
 	game.forces.player.recipes["pistol"].enabled = false
-
-	-- 20/05/05: fixing the bug where partial tech progress is not reset:
-	for _, tech in pairs(game.forces.player.technologies) do 
-		game.forces.player.set_saved_technology_progress(tech, 0)
-	end
 end
 
 function Public_chrono.objective_died()
