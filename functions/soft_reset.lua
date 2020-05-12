@@ -6,6 +6,9 @@ local Public = {}
 local function reset_forces(new_surface, old_surface)
 	for _, f in pairs(game.forces) do
 		local spawn = {x = game.forces.player.get_spawn_position(old_surface).x, y = game.forces.player.get_spawn_position(old_surface).y}
+		for _, tech in pairs(game.forces.player.technologies) do 
+			game.forces.player.set_saved_technology_progress(tech, 0)
+		end
 		f.reset()
 		f.reset_evolution()
 		f.set_spawn_position(spawn, new_surface)
