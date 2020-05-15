@@ -130,7 +130,7 @@ function Public.jumps_until_overstay_is_on(difficulty) --both overstay penalties
 end
 
 function Public.pistol_damage_multiplier(difficulty) return 2.5 end --3 will one-shot biters
-function Public.damage_research_effect_on_shotgun_multipler(difficulty) return 1.25 end
+function Public.damage_research_effect_on_shotgun_multipler(difficulty) return 1.2 end
 
 function Public.generate_jump_countdown_length(difficulty)
 	if difficulty <= 1 then
