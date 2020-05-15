@@ -479,6 +479,10 @@ local function tick()
 			end
 		end
 		
+		if tick % 1800 == 0 and objective.jump_countdown_start_time ~= -1 then
+			Ai.perform_main_attack()
+		end
+		
 		local key = tick % 3600
 		if tick_minute_functions[key] then tick_minute_functions[key]() end
 		if objective.game_reset_tick then
