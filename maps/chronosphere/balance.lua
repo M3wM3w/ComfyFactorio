@@ -57,7 +57,7 @@ function Public.passive_planet_jumptime(jumps)
 	if jumps < 20 then
 		mins = 30 + 3 * jumps
 	else
-		mins = 110
+		mins = 90
 	end
 
 	return mins * 60
@@ -74,7 +74,7 @@ end
 function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgrades) -- 20/05/05: 1CC = 1MJ
 	--previously 1CC was 3MJ, and 1MJ active charge produced (10 + 2 * jumps) pollution
 
-	local baserate = 0.75 * (10 + 2 * jumps) -- 20/05/05: lowered by 25%. gotta survive new 'countdown' phase afterwards
+	local baserate = 1 * (10 + 2 * jumps)
 
 	local modifiedrate = baserate * Public.charging_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
 	
@@ -82,7 +82,7 @@ function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgr
 end
 
 function Public.countdown_pollution_rate(jumps, difficulty)
-	local baserate = 25 * (10 + 2 * jumps)
+	local baserate = 50 * (10 + 2 * jumps)
 
 	local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpreting this as hyperwarp portal pollution
 	
@@ -104,7 +104,7 @@ function Public.defaultai_attack_pollution_consumption_modifier(difficulty) retu
 
 -- 20/05/05: changing this now affects ONLY how many kWH you need to get to the next level:
 function Public.MJ_needed_for_full_charge(difficulty, jumps)
-	local baserate = 2000 + 500 * jumps -- thesixthroc: I believe around here is good
+	local baserate = 2000 + 600 * jumps -- thesixthroc: I believe around here is good
 
 	local modifiedrate
 	if difficulty <= 1 then modifiedrate = baserate end
@@ -130,13 +130,13 @@ function Public.jumps_until_overstay_is_on(difficulty) --both overstay penalties
 end
 
 function Public.pistol_damage_multiplier(difficulty) return 2.5 end --3 will one-shot biters
-function Public.damage_research_effect_on_shotgun_multipler(difficulty) return 3 end
+function Public.damage_research_effect_on_shotgun_multipler(difficulty) return 1.25 end
 
 function Public.generate_jump_countdown_length(difficulty)
 	if difficulty <= 1 then
 		return Rand.raffle({90,120,150,180,210},{1,8,64,8,1})
 	else
-		return 150 -- thesixthroc: suppress rng for speedrunners
+		return 180 -- thesixthroc: suppress rng for speedrunners
 	end
 --	return 180
 end

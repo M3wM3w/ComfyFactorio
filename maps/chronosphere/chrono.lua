@@ -81,7 +81,7 @@ function Public_chrono.restart_settings()
 	game.map_settings.enemy_expansion.settler_group_max_size = 8
 	game.map_settings.enemy_expansion.settler_group_min_size = 16
 	game.map_settings.pollution.enabled = true
-	game.map_settings.pollution.expected_max_per_chunk = 500 -- 20/05/05: scales the pollution view on map, could still be tuned
+	game.map_settings.pollution.expected_max_per_chunk = 400 -- 20/05/05: scales the pollution view on map, could still be tuned
 	game.map_settings.pollution.pollution_restored_per_tree_damage = 0.02
 	game.map_settings.pollution.min_pollution_to_damage_trees = 1
 	game.map_settings.pollution.max_pollution_to_restore_trees = 0

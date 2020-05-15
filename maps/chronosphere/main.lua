@@ -5,7 +5,6 @@ require "maps.chronosphere.blueprints_vote"
 require "modules.biters_yield_coins"
 require "modules.no_deconstruction_of_neutral_entities"
 --require "modules.no_solar"
-require "modules.shotgun_buff"
 require "maps.chronosphere.comfylatron"
 require "maps.chronosphere.terrain"
 require "maps.chronosphere.weapon_buffs"
@@ -95,7 +94,7 @@ local function generate_overworld(surface, optplanet)
 		local mgs = surface.map_gen_settings
 		mgs.width = 2176
 		surface.map_gen_settings = mgs
-		surface.request_to_generate_chunks({-960,-64}, 0,5)
+		surface.request_to_generate_chunks({-960,-64}, 0.5)
 		surface.force_generate_chunk_requests()
 	end
 end
@@ -284,7 +283,7 @@ function Public.chronojump(choice)
 
 	--
     local pos = objective.locomotive.position or {x=0,y=0}
-    local exterior_pollution = objective.passivetimer / math_floor(Balance.post_jump_initial_pollution(objective.chronojumps, global.difficulty_vote_value))
+    local exterior_pollution = math_floor(Balance.post_jump_initial_pollution(objective.chronojumps, global.difficulty_vote_value))
     game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)
     game.pollution_statistics.on_flow("locomotive", exterior_pollution)
 

@@ -1,3 +1,4 @@
+@@ -1,151 +0,0 @@
 -- modification of difficulty_vote.lua
 -- still uses difficulty_poll_closing_timeout
 
@@ -6,7 +7,7 @@ local Server = require 'utils.server'
 
 local options = {
 	[1] = {name = "Imports On", value = true, color = {r=0, g=0, b=0.66}, button_text_color = {r=0, g=0, b=0.8}, print_color = {r=0.16, g=0.5, b=1}},
-	[2] = {name = "Imports Off", value = false, color = {r=0.5, g=0.5, b=0}, button_text_color = {r=0.55, g=0.55, b=0}, print_color = {r=1, g=1, b=0.5}}
+	[2] = {name = "Imports Off", value = false, color = {r=0.3, g=0.3, b=0}, button_text_color = {r=0.35, g=0.35, b=0}, print_color = {r=1, g=1, b=0.5}}
 }
 
 local function blueprints_permissions_gui()

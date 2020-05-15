@@ -239,13 +239,13 @@ function Public_gui.update_gui(player)
 	if (objective.chronochargesneeded<1000) then
 		gui.charger_value.caption =  objective.chronocharges .. "/" .. objective.chronochargesneeded .. " MJ"
 	elseif (objective.chronochargesneeded<10000) then
-		gui.charger_value.caption =  math_floor(objective.chronocharges/100)/10 .. " / " .. math_floor(objective.chronochargesneeded/100)/10 .. " GJ"
+		gui.charger_value.caption =  math_floor(objective.chronocharges/10)/100 .. " / " .. math_floor(objective.chronochargesneeded/10)/100 .. " GJ"
 	elseif (objective.chronochargesneeded<1000000) then
-		gui.charger_value.caption =  math_floor(objective.chronocharges/1000) .. " / " .. math_floor(objective.chronochargesneeded/1000) .. " GJ"
+		gui.charger_value.caption =  math_floor(objective.chronocharges/100)/10 .. " / " .. math_floor(objective.chronochargesneeded/100)/10 .. " GJ"
 	elseif (objective.chronochargesneeded<10000000) then
-		gui.charger_value.caption =  math_floor(objective.chronocharges/100000)/10 .. " / " .. math_floor(objective.chronochargesneeded/100000)/10 .. " TJ"
+		gui.charger_value.caption =  math_floor(objective.chronocharges/10000)/100 .. " / " .. math_floor(objective.chronochargesneeded/10000)/100 .. " TJ"
 	else
-		gui.charger_value.caption =  math_floor(objective.chronocharges/1000000) .. " / " .. math_floor(objective.chronochargesneeded/1000000) .. " TJ"
+		gui.charger_value.caption =  math_floor(objective.chronocharges/100000)/10 .. " / " .. math_floor(objective.chronochargesneeded/100000)/10 .. " TJ"
 	end
 
 	if objective.jump_countdown_start_time == -1 then
