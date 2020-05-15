@@ -479,7 +479,7 @@ local function tick()
 			end
 		end
 		
-		if tick % 1800 == 0 and objective.jump_countdown_start_time ~= -1 then
+		if tick % 1800 == 900 and objective.jump_countdown_start_time ~= -1 then
 			Ai.perform_main_attack()
 		end
 		
