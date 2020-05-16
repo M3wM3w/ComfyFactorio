@@ -1,7 +1,6 @@
 -- chronosphere --
 
 require "modules.difficulty_vote"
-require "maps.chronosphere.blueprints_vote"
 require "modules.biters_yield_coins"
 require "modules.no_deconstruction_of_neutral_entities"
 --require "modules.no_solar"
@@ -456,14 +455,18 @@ local function tick()
 			end
 
 		end
+		
 		if tick % 120 == 0 then
 			Tick_functions.move_items()
 			Tick_functions.output_items()
 		end
+
 		if tick % 180 == 0 then
 			drain_accumulators()
 		end
+
 		if tick % 600 == 0 then
+			Upgrades.check_upgrades()
 			Tick_functions.transfer_pollution()
 			if objective.poisontimeout > 0 then
 				objective.poisontimeout = objective.poisontimeout - 1
@@ -471,7 +474,6 @@ local function tick()
 		end
 
 		if tick % 1500 == 0 then
-			Upgrades.check_upgrades()
 			Tick_functions.boost_evolution()
 		end
 
