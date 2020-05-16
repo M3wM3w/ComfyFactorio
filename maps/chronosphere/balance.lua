@@ -310,7 +310,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{3, 0, 1, false, "long-handed-inserter", 4, 16},
 		{0.5, 0, 1, false, "filter-inserter", 4, 16},
 		{0.2, 0, 1, false, "stack-filter-inserter", 4, 8},
-		{0.5, 0, 1, false, "slowdown-capsule", 8, 16},
+		{0.5, 0, 1, false, "slowdown-capsule", 4, 8},
 		{0.5, 0, 1, false, "destroyer-capsule", 4, 8},
 		{0.5, 0, 1, false, "defender-capsule", 4, 8},
 		{0.5, 0, 1, false, "distractor-capsule", 4, 8},
@@ -320,10 +320,10 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{2, 0.15, 1, false, "pump", 1, 2},
 
 		--shotgun meta:
-		{12, -0.2, 0.4, true, "shotgun-shell", 16, 32},
+		{12, -0.2, 0.4, true, "shotgun-shell", 12, 24},
 		{8, 0, 0.4, true, "shotgun", 1, 1},
-		{12, 0, 1.2, true, "piercing-shotgun-shell", 16, 32},
-		{8, 0, 1.2, true, "combat-shotgun", 1, 1},
+		{6, 0, 1.2, true, "piercing-shotgun-shell", 12, 24},
+		{3, 0, 1.2, true, "combat-shotgun", 1, 1},
 
 		--modular armor meta:
 		{1, -3, 1, true, "modular-armor", 1, 1},
@@ -467,8 +467,8 @@ function Public.treasure_chest_loot(difficulty, planet)
 		specialised_loot_raw = {
 			{5, -0.7, 0.7, true, "light-armor", 1, 1},
 			{5, -0.3, 0.9, true, "heavy-armor", 1, 1},
-			{8, -0.7, 0.7, true, "firearm-magazine", 32, 128},
 			{5, 0.4, 0.7, true, "cannon-shell", 16, 32},
+			{8, -0.7, 0.7, true, "firearm-magazine", 32, 128},
 			{4, -0.2, 1.2, true, "piercing-rounds-magazine", 32, 128},
 			{3, 0.2, 1.8, true, "uranium-rounds-magazine", 32, 128},
 			{3, 0, 2, true, "rocket-launcher", 1, 1},
@@ -495,9 +495,9 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{9, 0, 1, false, "green-wire", 10, 29},
 			{9, 0, 1, false, "red-wire", 10, 29},
 
-			{12, 0, 0.6, true, "modular-armor", 1, 1},
-			{8, -0.2,1, true, "power-armor", 1, 1},
-			{4, 0,2, true, "power-armor-mk2", 1, 1},
+			{11, 0, 0.6, true, "modular-armor", 1, 1},
+			{7, -0.2,1, true, "power-armor", 1, 1},
+			{3, 0,2, true, "power-armor-mk2", 1, 1},
 
 			{4, 0, 1, false, "exoskeleton-equipment", 1, 1},
 			{4, 0, 1, false, "belt-immunity-equipment", 1, 1},
