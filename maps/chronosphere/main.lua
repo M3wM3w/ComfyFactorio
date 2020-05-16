@@ -521,6 +521,11 @@ local function on_init()
 	mgs.height = 16
 	game.surfaces["nauvis"].map_gen_settings = mgs
 	game.surfaces["nauvis"].clear()
+
+	game.permissions.get_group("Default").set_allows_action(defines.input_action.grab_blueprint_record, false)
+	game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint_string, false)
+	game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint, false)
+
 	reset_map()
 	-- Chrono.init_setup() --superfluous with reset_map()
 	--if game.surfaces["nauvis"] then game.delete_surface(game.surfaces["nauvis"]) end
