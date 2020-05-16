@@ -469,11 +469,15 @@ local function tick()
 				objective.poisontimeout = objective.poisontimeout - 1
 			end
 		end
-		if tick % 900 == 0 then
-			Locomotive.set_player_spawn_and_refill_fish()
-			set_objective_health(Tick_functions.repair_train())
+
+		if tick % 1500 == 0 then
 			Upgrades.check_upgrades()
 			Tick_functions.boost_evolution()
+		end
+
+		if tick % 1800 == 0 then
+			Locomotive.set_player_spawn_and_refill_fish()
+			set_objective_health(Tick_functions.repair_train())
 			if objective.config.offline_loot then
 				Tick_functions.offline_players()
 			end

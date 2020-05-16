@@ -69,7 +69,7 @@ function Public_tick.boost_evolution()
   local objective = Chrono_table.get_table()
   local difficulty = global.difficulty_vote_value
 
-	if objective.passivetimer > objective.chronochargesneeded * 0.50 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+	if objective.passivetimer * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.50 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
 		local evolution = game.forces.enemy.evolution_factor
 		evolution = evolution * Balance.evoramp50_multiplier_per_second(difficulty)
 		if evolution > 1 then evolution = 1 end
