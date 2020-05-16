@@ -537,7 +537,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 end
 
 function Public.scrap_quantity_multiplier(evolution_factor, mining_drill_productivity_bonus)
-	return 1 + 4 * evolution_factor --removed dependence on mining drill tech bonus to nerf tech slightly and make the map more distinctive
+	return 0.6 + 2.4 * evolution_factor --removed dependence on mining drill tech bonus to nerf tech slightly and make the map more distinctive
 end
 
 Public.scrap_yield_amounts = {
