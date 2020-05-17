@@ -35,7 +35,7 @@ function Public.upgrades()
       tooltip = {"chronosphere.upgrade_train_armor_tooltip", 36, objective.max_health},
       jump_limit = objective.upgrades[1],
       cost = {
-        item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 600 * Balance.upgrades_coin_cost_difficulty_scaling(difficulty) * (1 + objective.upgrades[1])},
+        item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 500 * Balance.upgrades_coin_cost_difficulty_scaling(difficulty) * (1 + 2 * objective.upgrades[1])},
         item2 = {name = "copper-plate", tt = "item-name", sprite = "item/copper-plate", count = 1500},
       }
     },
@@ -47,7 +47,7 @@ function Public.upgrades()
       tooltip = {"chronosphere.upgrade_filter_tooltip", math_floor(100 * Balance.machine_pollution_transfer_from_inside_factor(Difficulty.get().difficulty_vote_value, objective.upgrades[2]))},
       jump_limit = (1 + objective.upgrades[2]) * 3 or 0,
       cost = {
-        item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 6000 * Balance.upgrades_coin_cost_difficulty_scaling(difficulty)},
+        item1 = {name = "coin", tt = "item-name", sprite = "item/coin", count = 5000 * Balance.upgrades_coin_cost_difficulty_scaling(difficulty)},
         item2 = {name = "electronic-circuit", tt = "item-name", sprite = "item/electronic-circuit", count = math_min(1 + objective.upgrades[2], 3) * 500 + 500},
         item3 = {name = "advanced-circuit", tt = "item-name", sprite = "item/advanced-circuit", count = math_max(math_min(1 + objective.upgrades[2], 6) - 3, 0) * 500},
         item4 = {name = "processing-unit", tt = "item-name", sprite = "item/processing-unit", count = math_max(math_min(1 + objective.upgrades[2], 9) - 6, 0) * 500}

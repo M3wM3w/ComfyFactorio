@@ -83,7 +83,7 @@ function Public_chrono.restart_settings()
     game.map_settings.enemy_expansion.max_expansion_distance = 9
 	game.map_settings.pollution.enabled = true
 	game.map_settings.pollution.expected_max_per_chunk = 400
-	game.map_settings.pollution.min_to_show_per_chunk = 100
+	game.map_settings.pollution.min_to_show_per_chunk = 40
 	game.map_settings.pollution.pollution_restored_per_tree_damage = 0.02
 	game.map_settings.pollution.min_pollution_to_damage_trees = 1
 	game.map_settings.pollution.max_pollution_to_restore_trees = 0
@@ -250,11 +250,12 @@ function Public_chrono.post_jump()
 
 	game.map_settings.enemy_evolution.time_factor = 7e-05 + 3e-06 * (objective.chronojumps + objective.overstaycount)
 
-	game.forces.scrapyard.set_ammo_damage_modifier("bullet", 0.01 * objective.chronojumps + 0.02 * math_max(0, objective.chronojumps - 20))
-	game.forces.scrapyard.set_turret_attack_modifier("gun-turret", 0.01 * objective.chronojumps + 0.02 * math_max(0, objective.chronojumps - 20))
+	game.forces.scrapyard.set_ammo_damage_modifier("bullet", difficulty * 0.01 * objective.chronojumps + 0.02 * math_max(0, objective.chronojumps - 20))
+	game.forces.scrapyard.set_turret_attack_modifier("gun-turret", difficulty * 0.01 * objective.chronojumps + 0.02 * math_max(0, objective.chronojumps - 20))
 	game.forces.enemy.set_ammo_damage_modifier("melee", 0.1 * objective.overstaycount)
 	game.forces.enemy.set_ammo_damage_modifier("biological", 0.1 * objective.overstaycount)
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = Balance.defaultai_attack_pollution_consumption_modifier(difficulty)
+	game.map_settings.pollution.max_unit_group_size = Balance.max_new_attack_group_size(difficulty)
 
 	if objective.chronojumps == 1 then
 		if difficulty < 1 then

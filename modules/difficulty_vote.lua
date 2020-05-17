@@ -84,9 +84,7 @@ function Public.set_difficulties(...)
 end
 
 function Public.set_poll_closing_timeout(...)
-    if type(...) == 'table' then
-        this.difficulty_poll_closing_timeout = ...
-    end
+    this.difficulty_poll_closing_timeout = ...
 end
 
 function Public.get()

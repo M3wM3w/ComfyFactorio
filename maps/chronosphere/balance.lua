@@ -59,7 +59,7 @@ end
 
 function Public.generate_jump_countdown_length(difficulty)
 	if difficulty <= 1 then
-		return Rand.raffle({90,120,150,180,210,240,270},{1,2,20,60,15,2,1})
+		return Rand.raffle({90,120,150,180,210,240,270},{1,2,14,98,14,2,1})
 	else
 		return 180 -- thesixthroc: suppress rng for speedrunners
 	end
@@ -68,7 +68,7 @@ end
 
 function Public.misfire_percentage_chance(difficulty)
  	if difficulty <= 1 and difficulty > 0.25 then
- 		return 5
+ 		return 4
  	else
  		return 0 -- thesixthroc: suppress rng for speedrunners
  	end
@@ -78,7 +78,7 @@ end
 function Public.passive_pollution_rate(jumps, difficulty, filter_upgrades)
 	local baserate = 5 * jumps
 
-	local modifiedrate = baserate * Public.pollution_filter_upgrade_factor(filter_upgrades) * difficulty_sloped(difficulty, 3/5)
+	local modifiedrate = baserate * Public.pollution_filter_upgrade_factor(filter_upgrades) * math_max(0, difficulty_sloped(difficulty, 5/4))
   
 	return modifiedrate
 end
@@ -99,7 +99,7 @@ function Public.pollution_per_MJ_actively_charged(jumps, difficulty, filter_upgr
 end
 
 function Public.countdown_pollution_rate(jumps, difficulty)
-	local baserate = 40 * (10 + jumps)
+	local baserate = 40 * (10 + jumps) * math_max(0, difficulty_sloped(difficulty, 5/4))
 
 	local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpret this as hyperwarp portal pollution
 	
@@ -107,7 +107,7 @@ function Public.countdown_pollution_rate(jumps, difficulty)
 end
 
 function Public.post_jump_initial_pollution(jumps, difficulty)
-	local baserate = 280 * (2 + jumps) * difficulty_sloped(difficulty, 1/2)
+	local baserate = 200 * (1 + jumps) * math_max(0, difficulty_sloped(difficulty, 5/4))
 
 	local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpret this as hyperwarp portal pollution
 	
@@ -117,7 +117,7 @@ end
 
 function Public.pollution_spent_per_attack(difficulty) return 60 * difficulty_exp(difficulty, -1.4) end
 
-function Public.defaultai_attack_pollution_consumption_modifier(difficulty) return 0.8 end
+function Public.defaultai_attack_pollution_consumption_modifier(difficulty) return 0.8 * difficulty_exp(difficulty, -1.4) end
 
 function Public.MJ_needed_for_full_charge(difficulty, jumps)
 	local baserate = 2000 + 500 * jumps
@@ -157,7 +157,7 @@ function Public.player_gun_speed_modifiers() -- modifiers are fractional
         ['combat-robot-laser'] = 0,
         ['electric'] = 0,
         ['flamethrower'] = 0, --these nerfs are elsewhere for finer control
-        ['grenade'] = -0.1,
+        ['grenade'] = -0.2,
         ['landmine'] = 0,
         ['laser-turret'] = 0,
         ['melee'] = 0, -- doesn't do anything
@@ -183,7 +183,7 @@ function Public.player_ammo_damage_modifiers() -- bullet affects gun turrets, bu
         ['laser-turret'] = 0,
         ['melee'] = 0, -- doesn't do anything
         ['railgun'] = 0,
-        ['rocket'] = -0.1,
+        ['rocket'] = 0,
         ['shotgun-shell'] = 0.1
     }
     return data
@@ -361,10 +361,10 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{0.1, 0.15, 1, false, "oil-refinery", 1, 2},
 
 		--shotgun meta:
-		{12, -0.2, 0.4, true, "shotgun-shell", 12, 24},
-		{8, 0, 0.4, true, "shotgun", 1, 1},
-		{6, 0, 1.2, true, "piercing-shotgun-shell", 12, 24},
-		{3, 0, 1.2, true, "combat-shotgun", 1, 1},
+		{10, -0.2, 0.4, true, "shotgun-shell", 12, 24},
+		{5, 0, 0.4, true, "shotgun", 1, 1},
+		{3, 0, 1.2, true, "piercing-shotgun-shell", 12, 24},
+		{2, 0, 1.2, true, "combat-shotgun", 1, 1},
 
 		--modular armor meta:
 		{0.8, -3, 1, true, "modular-armor", 1, 1},
@@ -593,7 +593,7 @@ function Public.Base_ore_loot_yield(jumps)
 end
 
 function Public.scrap_quantity_multiplier(evolution_factor)
-	return 0.5 + 2.5 * evolution_factor
+	return 1 + 3 * evolution_factor
 end
 
 Public.scrap_yield_amounts = {
