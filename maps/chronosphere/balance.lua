@@ -478,22 +478,6 @@ function Public.treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 7 then --biterwrld
-		specialised_loot_raw = {
-			{4, 0, 1, false, "effectivity-module", 1, 4},
-			{4, 0, 1, false, "productivity-module", 1, 4},
-			{4, 0, 1, false, "speed-module", 1, 4},
-			{2, 0, 1, false, "beacon", 1, 1},
-			{0.5, 0, 1, false, "effectivity-module-2", 1, 4},
-			{0.5, 0, 1, false, "productivity-module-2", 1, 4},
-			{0.5, 0, 1, false, "speed-module-2", 1, 4},
-			{0.1, 0, 1, false, "effectivity-module-3", 1, 4},
-			{0.1, 0, 1, false, "productivity-module-3", 1, 4},
-			{0.1, 0, 1, false, "speed-module-3", 1, 4},
-
-		}
-	end
-
 	if planet.type.id == 5 then --uraniumwrld
 		specialised_loot_raw = {
 			{3, 0, 0.8, true, "steam-turbine", 1, 2},
@@ -511,6 +495,24 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{1, 0.5, 1, false, "atomic-bomb", 1, 1},
 		}
 	end
+
+	--[[
+	if planet.type.id == 7 then --biterwrld
+		specialised_loot_raw = {
+			{4, 0, 1, false, "effectivity-module", 1, 4},
+			{4, 0, 1, false, "productivity-module", 1, 4},
+			{4, 0, 1, false, "speed-module", 1, 4},
+			{2, 0, 1, false, "beacon", 1, 1},
+			{0.5, 0, 1, false, "effectivity-module-2", 1, 4},
+			{0.5, 0, 1, false, "productivity-module-2", 1, 4},
+			{0.5, 0, 1, false, "speed-module-2", 1, 4},
+			{0.1, 0, 1, false, "effectivity-module-3", 1, 4},
+			{0.1, 0, 1, false, "productivity-module-3", 1, 4},
+			{0.1, 0, 1, false, "speed-module-3", 1, 4},
+
+		}
+	end
+	]]
 
 	if planet.type.id == 14 then --ancient battlefield
 		specialised_loot_raw = {
