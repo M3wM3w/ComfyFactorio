@@ -244,7 +244,7 @@ function Public.chronojump(choice)
 
 	if objective.game_lost then goto continue end
 
-	if objective.chronojumps <= 19 then
+	if objective.chronojumps <= 29 then
 		award_coins(
 			Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + objective.jump_countdown_length - objective.passivetimer, global.difficulty_vote_value)
 		)
@@ -389,7 +389,7 @@ function Public.get_total_accu_charge()
 end
 
 
-local function tick()
+local function tick() --only even ticks trigger
 	local objective = Chrono_table.get_table()
 	local tick = game.tick
 
@@ -403,7 +403,7 @@ local function tick()
 		--surface.force_generate_chunk_requests()
 	end
 	
-	if tick % 10 == 0 and objective.planet[1].type.id == 18 then
+	if tick % 12 == 0 and objective.planet[1].type.id == 18 then
 		Tick_functions.spawn_poison()
 	end
 	if tick % 60 == 2 then
@@ -449,7 +449,7 @@ local function tick()
 						local pos = objective.locomotive.position or {x=0,y=0}
 						local exterior_pollution = Balance.countdown_pollution_rate(objective.chronojumps, global.difficulty_vote_value)
 						game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)
-						game.pollution_statistics.on_flow("locomotive", exterior_pollution)
+						-- game.pollution_statistics.on_flow("locomotive", exterior_pollution)
 					end
 				end
 			end
@@ -466,15 +466,12 @@ local function tick()
 		end
 
 		if tick % 600 == 0 then
+			Tick_functions.ramp_evolution()
 			Upgrades.check_upgrades()
 			Tick_functions.transfer_pollution()
 			if objective.poisontimeout > 0 then
 				objective.poisontimeout = objective.poisontimeout - 1
 			end
-		end
-
-		if tick % 1500 == 0 then
-			Tick_functions.boost_evolution()
 		end
 
 		if tick % 1800 == 0 then

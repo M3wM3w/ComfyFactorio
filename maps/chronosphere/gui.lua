@@ -236,6 +236,7 @@ function Public_gui.update_gui(player)
 
 	gui.charger.caption = {"chronosphere.gui_2"}
 
+	--[[
 	if (objective.chronochargesneeded<1000) then
 		gui.charger_value.caption =  objective.chronocharges .. "/" .. objective.chronochargesneeded .. " MJ"
 	elseif (objective.chronochargesneeded<10000) then
@@ -246,6 +247,13 @@ function Public_gui.update_gui(player)
 		gui.charger_value.caption =  math_floor(objective.chronocharges/10000)/100 .. " / " .. math_floor(objective.chronochargesneeded/10000)/100 .. " TJ"
 	else
 		gui.charger_value.caption =  math_floor(objective.chronocharges/100000)/10 .. " / " .. math_floor(objective.chronochargesneeded/100000)/10 .. " TJ"
+	end
+	]]
+	
+	if (objective.chronochargesneeded<100000) then
+		gui.charger_value.caption =  string.format("%.2f", objective.chronocharges/1000) .. " / " .. math_floor(objective.chronochargesneeded)/1000 .. " GJ"
+	else
+		gui.charger_value.caption =  string.format("%.2f", objective.chronocharges/1000000) .. " / " .. math_floor(objective.chronochargesneeded)/1000000 .. " TJ"
 	end
 
 	if objective.jump_countdown_start_time == -1 then

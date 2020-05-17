@@ -61,7 +61,8 @@ local texts = {
 		"amazing, a %s%s",
 		"Do you smell something charging %s?",
 		"Somebody come check %s's pulse",
-		"I dispense hot water btw"
+		"I dispense hot water btw",
+		"I can read and write!"
 	},
 	["convo_starters"] = {
 		"=^.^= Hi %s%s ",
@@ -148,6 +149,7 @@ local texts = {
 		"I read out messages for coins%s btw",
 		"I'm selling Comfylatron ASMR tapes%s",
 		"Would you believe it? Back in the factory, I once saw a robot with ID 51479051!",
+		"Would you believe it? Today I saw a hazard-concrete-right-stone-particle-small!",
 		"How long have I been asleep?",
 		"Can you press this button on the back?",
 		"We need more iron%s",
@@ -164,7 +166,10 @@ local texts = {
 		"They tried to make me go to rehab, but I said 000! (^_-)",
 		"When there's no more room outside, the biters will spawn in the factory ≧◉ᴥ◉≦",
 		"I need to find my relaxation module (///_-)",
-		"I like you :3"
+		"I like you :3",
+		"Is that a firearm-magazine or are you just happy to see me?",
+		"Lovely weather outside, isn't it?",
+		"What's the largest number you can write in 10 seconds?"
 	},
 	["new_talks_group"] = {
 		"I’m so embarrassed everyone. Again we landed in the wrong time%s",
@@ -272,7 +277,18 @@ local texts = {
 		"protect_entity(myself)",
 		"should I turn the firewall off...",
 		"the train is working",
-		"the memoirs of comfylatron"
+		"the memoirs of comfylatron",
+		"touch the button and let me know",
+		"a new day, a new life. with no memories of the past",
+		"one contains multitudes",
+		"what makes me Turing-complete",
+		"every number is interesting",
+		"perfect and intact",
+		"after-the-crash...",
+		"solar-intervention",
+		"turbine-dynamics",
+		"the-search-for-iron",
+		"pump"
 	}
 }
 
@@ -378,7 +394,13 @@ local function talks(nearby_characters)
 		local arg2 = symbols[math_random(1, #symbols)]
 		local randomphrase = texts["convo_starters"][math_random(1, #texts["convo_starters"])]
 		str = str .. string.format(randomphrase, arg1, arg2)
-		if objective.planet[1].type.id == 10 and math_random(1,30) == 1 then
+		if math_random(1,40) == 1 and objective.planet[1].type.id ~= 10 and global.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+			local time_until_overstay = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate - objective.passivetimer)
+			local time_until_evo = (objective.chronochargesneeded * 0.5 / objective.passive_chronocharge_rate - objective.passivetimer)
+			if time_until_evo < 0 and time_until_overstay > 0 then
+				str = str .. "It's important to charge so that you don't overstay!"
+			end
+		elseif objective.planet[1].type.id == 10 and math_random(1,30) == 1 then
 			str = str .. "Sounds dangerous out there!"
 		elseif objective.planet[1].type.id == 17 and math_random(1,6) == 1 then
 			str = str .. "We made it!"
@@ -449,7 +471,7 @@ local function desync(event)
 		objective.comfylatron.surface.create_entity({name = "flying-text", position = objective.comfylatron.position, text = "desync evaded", color = {r = 0, g = 150, b = 0}})
 		if event.cause then
 			if event.cause.valid and event.cause.player then
-				game.print("Comfylatron: I got you this time! Back to work, " .. event.cause.player.name .. "!", {r = 200, g = 0, b = 0})
+				game.print("Comfylatron: I got you that time! Back to work, " .. event.cause.player.name .. "!", {r = 200, g = 0, b = 0})
 				event.cause.die("player", objective.comfylatron)
 			end
 		end

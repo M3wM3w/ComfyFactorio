@@ -43,13 +43,11 @@ end
 function Public.charging_pollution_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 3/5) end
 
 function Public.pollution_filter_upgrade_factor(upgrades2)
-	return 1 / (upgrades2 / 3 + 1) -- 20/05/05: unchanged
+	return 1 / (1 + upgrades2 / 4)
 end
 
-function Public.machine_pollution_transfer_from_inside_factor(difficulty, filter_upgrades) return 3 * Public.pollution_filter_upgrade_factor(filter_upgrades) * difficulty_sloped(difficulty, 2/5) end
+function Public.machine_pollution_transfer_from_inside_factor(difficulty, filter_upgrades) return 3 * Public.pollution_filter_upgrade_factor(filter_upgrades) * difficulty_sloped(difficulty, 3/5) end
 
-
--- 20/05/05: Now that we have a dynamic passive charge rate, we can separate the energy needed to charge from the default length of stay. So we can choose the following however we like:
 
 function Public.passive_planet_jumptime(jumps)
 	local mins
@@ -63,78 +61,9 @@ function Public.passive_planet_jumptime(jumps)
 	return mins * 60
 end
 
-function Public.passive_pollution_rate(jumps, difficulty, filter_upgrades)
-	local baserate = 2 * jumps -- 20/05/05: unchanged
-
-	local modifiedrate = baserate * Public.charging_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
-  
-	return modifiedrate
-end
-
-function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgrades) -- 20/05/05: 1CC = 1MJ
-	--previously 1CC was 3MJ, and 1MJ active charge produced (10 + 2 * jumps) pollution
-
-	local baserate = 1 * (10 + 2 * jumps)
-
-	local modifiedrate = baserate * Public.charging_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
-	
-	return modifiedrate
-end
-
-function Public.countdown_pollution_rate(jumps, difficulty)
-	local baserate = 50 * (10 + 2 * jumps)
-
-	local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpreting this as hyperwarp portal pollution
-	
-	return modifiedrate
-end
-
-function Public.post_jump_initial_pollution(jumps, difficulty)
-	local baserate = 300 * (2 + jumps)
-
-	local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpreting this as hyperwarp portal pollution
-	
-	return modifiedrate
-end
-
-
-function Public.pollution_spent_per_attack(difficulty) return 50 * difficulty_exp(difficulty, -1.2) end -- 20/05/05: now scales as -1.2 rather than -1
-
-function Public.defaultai_attack_pollution_consumption_modifier(difficulty) return 0.8 end -- 20/05/05: unchanged, just exposed here. change?
-
--- 20/05/05: changing this now affects ONLY how many kWH you need to get to the next level:
-function Public.MJ_needed_for_full_charge(difficulty, jumps)
-	local baserate = 2000 + 600 * jumps -- thesixthroc: I believe around here is good
-
-	local modifiedrate
-	if difficulty <= 1 then modifiedrate = baserate end
-	if difficulty > 1 and jumps>0 then modifiedrate = baserate + 2000 + 100 * jumps end
-	return modifiedrate
-end
-
-
-
------ GENERAL BALANCE ----
-
-Public.Chronotrain_max_HP = 10000
-Public.Chronotrain_HP_repaired_per_pack = 150
-
-Public.starting_items = {['pistol'] = 1, ['firearm-magazine'] = 32, ['grenade'] = 2, ['raw-fish'] = 4, ['wood'] = 16}
-Public.wagon_starting_items = {{name = 'firearm-magazine', count = 16},{name = 'iron-plate', count = 16},{name = 'wood', count = 16},{name = 'burner-mining-drill', count = 8}}
-
-function Public.jumps_until_overstay_is_on(difficulty) --both overstay penalties, and evoramp
-	if difficulty > 1 then return 2
-	elseif difficulty == 1 then return 3
-	else return 5
-	end
-end
-
-function Public.pistol_damage_multiplier(difficulty) return 2.5 end --3 will one-shot biters
-function Public.damage_research_effect_on_shotgun_multipler(difficulty) return 1.2 end
-
 function Public.generate_jump_countdown_length(difficulty)
 	if difficulty <= 1 then
-		return Rand.raffle({90,120,150,180,210},{1,8,64,8,1})
+		return Rand.raffle({90,120,150,180,210,240,270},{1,2,20,60,15,2,1})
 	else
 		return 180 -- thesixthroc: suppress rng for speedrunners
 	end
@@ -150,6 +79,74 @@ function Public.misfire_percentage_chance(difficulty)
 --	return 0
 end
 
+function Public.passive_pollution_rate(jumps, difficulty, filter_upgrades)
+	local baserate = 4 * jumps
+
+	local modifiedrate = baserate * Public.charging_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
+  
+	return modifiedrate
+end
+
+function Public.active_pollution_per_chronocharge(jumps, difficulty, filter_upgrades)
+
+	local baserate = 1.5 * (10 + jumps)
+
+	local modifiedrate = baserate * Public.charging_pollution_difficulty_scaling(difficulty) * Public.pollution_filter_upgrade_factor(filter_upgrades)
+	
+	return modifiedrate
+end
+
+function Public.countdown_pollution_rate(jumps, difficulty)
+	local baserate = 50 * (10 + jumps)
+
+	local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpret this as hyperwarp portal pollution
+	
+	return modifiedrate
+end
+
+function Public.post_jump_initial_pollution(jumps, difficulty)
+	local baserate = 280 * (2 + jumps) * difficulty_sloped(difficulty, 1/2)
+
+	local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpret this as hyperwarp portal pollution
+	
+	return modifiedrate
+end
+
+
+function Public.pollution_spent_per_attack(difficulty) return 50 * difficulty_exp(difficulty, -1.4) end
+
+function Public.defaultai_attack_pollution_consumption_modifier(difficulty) return 0.75 end
+
+function Public.MJ_needed_for_full_charge(difficulty, jumps)
+	local baserate = 2000 + 500 * jumps
+
+	local modifiedrate
+	if difficulty <= 1 then modifiedrate = baserate end
+	if difficulty > 1 and jumps>0 then modifiedrate = baserate + 2000 end
+	return modifiedrate
+end
+
+
+
+----- GENERAL BALANCE ----
+
+Public.Chronotrain_max_HP = 10000
+Public.Chronotrain_HP_repaired_per_pack = 150
+Public.Tech_price_multiplier = 0.7
+
+Public.starting_items = {['pistol'] = 1, ['firearm-magazine'] = 32, ['grenade'] = 2, ['raw-fish'] = 4, ['wood'] = 16}
+Public.wagon_starting_items = {{name = 'firearm-magazine', count = 16},{name = 'iron-plate', count = 16},{name = 'wood', count = 16},{name = 'burner-mining-drill', count = 8}}
+
+function Public.jumps_until_overstay_is_on(difficulty) --both overstay penalties, and evoramp
+	if difficulty > 1 then return 2
+	elseif difficulty == 1 then return 3
+	else return 5
+	end
+end
+
+function Public.pistol_damage_multiplier(difficulty) return 2.5 end --3 will one-shot biters
+function Public.damage_research_effect_on_shotgun_multipler(difficulty) return 1.2 end
+
 function Public.coin_reward_per_second_jumped_early(seconds, difficulty)
 	local minutes = seconds / 60
 	local amount = minutes * 20 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
@@ -160,9 +157,9 @@ function Public.upgrades_coin_cost_difficulty_scaling(difficulty) return difficu
 
 function Public.flamers_nerfs_size(jumps, difficulty) return 0.02 * jumps * difficulty_sloped(difficulty, 1/2) end
 
-function Public.max_new_attack_group_size(difficulty) return math_max(188,math_floor(120 * difficulty_sloped(difficulty, 4/5))) end
+function Public.max_new_attack_group_size(difficulty) return math_max(200,math_floor(120 * difficulty_sloped(difficulty, 1))) end
 
-function Public.evoramp50_multiplier_per_second(difficulty) return (1 + 1/500 * difficulty_sloped(difficulty, 2/5)) end
+function Public.evoramp50_multiplier_per_10s(difficulty) return (1 + 1/200 * difficulty_sloped(difficulty, 3/5)) end
 
 function Public.nukes_looted_per_silo(difficulty) return math_max(10, 10 * math_ceil(difficulty_sloped(difficulty, 1))) end
 
@@ -177,7 +174,7 @@ Public.biome_weights = {
 	dumpwrld = 1,
 	coalwrld = 1,
 	scrapwrld = 3,
-	cavewrld = 1, -- 20/05/05: reduced from 2 to 1, this map is the most laggy...
+	cavewrld = 1,
 	forestwrld = 2,
 	riverwrld = 2,
 	hellwrld = 1,
@@ -187,6 +184,10 @@ Public.biome_weights = {
 	swampwrld = 2,
 	nukewrld = 0
 }
+function Public.Base_ore_loot_yield(jumps)
+	return 5 + jumps
+end
+
 function Public.ore_richness_weights(difficulty)
   local ores_weights
   if difficulty <= 0.25
@@ -227,7 +228,7 @@ function Public.market_offers()
     {price = {{"coin", 40}}, offer = {type = 'give-item', item = 'wood', count = 50}},
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'iron-ore', count = 50}},
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'copper-ore', count = 50}},
-    {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'stone', count = 50}}, -- 20/05/05: not needed I think
+    {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'stone', count = 50}}, -- needed?
     {price = {{"coin", 100}}, offer = {type = 'give-item', item = 'coal', count = 50}},
     {price = {{"coin", 400}}, offer = {type = 'give-item', item = 'uranium-ore', count = 50}},
     {price = {{"coin", 50}, {"empty-barrel", 1}}, offer = {type = 'give-item', item = 'crude-oil-barrel', count = 1}},
@@ -241,7 +242,6 @@ function Public.market_offers()
 end
 function Public.initial_cargo_boxes()
 	return {
-		-- 20/05/05: early-game grenades turned off to encourage treasure hunting:
 		-- {name = "grenade", count = math_random(2, 3)},
 		-- {name = "grenade", count = math_random(2, 3)},
 		-- {name = "grenade", count = math_random(2, 3)},
@@ -263,7 +263,6 @@ function Public.initial_cargo_boxes()
 		{name = "copper-plate", count = math_random(15, 23)},
 		{name = "copper-plate", count = math_random(15, 23)},
 		{name = "copper-plate", count = math_random(15, 23)},
-		-- 20/05/05: shotguns relatively weak until first tech upgrade, so let's avoid disappointment and's make players get these more from treasure hunting:
 		-- {name = "shotgun", count = 1},
 		-- {name = "shotgun", count = 1},
 		-- {name = "shotgun", count = 1},
@@ -277,7 +276,6 @@ function Public.initial_cargo_boxes()
 		{name = "rail", count = math_random(16, 24)},
 
 
-		-- 20/05/05: compensate for removed items, aiming to slightly mix up the initial play patterns:
 		{name = "loader", count = 1},
 		{name = "coal", count = math_random(32, 64)},
 		{name = "coal", count = math_random(32, 64)},
@@ -300,7 +298,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		--always there (or normally always there):
 		{4, 0, 1, false, "pistol", 1, 2},
 		{1, 0, 1, false, "gun-turret", 2, 4},
-		{6, 0, 1, false, "grenade", 16, 32},
+		{6, 0, 1, false, "grenade", 2, 28},
 		{4, 0, 1, false, "stone-wall", 33, 99},
 		{4, 0, 1, false, "gate", 16, 32},
 		{2, 0, 1, false, "radar", 1, 2},
@@ -318,6 +316,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{0.25, 0, 1, false, "uranium-rounds-magazine", 1, 4},
 		{2, 0.15, 1, false, "pumpjack", 1, 3},
 		{2, 0.15, 1, false, "pump", 1, 2},
+		{0.1, 0.15, 1, false, "oil-refinery", 1, 2},
 
 		--shotgun meta:
 		{12, -0.2, 0.4, true, "shotgun-shell", 12, 24},
@@ -326,8 +325,8 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{3, 0, 1.2, true, "combat-shotgun", 1, 1},
 
 		--modular armor meta:
-		{1, -3, 1, true, "modular-armor", 1, 1},
-		{1, 0.3, 1, true, "power-armor", 1, 1},
+		{0.8, -3, 1, true, "modular-armor", 1, 1},
+		{0.5, 0.3, 1, true, "power-armor", 1, 1},
 		-- {0.5, -1,3, true, "power-armor-mk2", 1, 1},
 		{2, 0, 1, true, "solar-panel-equipment", 1, 2},
 		{2, 0, 1, true, "battery-equipment", 1, 1},
@@ -350,8 +349,8 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{10, 0.5, 1.5, true, "space-science-pack", 16, 24},
 
 		--early-game:
-		{3, -0.1, 0.1, true, "wooden-chest", 8, 16},
-		{5, -0.1, 0.1, true, "burner-inserter", 8, 16},
+		{3, -0.1, 0.1, true, "wooden-chest", 8, 40},
+		{5, -0.1, 0.1, true, "burner-inserter", 8, 20},
 		{1, -0.2, 0.2, true, "offshore-pump", 1, 3},
 		{3, -0.2, 0.2, true, "boiler", 3, 6},
 		{6, -0.2, 0.2, true, "lab", 1, 2},
@@ -359,10 +358,10 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{3, -0.2, 0.2, true, "burner-mining-drill", 2, 4},
 		{2.7, 0, 0.15, false, "submachine-gun", 1, 3},
 		{0.3, 0, 0.15, false, "vehicle-machine-gun", 1, 1},
-		{4, 0, 0.3, true, "iron-chest", 8, 16},
+		{3, 0, 0.3, true, "iron-chest", 8, 40},
 		{4, -0.3, 0.3, true, "light-armor", 1, 1},
 		{4, -0.3, 0.3, true, "inserter", 8, 16},
-		{8, -0.3, 0.3, true, "small-electric-pole", 16, 24},
+		{8, -0.3, 0.3, true, "small-electric-pole", 16, 32},
 		{6, -0.4, 0.4, true, "stone-furnace", 8, 16},
 		{8, -0.5, 0.5, true, "firearm-magazine", 32, 128},
 		{1, -0.3, 0.3, true, "underground-belt", 4, 8},
@@ -371,27 +370,27 @@ function Public.treasure_chest_loot(difficulty, planet)
 		{5, -0.7, 0.7, true, "transport-belt", 25, 75},
 
 		--mid-game:
-		{4, -0.2, 0.7, true, "pipe", 30, 50},
+		{5, -0.2, 0.7, true, "pipe", 30, 50},
 		{1, -0.2, 0.7, true, "pipe-to-ground", 4, 8},
-		{4, -0.2, 0.7, true, "iron-gear-wheel", 60, 120},
-		{4, -0.2, 0.7, true, "copper-cable", 80, 200},
-		{4, -0.2, 0.7, true, "electronic-circuit", 50, 150},
-		{3, -0.1, 0.8, true, "fast-transport-belt", 25, 75},
-		{3, -0.1, 0.8, true, "fast-underground-belt", 4, 8},
-		{3, -0.1, 0.8, true, "fast-splitter", 1, 4},
-		{1, 0, 0.6, true, "storage-tank", 2, 6},
-		{3, 0, 0.6, true, "heavy-armor", 1, 1},
-		{2, 0, 0.7, true, "steel-plate", 25, 75},
-		{5, 0, 0.9, true, "piercing-rounds-magazine", 32, 128},
-		{2, 0.2, 0.6, true, "engine-unit", 16, 32},
-		{3, 0, 1, true, "fast-inserter", 8, 16},
-		{4, 0, 1, true, "steel-furnace", 4, 8},
-		{4, 0, 1, true, "assembling-machine-2", 2, 4},
-		{4, 0, 1, true, "medium-electric-pole", 8, 16},
-		{4, 0, 1, true, "accumulator", 4, 8},
-		{4, 0, 1, true, "solar-panel", 3, 6},
-		{7, 0, 1, true, "steel-chest", 8, 16},
-		{2, 0.2, 1, true, "chemical-plant", 1, 3},
+		{5, -0.2, 0.7, true, "iron-gear-wheel", 60, 120},
+		{5, -0.2, 0.7, true, "copper-cable", 60, 200},
+		{5, -0.2, 0.7, true, "electronic-circuit", 50, 150},
+		{4, -0.1, 0.8, true, "fast-transport-belt", 25, 75},
+		{4, -0.1, 0.8, true, "fast-underground-belt", 4, 8},
+		{4, -0.1, 0.8, true, "fast-splitter", 1, 4},
+		{2, 0, 0.6, true, "storage-tank", 2, 6},
+		{4, 0, 0.6, true, "heavy-armor", 1, 1},
+		{3, 0, 0.7, true, "steel-plate", 25, 75},
+		{8, 0, 0.9, true, "piercing-rounds-magazine", 32, 128},
+		{4, 0.2, 0.6, true, "engine-unit", 16, 32},
+		{4, 0, 1, true, "fast-inserter", 8, 16},
+		{5, 0, 1, true, "steel-furnace", 4, 8},
+		{5, 0, 1, true, "assembling-machine-2", 2, 4},
+		{5, 0, 1, true, "medium-electric-pole", 8, 16},
+		{5, 0, 1, true, "accumulator", 4, 8},
+		{5, 0, 1, true, "solar-panel", 3, 6},
+		{8, 0, 1, true, "steel-chest", 8, 16},
+		{3, 0.2, 1, true, "chemical-plant", 1, 3},
 
 		--late-game:
 		{3, 0, 1.2, true, "rocket-launcher", 1, 1},
@@ -425,8 +424,9 @@ function Public.treasure_chest_loot(difficulty, planet)
 
 		--{2, 0, 1, , "computer", 1, 1},
 		--{1, 0.2, 1, , "railgun", 1, 1},
-		--{2, 0.3, 1, , "oil-refinery", 2, 4},
 		--{1, 0.9, 1, , "personal-roboport-mk2-equipment", 1, 1},
+		-- "refined-hazard-concrete"
+		-- "uranium-238"
 	}
 	local specialised_loot_raw = {}
 
@@ -452,14 +452,14 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{3, -0.5, 1, true, "steam-turbine", 1, 2},
 			{3, -0.5, 1, true, "heat-exchanger", 2, 4},
 			{3, -0.5, 1, true, "heat-pipe", 4, 8},
-			{2, 0, 2, true, "uranium-rounds-magazine", 8, 64},
+			{2, 0, 2, true, "uranium-rounds-magazine", 6, 48},
 			{2, 0.2, 1, false, "nuclear-reactor", 1, 1},
 			{2, 0.2, 1, false, "centrifuge", 1, 1},
 			{3, 0.3, 1, false, "nuclear-fuel", 1, 1},
 			{2, 0.3, 1, false, "fusion-reactor-equipment", 1, 1},
 			{1, 0.5, 1, false, "atomic-bomb", 1, 1},
-			{2, 0, 1, true, "uranium-cannon-shell", 16, 32},
-			{5, 0.4, 1.6, true, "explosive-uranium-cannon-shell", 16, 32},
+			{2, 0, 1, true, "uranium-cannon-shell", 12, 32},
+			{5, 0.4, 1.6, true, "explosive-uranium-cannon-shell", 12, 32},
 		}
 	end
 
@@ -512,7 +512,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 			{1, 0.5, 1, false, "energy-shield-mk2-equipment", 1, 1},
 			{1, 0.5, 1, false, "battery-mk2-equipment", 1, 1},
 
-			{3, -0, 1, true, "copper-cable", 20, 80},
+			{3, 0, 1, true, "copper-cable", 20, 400},
 			{3, -0.3, 0.6, true, "electronic-circuit", 50, 100},
 			{3, 0.2, 1.4, true, "advanced-circuit", 50, 100},
 			{3, 0.5, 1.5, true, "processing-unit", 50, 100},
@@ -521,7 +521,8 @@ function Public.treasure_chest_loot(difficulty, planet)
 
 	if planet.type.id == 18 then --swampwrld
 		specialised_loot_raw = {
-			{24, 0, 1, false, "poison-capsule", 8, 16},
+			{30, 0, 1, false, "poison-capsule", 4, 24},
+			{30, 0, 1, false, "sulfuric-acid-barrel", 4, 8},
 		}
 	end
 
@@ -537,7 +538,7 @@ function Public.treasure_chest_loot(difficulty, planet)
 end
 
 function Public.scrap_quantity_multiplier(evolution_factor, mining_drill_productivity_bonus)
-	return 0.6 + 2.4 * evolution_factor --removed dependence on mining drill tech bonus to nerf tech slightly and make the map more distinctive
+	return 0.5 + 2.5 * evolution_factor --removed dependence on mining drill tech bonus to nerf tech slightly and make the map more distinctive
 end
 
 Public.scrap_yield_amounts = {

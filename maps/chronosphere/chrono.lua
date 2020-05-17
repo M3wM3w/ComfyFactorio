@@ -71,7 +71,7 @@ function Public_chrono.restart_settings()
 	global.difficulty_poll_closing_timeout = game.tick + 35 * 60 * 60 --any time during first level; this becomes set to gametick when the jump happens
 	global.difficulty_player_votes = {}
 
-	game.difficulty_settings.technology_price_multiplier = 0.6
+	game.difficulty_settings.technology_price_multiplier = Balance.Tech_price_multiplier
 	game.map_settings.enemy_evolution.destroy_factor = 0.005
 	game.map_settings.enemy_evolution.pollution_factor = 0
 	game.map_settings.enemy_evolution.time_factor = 7e-05
@@ -80,16 +80,21 @@ function Public_chrono.restart_settings()
 	game.map_settings.enemy_expansion.min_expansion_cooldown = 3600
 	game.map_settings.enemy_expansion.settler_group_max_size = 8
 	game.map_settings.enemy_expansion.settler_group_min_size = 16
+    game.map_settings.enemy_expansion.max_expansion_distance = 9
 	game.map_settings.pollution.enabled = true
-	game.map_settings.pollution.expected_max_per_chunk = 400 -- 20/05/05: scales the pollution view on map, could still be tuned
+	game.map_settings.pollution.expected_max_per_chunk = 400
+	game.map_settings.pollution.min_to_show_per_chunk = 100
 	game.map_settings.pollution.pollution_restored_per_tree_damage = 0.02
 	game.map_settings.pollution.min_pollution_to_damage_trees = 1
 	game.map_settings.pollution.max_pollution_to_restore_trees = 0
 	game.map_settings.pollution.pollution_with_max_forest_damage = 10
 	game.map_settings.pollution.pollution_per_tree_damage = 0.1
 	game.map_settings.pollution.ageing = 0.1
-	game.map_settings.pollution.diffusion_ratio = 0.12 -- 20/05/05: up a bit... any higher and it's too anisotropic
+	game.map_settings.pollution.diffusion_ratio = 0.12
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 5
+	game.map_settings.unit_group.min_group_gathering_time = 1800
+	game.map_settings.unit_group.max_group_gathering_time = 18000
+	game.map_settings.unit_group.max_wait_time_for_late_members = 1800
 	game.forces.neutral.character_inventory_slots_bonus = 500
 	game.forces.enemy.evolution_factor = 0.0001
 	game.forces.scrapyard.set_friend('enemy', true)
@@ -146,7 +151,7 @@ function Public_chrono.process_jump()
 
 	objective.chronojumps = objective.chronojumps + 1
 	objective.passivetimer = 0
-	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps) -- 20/05/05: since 1CC = 1MJ now
+	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps)
 	objective.passive_chronocharge_rate = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps) / Balance.passive_planet_jumptime(objective.chronojumps)
 	objective.active_biters = {}
 	objective.unit_groups = {}

@@ -65,13 +65,13 @@ function Public_tick.transfer_pollution()
   surface.clear_pollution()
 end
 
-function Public_tick.boost_evolution()
+function Public_tick.ramp_evolution()
   local objective = Chrono_table.get_table()
   local difficulty = global.difficulty_vote_value
 
 	if objective.passivetimer * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.50 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
 		local evolution = game.forces.enemy.evolution_factor
-		evolution = evolution * Balance.evoramp50_multiplier_per_second(difficulty)
+		evolution = evolution * Balance.evoramp50_multiplier_per_10s(difficulty)
 		if evolution > 1 then evolution = 1 end
 		game.forces.enemy.evolution_factor = evolution
 	end
@@ -147,7 +147,6 @@ function Public_tick.spawn_poison()
   local tile = surface.get_tile(random_x, random_y)
   if not tile.valid then return end
   if tile.name == "water-shallow" or tile.name == "water-mud" then
-    -- 20/05/05: wider poison clouds, different shapes
     random_angles = {math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359))}
 
     surface.create_entity({name = "poison-cloud", position = {x = random_x, y = random_y}})

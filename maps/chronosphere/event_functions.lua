@@ -11,11 +11,10 @@ local math_floor = math.floor
 
 local function get_ore_amount()
 	local objective = Chrono_table.get_table()
-	local scaling = 5 * objective.chronojumps
-	local amount = (30 + scaling) * (1 + game.forces.player.mining_drill_productivity_bonus / 2) * objective.planet[1].ore_richness.factor
+
+	local amount = Balance.Base_ore_loot_yield(objective.chronojumps) * objective.planet[1].ore_richness.factor
 	if amount > 600 then amount = 600 end
 	amount = math_random(math_floor(amount * 0.7), math_floor(amount * 1.3))
-	return amount
 end
 
 local function reward_ores(amount, mined_loot, surface, player, entity)
@@ -128,8 +127,8 @@ function Public_event.choppy_loot(event)
 	if choppy_entity_yield[entity.name] then
 		if event.buffer then event.buffer.clear() end
 		if not event.player_index then return end
-		local amount = math_floor(get_ore_amount() / 6) -- 20/05/05: rebalanced
-		local second_item_amount = math_random(2,5)
+		local amount = math_floor(math_floor(get_ore_amount() / 6))
+		local second_item_amount = math_random(1,3)
 		local second_item = "wood"
 		local main_item = choppy_entity_yield[entity.name][math_random(1,#choppy_entity_yield[entity.name])]
 
@@ -156,7 +155,7 @@ function Public_event.rocky_loot(event)
 	local surface = game.surfaces[objective.active_surface_index]
 	local player = game.players[event.player_index]
 	surface.spill_item_stack(player.position,{name = "raw-fish", count = math_random(1,3)},true)
-	local amount = get_ore_amount() / 3 -- 20/05/05: rebalanced
+	local amount = math_floor(get_ore_amount() / 2)
 	local rock_mining = {"iron-ore", "iron-ore", "iron-ore", "iron-ore", "copper-ore", "copper-ore", "copper-ore", "stone", "stone", "coal", "coal"}
 	local mined_loot = rock_mining[math_random(1,#rock_mining)]
 	surface.create_entity({
@@ -187,9 +186,9 @@ function Public_event.swamp_loot(event)
 		["spitter-spawner"] = 10,
 	}
 	local surface = game.surfaces[objective.active_surface_index]
-	local amount = get_ore_amount() / 20
+	local amount = math_floor(get_ore_amount() / 40)
 	if ore_yield[event.entity.name] then
-		amount = (get_ore_amount() * ore_yield[event.entity.name]) / 20
+		amount = math_floor((get_ore_amount() * ore_yield[event.entity.name]) / 40)
 	end
 	if amount > 50 then amount = 50 end
 

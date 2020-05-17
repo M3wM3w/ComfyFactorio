@@ -465,21 +465,21 @@ end
 
 Public.pre_main_attack = function()
   local objective = Chrono_table.get_table()
-  if objective.chronocharges < 100 then return end
+  if objective.passivetimer < 60 then return end
 	local surface = game.surfaces[objective.active_surface_index]
   set_biter_raffle_table(surface)
 end
 
 Public.perform_main_attack = function()
   local objective = Chrono_table.get_table()
-  if objective.chronocharges < 100 then return end
+  if objective.passivetimer < 60 then return end
 	local surface = game.surfaces[objective.active_surface_index]
 	create_attack_group(surface)
 end
 
 Public.wake_up_sleepy_groups = function()
   local objective = Chrono_table.get_table()
-  if objective.chronocharges < 100 then return end
+  if objective.passivetimer < 60 then return end
   local entity
 	local unit_group
 	for _, biter in pairs(objective.active_biters) do
