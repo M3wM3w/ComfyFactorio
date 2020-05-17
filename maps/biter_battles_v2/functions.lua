@@ -136,17 +136,16 @@ end
 
 function Public.init_player(player)
 	local surface = game.surfaces.biter_battles
-	if player.crafting_queue_size and player.crafting_queue_size > 0 then
-		for i = 1, #player.crafting_queue, 1 do
-			if player.crafting_queue_size == 0 then break end
-			player.cancel_crafting({index = 1, count = 65535})
-		end
-	end
+	if player.character and player.character.valid then
+		player.character.destroy()
+		player.set_controller({type = defines.controllers.god})
+		player.create_character()
+	end	
 	player.clear_items_inside()
 	player.spectator = true
 	player.force = game.forces.spectator
 	if surface.is_chunk_generated({0,0}) then
-		player.teleport(surface.find_non_colliding_position("character", {0,0}, 3, 0.5), surface)
+		player.teleport(surface.find_non_colliding_position("character", {0,0}, 4, 0.5), surface)
 	else
 		player.teleport({0,0}, surface)
 	end

@@ -1,6 +1,7 @@
 local Chrono_table = require 'maps.chronosphere.table'
 local Balance = require 'maps.chronosphere.balance'
 local Score = require "comfy_panel.score"
+local Difficulty = require 'modules.difficulty_vote'
 local Public_chrono = {}
 
 local Server = require 'utils.server'
@@ -29,13 +30,12 @@ end
 function Public_chrono.restart_settings()
 	local get_score = Score.get_table()
 	local objective = Chrono_table.get_table()
-	if not global.difficulty_vote_value then global.difficulty_vote_value = 1 end
     objective.max_health = Balance.Chronotrain_max_HP
 	objective.health = Balance.Chronotrain_max_HP
 	objective.poisontimeout = 0
 	objective.chronocharges = 0
-	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, 0)
-	objective.passive_chronocharge_rate = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, 0) / Balance.passive_planet_jumptime(0) --per second rate
+	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(Difficulty.get().difficulty_vote_value, 0)
+	objective.passive_chronocharge_rate = Balance.MJ_needed_for_full_charge(Difficulty.get().difficulty_vote_value, 0) / Balance.passive_planet_jumptime(0) --per second rate
 	objective.accumulator_energy_history = {}
 	objective.passivetimer = 0
 	objective.overstaycount = 0
@@ -68,8 +68,8 @@ function Public_chrono.restart_settings()
 	global.landfill_history = {}
 	global.mining_history = {}
 	get_score.score_table = {}
-	global.difficulty_poll_closing_timeout = game.tick + 35 * 60 * 60 --any time during first level; this becomes set to gametick when the jump happens
-	global.difficulty_player_votes = {}
+	Difficulty.reset_difficulty_poll()
+	Difficulty.set_poll_closing_timeout(game.tick + 35 * 60 * 60)
 
 	game.difficulty_settings.technology_price_multiplier = Balance.Tech_price_multiplier
 	game.map_settings.enemy_evolution.destroy_factor = 0.005
@@ -140,7 +140,7 @@ local function check_nuke_silos()
 	if objective.dangers and #objective.dangers > 1 then
 		for i = 1, #objective.dangers, 1 do
 		if objective.dangers[i].destroyed == true then
-			objective.looted_nukes = objective.looted_nukes + Balance.nukes_looted_per_silo(global.difficulty_vote_value)
+			objective.looted_nukes = objective.looted_nukes + Balance.nukes_looted_per_silo(Difficulty.get().difficulty_vote_value)
 		end
 		end
 	end
@@ -151,8 +151,8 @@ function Public_chrono.process_jump()
 
 	objective.chronojumps = objective.chronojumps + 1
 	objective.passivetimer = 0
-	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps)
-	objective.passive_chronocharge_rate = Balance.MJ_needed_for_full_charge(global.difficulty_vote_value, objective.chronojumps) / Balance.passive_planet_jumptime(objective.chronojumps)
+	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(Difficulty.get().difficulty_vote_value, objective.chronojumps)
+	objective.passive_chronocharge_rate = Balance.MJ_needed_for_full_charge(Difficulty.get().difficulty_vote_value, objective.chronojumps) / Balance.passive_planet_jumptime(objective.chronojumps)
 	objective.active_biters = {}
 	objective.unit_groups = {}
 	objective.biter_raffle = {}
@@ -164,7 +164,7 @@ function Public_chrono.process_jump()
 	game.print(message, {r=0.98, g=0.66, b=0.22})
 	Server.to_discord_embed(message)
 
-	if objective.chronojumps == Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+	if objective.chronojumps == Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
 		game.print({"chronosphere.message_evolve"}, {r=0.98, g=0.36, b=0.22})
 	elseif objective.chronojumps >= 15 and objective.computermessage == 0 then
 		game.print({"chronosphere.message_quest1"}, {r=0.98, g=0.36, b=0.22})
@@ -176,8 +176,9 @@ function Public_chrono.process_jump()
 		game.print({"chronosphere.message_quest5"}, {r=0.98, g=0.36, b=0.22})
     objective.computermessage = 5
 	end
-	if (objective.passivetimer - objective.jump_countdown_length) * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.75 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+	if (objective.passivetimer - objective.jump_countdown_length) * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.75 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
     	game.print({"chronosphere.message_overstay"}, {r=0.98, g=0.36, b=0.22})
+		Server.to_discord_embed("We took so long to get off that planet, our future destinations have evolved a little...")
   	end
   	if objective.planet[1].type.id == 19 then
 		check_nuke_silos()
@@ -224,7 +225,7 @@ end
 
 function Public_chrono.post_jump()
 	local objective = Chrono_table.get_table()
-	local difficulty = global.difficulty_vote_value
+	local difficulty = Difficulty.get().difficulty_vote_value
 	  
   	game.forces.enemy.reset_evolution()
 	if objective.chronojumps + objective.overstaycount <= 40 and objective.planet[1].type.id ~= 17 then

@@ -51,8 +51,8 @@ function Public.wave_defense_set_unit_raffle(level)
 		wave_defense_table.spitter_raffle["big-spitter"] = (level - 500) * 2
 	end
 	if level > 800 then
-		wave_defense_table.biter_raffle["behemoth-biter"] = (level - 800) * 3
-		wave_defense_table.spitter_raffle["behemoth-spitter"] = (level - 800) * 3
+		wave_defense_table.biter_raffle["behemoth-biter"] = (level - 800) * 2.75
+		wave_defense_table.spitter_raffle["behemoth-spitter"] = (level - 800) * 2.75
 	end
 	for k, v in pairs(wave_defense_table.biter_raffle) do
 		if wave_defense_table.biter_raffle[k] < 0 then wave_defense_table.biter_raffle[k] = 0 end

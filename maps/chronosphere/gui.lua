@@ -7,6 +7,7 @@ local math_max = math.max
 local math_min = math.min
 local Upgrades = require "maps.chronosphere.upgrade_list"
 local Balance = require "maps.chronosphere.balance"
+local Difficulty = require 'modules.difficulty_vote'
 
 local function create_gui(player)
 	local frame = player.gui.top.add({ type = "frame", name = "chronosphere"})
@@ -155,7 +156,7 @@ end
 
 local function update_planet_gui(player)
 	local objective = Chrono_table.get_table()
-	local difficulty = global.difficulty_vote_value
+	local difficulty = Difficulty.get().difficulty_vote_value
 
 	if not player.gui.screen["gui_planet"] then return end
 	local planet = objective.planet[1]
@@ -212,7 +213,7 @@ local function ETA_seconds_until_full(power, storedbattery) -- in watts and joul
 
 	if n <= 0 then return 0
 	else
-		local eta = (n - storedbattery/1000000) / (power/1000000 + objective.passive_chronocharge_rate)
+		local eta = math_max(0, n - storedbattery/1000000) / (power/1000000 + objective.passive_chronocharge_rate)
 		if eta < 1 then return 1 end
 		return math_floor(eta)
 	end
@@ -220,7 +221,7 @@ end
 
 function Public_gui.update_gui(player)
   local objective = Chrono_table.get_table()
-  local difficulty = global.difficulty_vote_value
+  local difficulty = Difficulty.get().difficulty_vote_value
 
   local tick = game.tick
 	update_planet_gui(player)

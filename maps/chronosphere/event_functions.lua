@@ -1,5 +1,6 @@
 local Chrono_table = require 'maps.chronosphere.table'
 local Balance = require 'maps.chronosphere.balance'
+local Difficulty = require 'modules.difficulty_vote'
 local Public_event = {}
 
 local tick_tack_trap = require "functions.tick_tack_trap"
@@ -209,7 +210,7 @@ function Public_event.danger_silo(entity)
 		if objective.dangers and #objective.dangers > 1 then
 	    for i = 1, #objective.dangers, 1 do
 	      if entity == objective.dangers[i].silo then
-					game.print({"chronosphere.message_silo", Balance.nukes_looted_per_silo(global.difficulty_vote_value)}, {r=0.98, g=0.66, b=0.22})
+					game.print({"chronosphere.message_silo", Balance.nukes_looted_per_silo(Difficulty.get().difficulty_vote_value)}, {r=0.98, g=0.66, b=0.22})
 					objective.dangers[i].destroyed = true
 					objective.dangers[i].silo = nil
 					objective.dangers[i].speaker.destroy()
@@ -240,7 +241,7 @@ function Public_event.biter_immunities(event)
 				end
 			end
 		-- else -- other planets
-		-- 	event.entity.health = math_floor(event.entity.health + event.final_damage_amount - (event.final_damage_amount / (1 + 0.02 * global.difficulty_vote_value * objective.chronojumps)))
+		-- 	event.entity.health = math_floor(event.entity.health + event.final_damage_amount - (event.final_damage_amount / (1 + 0.02 * Difficulty.get().difficulty_vote_value * objective.chronojumps)))
 		end
 	elseif event.damage_type.name == "poison" then
 		if planet == 18 then --swamp planet
@@ -251,7 +252,7 @@ end
 
 function Public_event.flamer_nerfs()
 	local objective = Chrono_table.get_table()
-	local difficulty = global.difficulty_vote_value
+	local difficulty = Difficulty.get().difficulty_vote_value
 	
 	local flame_researches = {
 		[1] = {name = "refined-flammables-1", bonus = 0.2},

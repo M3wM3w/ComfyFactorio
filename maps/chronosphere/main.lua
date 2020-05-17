@@ -25,6 +25,7 @@ local Chrono = require "maps.chronosphere.chrono"
 local Chrono_table = require 'maps.chronosphere.table'
 local Locomotive = require "maps.chronosphere.locomotive"
 local Gui = require "maps.chronosphere.gui"
+local Difficulty = require 'modules.difficulty_vote'
 local math_random = math.random
 local math_floor = math.floor
 local math_sqrt = math.sqrt
@@ -137,7 +138,6 @@ local function reset_map()
 	for i = 13, 16, 1 do
 		objective.upgrades[i] = 0
 	end
-	global.difficulty_vote_value = 1
 	objective.computermessage = 0
 	objective.chronojumps = 0
 
@@ -239,14 +239,14 @@ function Public.chronojump(choice)
 	local objective = Chrono_table.get_table()
 
 	if objective.chronojumps == 0 then
-		global.difficulty_poll_closing_timeout = game.tick
+		Difficulty.set_poll_closing_timeout(game.tick)
 	end
 
 	if objective.game_lost then goto continue end
 
 	if objective.chronojumps <= 29 then
 		award_coins(
-			Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + objective.jump_countdown_length - objective.passivetimer, global.difficulty_vote_value)
+			Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + objective.jump_countdown_length - objective.passivetimer, Difficulty.get().difficulty_vote_value)
 		)
 	end
 
@@ -282,7 +282,7 @@ function Public.chronojump(choice)
 
 	--
     local pos = objective.locomotive.position or {x=0,y=0}
-    local exterior_pollution = math_floor(Balance.post_jump_initial_pollution(objective.chronojumps, global.difficulty_vote_value))
+    local exterior_pollution = math_floor(Balance.post_jump_initial_pollution(objective.chronojumps, Difficulty.get().difficulty_vote_value))
     game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)
     game.pollution_statistics.on_flow("locomotive", exterior_pollution)
 
@@ -306,7 +306,7 @@ local tick_minute_functions = {
 
 local function initiate_jump_countdown()
 	local objective = Chrono_table.get_table()
-	local difficulty = global.difficulty_vote_value
+	local difficulty = Difficulty.get().difficulty_vote_value
 	local length = Balance.generate_jump_countdown_length(difficulty)
 
 	objective.jump_countdown_start_time = objective.passivetimer
@@ -317,14 +317,14 @@ end
 local function check_if_overstayed()
 	local objective = Chrono_table.get_table()
 
-	  if objective.passivetimer * objective.passive_chronocharge_rate > (objective.chronochargesneeded * 0.75) and objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+	  if objective.passivetimer * objective.passive_chronocharge_rate > (objective.chronochargesneeded * 0.75) and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
 		  objective.overstaycount = objective.overstaycount + 1
 	  end
 end
 
 function Public.add_chronocharge()
 	local objective = Chrono_table.get_table()
-	local difficulty = global.difficulty_vote_value
+	local difficulty = Difficulty.get().difficulty_vote_value
 
 end
 
@@ -348,7 +348,7 @@ local function drain_accumulators()
 			if objective.locomotive ~= nil and objective.locomotive.valid then
 		
 				local pos = objective.locomotive.position or {x=0,y=0}
-				local exterior_pollution = Balance.active_pollution_per_chronocharge(objective.chronojumps, difficulty, objective.upgrades[2])
+				local exterior_pollution = Balance.pollution_per_MJ_actively_charged(objective.chronojumps, difficulty, objective.upgrades[2])
 				game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)
 				game.pollution_statistics.on_flow("locomotive", exterior_pollution)
 			
@@ -363,7 +363,7 @@ end
 
 function Public.attempt_to_jump()
 	local objective = Chrono_table.get_table()
-	local difficulty = global.difficulty_vote_value
+	local difficulty = Difficulty.get().difficulty_vote_value
 	
 	if 100 * math_random() <= Balance.misfire_percentage_chance(difficulty) then
 		game.print({"chronosphere.message_jump_misfire"}, {r=0.98, g=0.66, b=0.22})
@@ -403,7 +403,7 @@ local function tick() --only even ticks trigger
 		--surface.force_generate_chunk_requests()
 	end
 	
-	if tick % 12 == 0 and objective.planet[1].type.id == 18 then
+	if tick % 14 == 0 and objective.planet[1].type.id == 18 then
 		Tick_functions.spawn_poison()
 	end
 	if tick % 60 == 2 then
@@ -422,6 +422,8 @@ local function tick() --only even ticks trigger
 	end
 
 	if tick % 30 == 0 then
+		local difficulty = Difficulty.get().difficulty_vote_value
+		
 		if tick % 60 == 0 and objective.planet[1].type.id ~= 17 then
 			objective.passivetimer = objective.passivetimer + 1
 
@@ -447,7 +449,7 @@ local function tick() --only even ticks trigger
 						Public.attempt_to_jump()
 					else
 						local pos = objective.locomotive.position or {x=0,y=0}
-						local exterior_pollution = Balance.countdown_pollution_rate(objective.chronojumps, global.difficulty_vote_value)
+						local exterior_pollution = Balance.countdown_pollution_rate(objective.chronojumps, Difficulty.get().difficulty_vote_value)
 						game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)
 						-- game.pollution_statistics.on_flow("locomotive", exterior_pollution)
 					end
@@ -455,14 +457,14 @@ local function tick() --only even ticks trigger
 			end
 
 		end
+
+		if tick % 60 == 0 then
+			drain_accumulators()
+		end
 		
 		if tick % 120 == 0 then
 			Tick_functions.move_items()
 			Tick_functions.output_items()
-		end
-
-		if tick % 180 == 0 then
-			drain_accumulators()
 		end
 
 		if tick % 600 == 0 then
@@ -524,7 +526,6 @@ local function on_init()
 	game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint, false)
 
 	reset_map()
-	-- Chrono.init_setup() --superfluous with reset_map()
 	--if game.surfaces["nauvis"] then game.delete_surface(game.surfaces["nauvis"]) end
 end
 

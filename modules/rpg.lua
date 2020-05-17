@@ -60,6 +60,32 @@ local classes = {
 	["vitality"] = "TANK",
 }
 
+local xp_yield = {
+	["behemoth-biter"] = 16,
+	["behemoth-spitter"] = 16,
+	["behemoth-worm-turret"] = 64,
+	["big-biter"] = 8,
+	["big-spitter"] = 8,
+	["big-worm-turret"] = 48,
+	["biter-spawner"] = 64,	
+	["character"] = 16,
+	["gun-turret"] = 8,
+	["laser-turret"] = 16,
+	["medium-biter"] = 4,
+	["medium-spitter"] = 4,
+	["medium-worm-turret"] = 32,
+	["small-biter"] = 1,
+	["small-spitter"] = 1,
+	["small-worm-turret"] = 16,
+	["spitter-spawner"] = 64,
+}
+
+local enemy_types = {
+	["unit"] = true,
+	["unit-spawner"] = true,
+	["turret"] = true,
+}
+
 local function level_up_effects(player)
 	local position = {x = player.position.x - 0.75, y = player.position.y - 1}
 	player.surface.create_entity({name = "flying-text", position = position, text = "+LVL ", color = level_up_floating_text_color})
@@ -527,26 +553,6 @@ local function on_gui_click(event)
 	draw_gui(player, true)
 end
 
-local xp_yield = {
-	["behemoth-biter"] = 16,
-	["behemoth-spitter"] = 16,
-	["behemoth-worm-turret"] = 64,
-	["big-biter"] = 8,
-	["big-spitter"] = 8,
-	["big-worm-turret"] = 48,
-	["biter-spawner"] = 64,	
-	["character"] = 16,
-	["gun-turret"] = 8,
-	["laser-turret"] = 16,
-	["medium-biter"] = 4,
-	["medium-spitter"] = 4,
-	["medium-worm-turret"] = 32,
-	["small-biter"] = 1,
-	["small-spitter"] = 1,
-	["small-worm-turret"] = 16,
-	["spitter-spawner"] = 64,
-}
-
 local function train_type_cause(cause)	
 	local players = {}
 	if cause.train.passengers then
@@ -612,7 +618,7 @@ local function on_entity_died(event)
 	
 	--Grant modified XP for health boosted units
 	if global.biter_health_boost then
-		if event.entity.type == "unit" then
+		if enemy_types[event.entity.type] then
 			for _, player in pairs(players) do
 				if xp_yield[event.entity.name] then
 					gain_xp(player, xp_yield[event.entity.name] * global.biter_health_boost)

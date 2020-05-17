@@ -1,5 +1,6 @@
 local Chrono_table = require 'maps.chronosphere.table'
 local Balance = require 'maps.chronosphere.balance'
+local Difficulty = require 'modules.difficulty_vote'
 local Rand = require 'maps.chronosphere.random'
 
 local Public = {}
@@ -67,7 +68,7 @@ local ore_richness_variants = { -- 20/04/04: less variance in the factors here i
 
 function Public.determine_planet(choice)
   local objective = Chrono_table.get_table()
-  local difficulty = global.difficulty_vote_value
+  local difficulty = Difficulty.get().difficulty_vote_value
 
   local ores = Rand.raffle(ore_richness_variants, Balance.ore_richness_weights(difficulty))
   local dayspeed = Rand.raffle(time_speed_variants, Balance.dayspeed_weights)

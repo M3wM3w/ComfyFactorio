@@ -1,22 +1,40 @@
 local event = require 'utils.event'
 local Balance = require 'maps.chronosphere.balance'
+local Difficulty = require 'modules.difficulty_vote'
 
 local function on_research_finished(event)
-    local difficulty = global.difficulty_vote_value
-	local multiplier = Balance.damage_research_effect_on_shotgun_multipler(difficulty)
+    local difficulty = Difficulty.get().difficulty_vote_value
 
 	local research = event.research
-	if string.sub(research.name, 0, 26) ~= "physical-projectile-damage" then return end
+	local p_force = research.force
 	
-	local modifier = game.forces[research.force.name].get_ammo_damage_modifier("shotgun-shell")
-	modifier = modifier - research.effects[3].modifier
-	modifier = modifier + research.effects[3].modifier * multiplier
+    for _, e in ipairs(research.effects) do
+		local t = e.type
+        if t == 'ammo-damage' then
+            local category = e.ammo_category
+            local factor = Balance.player_ammo_damage_modifiers()[category] or 0
+
+            if factor then
+                local current_m = p_force.get_ammo_damage_modifier(category)
+                local m = e.modifier
+                p_force.set_ammo_damage_modifier(category, current_m + factor * m)
+            end
+		elseif t == 'gun-speed' then
+			local category = e.ammo_category
+			local factor = Balance.player_gun_speed_modifiers()[category] or 0
 	
-	game.forces[research.force.name].set_ammo_damage_modifier("shotgun-shell", modifier)
+			if factor then
+				local current_m = p_force.get_gun_speed_modifier(category)
+				local m = e.modifier
+				p_force.set_gun_speed_modifier(category, current_m + factor * m)
+			end
+		end
+	end
+	
 end
 
 local function on_entity_damaged(event)
-    local difficulty = global.difficulty_vote_value
+    local difficulty = Difficulty.get().difficulty_vote_value
     local bonus = Balance.pistol_damage_multiplier(difficulty) - 1
 
 	if not event.cause then return end
@@ -37,5 +55,16 @@ local function on_entity_damaged(event)
 	event.entity.damage(event.final_damage_amount * bonus, player.force, "impact", player)
 end
 
+local function init_player_weapon_balance()
+    for k, v in pairs(Balance.player_ammo_damage_modifiers()) do
+        game.forces['player'].set_ammo_damage_modifier(k, v)
+    end
+
+    for k, v in pairs(Balance.player_gun_speed_modifiers()) do
+        game.forces['player'].set_gun_speed_modifier(k, v)
+    end
+end
+
+event.on_init(init_player_weapon_balance)
 event.add(defines.events.on_entity_damaged, on_entity_damaged)
 event.add(defines.events.on_research_finished, on_research_finished)

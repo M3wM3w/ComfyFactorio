@@ -1,5 +1,6 @@
 local Chrono_table = require 'maps.chronosphere.table'
 local Balance = require 'maps.chronosphere.balance'
+local Difficulty = require 'modules.difficulty_vote'
 local Public_tick = {}
 
 local math_random = math.random
@@ -33,7 +34,7 @@ function Public_tick.realtime_events()
     end
   end
 
-  if objective.jump_countdown_start_time == -1 and objective.passivetimer == math_floor(objective.chronochargesneeded * 0.50 / objective.passive_chronocharge_rate) and objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+  if objective.jump_countdown_start_time == -1 and objective.passivetimer == math_floor(objective.chronochargesneeded * 0.50 / objective.passive_chronocharge_rate) and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
 		game.print({"chronosphere.message_rampup50"}, {r=0.98, g=0.66, b=0.22})
   end
 
@@ -50,7 +51,7 @@ end
 
 function Public_tick.transfer_pollution()
   local objective = Chrono_table.get_table()
-  local difficulty = global.difficulty_vote_value
+  local difficulty = Difficulty.get().difficulty_vote_value
 
 	local surface = game.surfaces["cargo_wagon"]
   if not surface or not objective.locomotive.valid then return end
@@ -60,16 +61,16 @@ function Public_tick.transfer_pollution()
   local exterior_pollution =  total_interior_pollution * Balance.machine_pollution_transfer_from_inside_factor(difficulty, objective.upgrades[2])
   
   game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, exterior_pollution)
-  -- attribute the difference to the locomotive:
+  -- ascribe the difference to the locomotive:
 	game.pollution_statistics.on_flow("locomotive", exterior_pollution - total_interior_pollution)
   surface.clear_pollution()
 end
 
 function Public_tick.ramp_evolution()
   local objective = Chrono_table.get_table()
-  local difficulty = global.difficulty_vote_value
+  local difficulty = Difficulty.get().difficulty_vote_value
 
-	if objective.passivetimer * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.50 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(global.difficulty_vote_value) then
+	if objective.passivetimer * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.50 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
 		local evolution = game.forces.enemy.evolution_factor
 		evolution = evolution * Balance.evoramp50_multiplier_per_10s(difficulty)
 		if evolution > 1 then evolution = 1 end
@@ -139,21 +140,32 @@ function Public_tick.repair_train()
   return count * -Balance.Chronotrain_HP_repaired_per_pack
 end
 
-function Public_tick.spawn_poison()
+local function create_poison_cloud(position)
   local objective = Chrono_table.get_table()
   local surface = game.surfaces[objective.active_surface_index]
-  local random_x = math_random(-460,460)
-  local random_y = math_random(-460,460)
-  local tile = surface.get_tile(random_x, random_y)
+
+  local tile = surface.get_tile(position.x, position.y)
+  if not tile then return end
   if not tile.valid then return end
   if tile.name == "water-shallow" or tile.name == "water-mud" then
-    random_angles = {math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359))}
+    local random_angles = {math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359))}
+  
+    surface.create_entity({name = "poison-cloud", position = {x = position.x, y = position.y}})
+    surface.create_entity({name = "poison-cloud", position = {x = position.x + 12 * math_cos(random_angles[1]), y = position.y + 12 * math_sin(random_angles[1])}})
+    surface.create_entity({name = "poison-cloud", position = {x = position.x + 12 * math_cos(random_angles[2]), y = position.y + 12 * math_sin(random_angles[2])}})
+    surface.create_entity({name = "poison-cloud", position = {x = position.x + 12 * math_cos(random_angles[3]), y = position.y + 12 * math_sin(random_angles[3])}})
+    surface.create_entity({name = "poison-cloud", position = {x = position.x + 12 * math_cos(random_angles[4]), y = position.y + 12 * math_sin(random_angles[4])}})
+  end
+end
 
-    surface.create_entity({name = "poison-cloud", position = {x = random_x, y = random_y}})
-    surface.create_entity({name = "poison-cloud", position = {x = random_x + 12 * math_cos(random_angles[1]), y = random_y + 12 * math_sin(random_angles[1])}})
-    surface.create_entity({name = "poison-cloud", position = {x = random_x + 12 * math_cos(random_angles[2]), y = random_y + 12 * math_sin(random_angles[2])}})
-    surface.create_entity({name = "poison-cloud", position = {x = random_x + 12 * math_cos(random_angles[3]), y = random_y + 12 * math_sin(random_angles[3])}})
-    surface.create_entity({name = "poison-cloud", position = {x = random_x + 12 * math_cos(random_angles[4]), y = random_y + 12 * math_sin(random_angles[4])}})
+function Public_tick.spawn_poison()
+  local random_x = math_random(-460,460)
+  local random_y = math_random(-460,460)
+  create_poison_cloud{x = position.x, y = position.y}
+  if math_random(1,3) == 1 then
+    local random_angles = {math_rad(math_random(359)),math_rad(math_random(359))}
+    create_poison_cloud{x = position.x + 24 * math_cos(random_angles[1]), y = position.y + 24 * math_sin(random_angles[1])}
+    create_poison_cloud{x = position.x + 24 * math_cos(random_angles[2]), y = position.y + 24 * math_sin(random_angles[2])}
   end
 end
 

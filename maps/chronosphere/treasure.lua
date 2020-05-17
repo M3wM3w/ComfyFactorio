@@ -1,6 +1,7 @@
 local Chrono_table = require 'maps.chronosphere.table'
 local Rand = require 'maps.chronosphere.random'
 local Balance = require 'maps.chronosphere.balance'
+local Difficulty = require 'modules.difficulty_vote'
 local math_random = math.random
 local math_abs = math.abs
 local math_max = math.max
@@ -15,7 +16,7 @@ function Public.treasure_chest(surface, position, container_name)
   	local jumps = 0
 	if objective.chronojumps then jumps = objective.chronojumps end
 	local difficulty = 1
-	if global.difficulty_vote_value then difficulty = global.difficulty_vote_value end
+	if Difficulty.get().difficulty_vote_value then difficulty = Difficulty.get().difficulty_vote_value end
 	if jumps == 0 then difficulty = 1 end --Always treat the first level as normal difficulty
 
 	local chest_raffle = {}

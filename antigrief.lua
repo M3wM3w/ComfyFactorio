@@ -201,6 +201,30 @@ local function on_entity_died(event)
 	global.friendly_fire_history[#global.friendly_fire_history + 1] = str	
 end
 
+local chest_types = {
+	["container"] = true,
+	["logistic-container"] = true
+}
+
+--Bad Fire History
+local function on_entity_died_do_actual_usefull_logging(event)
+	if not event.cause then return end
+	if event.cause.name ~= "character" then return end
+	local player = event.cause.player
+	if not player then return end
+	if not chest_types[event.entity.type] then return end
+
+	if event.entity.get_item_count("explosives") < 100 then return end
+
+	if not global.bad_fire_history then global.bad_fire_history = {} end
+	if #global.bad_fire_history > 999 then global.bad_fire_history = {} end
+
+	local str = player.name .. " destroyed container with explosives amount: " .. event.entity.get_item_count("explosives") .. ", at location: "
+	str = str .. " at X:" .. event.entity.position.x .. " Y:" .. event.entity.position.y
+
+	global.bad_fire_history[#global.bad_fire_history + 1] = str
+end
+
 --Mining Thieves History
 local function on_player_mined_entity(event)
 	if not event.entity.last_user then return end
@@ -249,6 +273,7 @@ end
 
 event.add(defines.events.on_player_mined_entity, on_player_mined_entity)
 event.add(defines.events.on_entity_died, on_entity_died)
+event.add(defines.events.on_entity_died, on_entity_died_do_actual_usefull_logging)
 event.add(defines.events.on_built_entity, on_built_entity)
 event.add(defines.events.on_gui_opened, on_gui_opened)
 event.add(defines.events.on_marked_for_deconstruction, on_marked_for_deconstruction)

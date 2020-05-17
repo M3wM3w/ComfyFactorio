@@ -21,9 +21,9 @@ local nth_tick = 54001 -- nearest prime to 15 minutes in ticks
 
 Global.register(
     {
-    session=session,
-    online_track=online_track,
-    trusted=trusted
+        session = session,
+        online_track = online_track,
+        trusted = trusted
     },
     function(tbl)
         session = tbl.session
@@ -35,12 +35,12 @@ Global.register(
 local Public = {}
 
 if _DEBUG then
-printinfo =
-    Token.register(
-    function(data)
-        game.print(serpent.block(data))
-    end
-)
+    printinfo =
+        Token.register(
+        function(data)
+            game.print(serpent.block(data))
+        end
+    )
 end
 
 local try_download_data =
@@ -97,7 +97,7 @@ function Public.try_dl_data(key)
     else
         try_get_data(session_data_set, key, try_download_data)
         secs = nil
-    end 
+    end
 end
 
 --- Tries to get data from the webpanel and updates the local table with values.
@@ -111,7 +111,7 @@ function Public.try_ul_data(key)
     else
         try_get_data(session_data_set, key, try_upload_data)
         secs = nil
-    end 
+    end
 end
 
 --- Checks if a player exists within the table
@@ -159,7 +159,7 @@ Event.add(
             return
         end
         if game.is_multiplayer() then
-            Public.try_dl_data(player.name)   
+            Public.try_dl_data(player.name)
         else
             session[player.name] = player.online_time
         end
@@ -174,7 +174,7 @@ Event.add(
             return
         end
         if game.is_multiplayer() then
-        Public.try_ul_data(player.name)
+            Public.try_ul_data(player.name)
         end
     end
 )

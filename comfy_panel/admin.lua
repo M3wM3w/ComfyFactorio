@@ -234,7 +234,8 @@ local create_admin_panel = (function (player, frame)
 	line.style.top_margin = 8
 	line.style.bottom_margin = 8
 	
-	local histories = {}	
+	local histories = {}
+	if global.bad_fire_history then table.insert(histories, "Bad Fire History") end
 	if global.friendly_fire_history then table.insert(histories, "Friendly Fire History") end
 	if global.mining_history then table.insert(histories, "Mining History") end
 	if global.landfill_history then table.insert(histories, "Landfill History") end
@@ -258,6 +259,7 @@ local create_admin_panel = (function (player, frame)
 	local history = frame["admin_history_select"].items[frame["admin_history_select"].selected_index]
 	
 	local history_index = {
+		["Bad Fire History"] = global.bad_fire_history,
 		["Friendly Fire History"] = global.friendly_fire_history,
 		["Mining History"] = global.mining_history,
 		["Landfill History"] = global.landfill_history,

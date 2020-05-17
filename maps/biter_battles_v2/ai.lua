@@ -59,7 +59,7 @@ local function get_target_entity(force_name)
 		end
 	end	
 	if not target_entity then print("Unable to get target entity for " .. force_name .. ".") return end	
-	print("Target entity for " .. force_name .. ": " .. target_entity.name .. " at x=" .. target_entity.position.x .. " y=" .. target_entity.position.y)
+	--print("Target entity for " .. force_name .. ": " .. target_entity.name .. " at x=" .. target_entity.position.x .. " y=" .. target_entity.position.y)
 	return target_entity
 end
 
@@ -318,7 +318,7 @@ local function get_nearby_biter_nest(target_entity)
 	end
 	
 	if not spawner then return end
-	print("Nearby biter nest found at x=" .. spawner.position.x .. " y=" .. spawner.position.y .. ".")
+	--print("Nearby biter nest found at x=" .. spawner.position.x .. " y=" .. spawner.position.y .. ".")
 	return spawner
 end
 
@@ -407,7 +407,7 @@ Public.wake_up_sleepy_groups = function()
 					if unit_group.valid then
 						if unit_group.state == defines.group_state.finished then
 							send_group(unit_group, force_name)
-							print("BiterBattles: Woke up Unit Group at x" .. unit_group.position.x .. " y" .. unit_group.position.y .. ".")
+							--print("BiterBattles: Woke up Unit Group at x" .. unit_group.position.x .. " y" .. unit_group.position.y .. ".")
 							return
 						end
 					end

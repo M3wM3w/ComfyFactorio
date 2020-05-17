@@ -21,16 +21,6 @@ local score_list = (function (player, frame)
 	local line = frame.add { type = "line"}
 	line.style.top_margin = 4
 	line.style.bottom_margin = 4
-	
-	local label = frame.add ({ type = "label", caption = highscore.caption})
-	label.style.font = "heading-1"
-	label.style.minimal_width = 780
-	label.style.horizontal_align = "center"
-	label.style.vertical_align = "center"
-	
-	local line = frame.add { type = "line"}
-	line.style.top_margin = 4
-	line.style.bottom_margin = 4
 
 	local scroll_pane = frame.add { type = "scroll-pane", name = "scroll_pane", direction = "vertical", horizontal_scroll_policy = "never", vertical_scroll_policy = "auto"}
 	scroll_pane.style.minimal_width = 780
@@ -47,7 +37,7 @@ local score_list = (function (player, frame)
 	label.style.minimal_width = 160
 	label.style.font = "heading-2"
 	label.style.padding = 3
-	local label = t.add ({ type = "label", caption = "Won rounds:"})
+	local label = t.add ({ type = "label", caption = global.custom_highscore.description})
 	label.style.minimal_width = 160
 	label.style.font = "heading-2"
 	label.style.padding = 3
@@ -67,6 +57,10 @@ local score_list = (function (player, frame)
 end
 )
 
+function Public.set_score_description(str)
+	global.custom_highscore.description = str
+end
+
 function Public.set_score(player, count)
 	local score_list = global.custom_highscore.score_list
 	score_list[player.index] = count
@@ -80,12 +74,12 @@ end
 
 local function on_init()
 	global.custom_highscore = {
-		caption = "Highscores of the session:",
+		description = "Won rounds:",
 		score_list = {},
 	}
 end
 
-comfy_panel_tabs["Map Scores"] = score_list
+comfy_panel_tabs["Map Scores"] = {gui = score_list, admin = false}
 
 local event = require 'utils.event'
 event.on_init(on_init)

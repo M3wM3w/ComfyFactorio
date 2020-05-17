@@ -4,6 +4,7 @@ local Public_ores = {}
 local simplex_noise = require 'utils.simplex_noise'.d2
 local math_random = math.random
 local math_floor = math.floor
+local math_ceil = math.ceil
 
 local function draw_noise_ore_patch(position, name, surface, radius, richness, mixed)
 	if not position then return end
@@ -74,7 +75,7 @@ end
 local function get_oil_amount(pos, oil_w, richness)
   local objective = Chrono_table.get_table()
   local hundred_percent = 300000
-	return (hundred_percent / 50) * (1+objective.chronojumps) * oil_w * richness
+	return math_ceil((hundred_percent / 100) * (4 + objective.chronojumps) * oil_w * richness / 3)
 end
 
 local function spawn_ore_vein(surface, pos, planet)
@@ -109,9 +110,9 @@ local function spawn_ore_vein(surface, pos, planet)
 
   --if surface.can_place_entity({name = choice, position = pos, amount = 1}) then
     if choice == "crude-oil" then
-      surface.create_entity({name = "crude-oil", position = pos, amount = get_oil_amount(pos, oil.w, planet[1].ore_richness.factor) / 2 })
+      surface.create_entity({name = "crude-oil", position = pos, amount = get_oil_amount(pos, oil.w, planet[1].ore_richness.factor) })
     else
-      draw_noise_ore_patch(pos, choice, surface, get_size_of_ore(choice, planet), richness / 2, mixed)
+      draw_noise_ore_patch(pos, choice, surface, get_size_of_ore(choice, planet), richness * 0.75, mixed)
     end
   --end
 end
@@ -157,7 +158,7 @@ local function on_player_mined_entity(event)
 	local scrap = scrap_raffle[math.random(1, size_of_scrap_raffle)]
   
   
-  local amount_bonus_multiplier = Balance.scrap_quantity_multiplier(game.forces.enemy.evolution_factor, game.forces.player.mining_drill_productivity_bonus)
+  local amount_bonus_multiplier = Balance.scrap_quantity_multiplier(game.forces.enemy.evolution_factor)
 
 	local r1 = math.ceil(Balance.scrap_yield_amounts[scrap] * 0.3 * amount_bonus_multiplier)
 	local r2 = math.ceil(Balance.scrap_yield_amounts[scrap] * 1.7 * amount_bonus_multiplier)	
