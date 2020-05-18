@@ -6,7 +6,6 @@ require "modules.no_deconstruction_of_neutral_entities"
 --require "modules.no_solar"
 require "maps.chronosphere.comfylatron"
 require "maps.chronosphere.terrain"
-require "maps.chronosphere.weapon_buffs"
 require "on_tick_schedule"
 require "modules.biter_noms_you"
 -- require "modules.custom_death_messages"
@@ -166,7 +165,9 @@ local function reset_map()
 	objective.game_lost = false
 	objective.game_won = false
 
-	--set_difficulty()
+	game.permissions.get_group("Default").set_allows_action(defines.input_action.grab_blueprint_record, false)
+	game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint_string, false)
+	game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint, false)
 end
 
 local function on_player_joined_game(event)
@@ -520,10 +521,14 @@ local function on_init()
 	mgs.height = 16
 	game.surfaces["nauvis"].map_gen_settings = mgs
 	game.surfaces["nauvis"].clear()
+	
+    for k, v in pairs(Balance.player_ammo_damage_modifiers()) do
+        game.forces['player'].set_ammo_damage_modifier(k, v)
+    end
 
-	game.permissions.get_group("Default").set_allows_action(defines.input_action.grab_blueprint_record, false)
-	game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint_string, false)
-	game.permissions.get_group("Default").set_allows_action(defines.input_action.import_blueprint, false)
+    for k, v in pairs(Balance.player_gun_speed_modifiers()) do
+        game.forces['player'].set_gun_speed_modifier(k, v)
+    end
 
 	reset_map()
 	--if game.surfaces["nauvis"] then game.delete_surface(game.surfaces["nauvis"]) end
@@ -549,17 +554,6 @@ local function protect_entity(event)
 		end
 		if not event.entity.valid then return end
 		event.entity.health = event.entity.health + event.final_damage_amount
-	end
-end
-
-local function on_entity_damaged(event)
-	if not event.entity.valid then	return end
-	protect_entity(event)
-	if not event.entity.valid then	return end
-	if not event.entity.health then return end
-	Event_functions.biters_chew_rocks_faster(event)
-	if event.entity.force.name == "enemy" then
-		Event_functions.biter_immunities(event)
 	end
 end
 
@@ -643,11 +637,6 @@ local function on_entity_died(event)
 	end
 end
 
-local function on_research_finished(event)
-	Event_functions.flamer_nerfs()
-	Event_functions.mining_buffs(event)
-end
-
 local function on_player_driving_changed_state(event)
 	local player = game.players[event.player_index]
 	local vehicle = event.entity
@@ -703,6 +692,69 @@ local function on_technology_effects_reset(event)
 	Event_functions.on_technology_effects_reset(event)
 end
 
+local function on_research_finished(event)
+	local difficulty = Difficulty.get().difficulty_vote_value
+	
+	Event_functions.flamer_nerfs()
+	Event_functions.mining_buffs(event)
+
+	local research = event.research
+	local p_force = research.force
+	
+    for _, e in ipairs(research.effects) do
+		local t = e.type
+        if t == 'ammo-damage' then
+            local category = e.ammo_category
+            local factor = Balance.player_ammo_damage_modifiers()[category] or 0
+
+            if factor then
+                local current_m = p_force.get_ammo_damage_modifier(category)
+                local m = e.modifier
+                p_force.set_ammo_damage_modifier(category, current_m + factor * m)
+            end
+		elseif t == 'gun-speed' then
+			local category = e.ammo_category
+			local factor = Balance.player_gun_speed_modifiers()[category] or 0
+	
+			if factor then
+				local current_m = p_force.get_gun_speed_modifier(category)
+				local m = e.modifier
+				p_force.set_gun_speed_modifier(category, current_m + factor * m)
+			end
+		end
+	end
+	
+end
+
+local function on_entity_damaged(event)
+    local difficulty = Difficulty.get().difficulty_vote_value
+	
+	if not event.entity.valid then return end
+	protect_entity(event)
+	if not event.entity.valid then return end
+	if not event.entity.health then return end
+	Event_functions.biters_chew_rocks_faster(event)
+	if event.entity.force.name == "enemy" then
+		Event_functions.biter_immunities(event)
+	end
+
+	if not event.cause then return end
+	if not event.cause.valid then return end
+	if event.cause.name ~= "character" then return end
+	if event.damage_type.name ~= "physical" then return end
+
+	local player = event.cause
+	if player.shooting_state.state == defines.shooting.not_shooting then return end
+	local weapon = player.get_inventory(defines.inventory.character_guns)[player.selected_gun_index]
+	local ammo = player.get_inventory(defines.inventory.character_ammo)[player.selected_gun_index]
+  if not weapon.valid_for_read or not ammo.valid_for_read then return end
+	if weapon.name ~= "pistol" then return end
+	if ammo.name ~= "firearm-magazine" and ammo.name ~= "piercing-rounds-magazine" and ammo.name ~= "uranium-rounds-magazine" then return end
+  if not event.entity.valid then return end 
+	event.entity.damage(event.final_damage_amount * (Balance.pistol_damage_multiplier(difficulty) - 1), player.force, "impact", player)
+end
+
+
 
 local event = require 'utils.event'
 event.on_init(on_init)
@@ -719,6 +771,7 @@ event.add(defines.events.on_player_driving_changed_state, on_player_driving_chan
 event.add(defines.events.on_player_changed_position, on_player_changed_position)
 event.add(defines.events.on_technology_effects_reset, on_technology_effects_reset)
 event.add(defines.events.on_gui_click, Gui.on_gui_click)
+
 
 if _DEBUG then
 	local Session = require 'utils.session_data'
