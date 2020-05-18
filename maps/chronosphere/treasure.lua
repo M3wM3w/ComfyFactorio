@@ -20,8 +20,8 @@ local function treasure_chest_loot(difficulty, planet)
 	local loot_data_raw= {
 		--always there (or normally always there):
 
-		{6, 0, 1, false, "railgun-dart", 10, 20}, -- thesixthroc: this should not scale with jumps. reward treasure hunting currency the same at all jump numbers
-		{6, 0, 1, false, "coin", 4, 60},
+		{8, 0, 1, false, "railgun-dart", 8, 16}, -- thesixthroc: this should not scale with jumps. reward treasure hunting currency the same at all jump numbers
+		{8, 0, 1, false, "coin", 4, 60},
 
 		{4, 0, 1, false, "pistol", 1, 2},
 		{1, 0, 1, false, "gun-turret", 2, 4},
