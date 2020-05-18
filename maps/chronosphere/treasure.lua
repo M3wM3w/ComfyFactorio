@@ -18,46 +18,48 @@ local function treasure_chest_loot(difficulty, planet)
 	end
 	
 	local loot_data_raw= {
-		{5, 0, 1, false, "railgun-dart", 8, 20}, -- thesixthroc: this should not scale with jumps. reward treasure hunting currency the same at all jump numbers
-
 		--always there (or normally always there):
+
+		{6, 0, 1, false, "railgun-dart", 10, 20}, -- thesixthroc: this should not scale with jumps. reward treasure hunting currency the same at all jump numbers
+		{6, 0, 1, false, "coin", 4, 60},
+
 		{4, 0, 1, false, "pistol", 1, 2},
 		{1, 0, 1, false, "gun-turret", 2, 4},
-		{6, 0, 1, false, "grenade", 2, 28},
-		{4, 0, 1, false, "stone-wall", 33, 99},
-		{4, 0, 1, false, "gate", 16, 32},
-		{2, 0, 1, false, "radar", 1, 2},
+		{6, 0, 1, false, "grenade", 2, 21},
+		{4, 0, 1, false, "stone-wall", 24, 100},
+		{4, 0, 1, false, "gate", 14, 32},
+		{1, 0, 1, false, "radar", 1, 2},
 		{1, 0, 1, false, "explosives", 10, 50},
 		{6, 0, 1, false, "small-lamp", 8, 32},
 		{2, 0, 1, false, "electric-mining-drill", 2, 4},
 		{3, 0, 1, false, "long-handed-inserter", 4, 16},
-		{0.5, 0, 1, false, "filter-inserter", 4, 16},
-		{0.2, 0, 1, false, "stack-filter-inserter", 4, 8},
-		{0.5, 0, 1, false, "slowdown-capsule", 4, 8},
-		{0.5, 0, 1, false, "destroyer-capsule", 4, 8},
-		{0.5, 0, 1, false, "defender-capsule", 4, 8},
-		{0.5, 0, 1, false, "distractor-capsule", 4, 8},
+		{0.5, 0, 1, false, "filter-inserter", 2, 12},
+		{0.2, 0, 1, false, "stack-filter-inserter", 2, 6},
+		{0.2, 0, 1, false, "slowdown-capsule", 2, 4},
+		{0.2, 0, 1, false, "destroyer-capsule", 2, 4},
+		{0.2, 0, 1, false, "defender-capsule", 2, 4},
+		{0.2, 0, 1, false, "distractor-capsule", 2, 4},
 		{0.25, 0, 1, false, "rail", 50, 100},
 		{0.25, 0, 1, false, "uranium-rounds-magazine", 1, 4},
+		{1, 0.15, 1, false, "pump", 1, 2},
 		{2, 0.15, 1, false, "pumpjack", 1, 3},
-		{2, 0.15, 1, false, "pump", 1, 2},
-		{0.1, 0.15, 1, false, "oil-refinery", 1, 2},
+		{0.02, 0.15, 1, false, "oil-refinery", 1, 2},
 
 		--shotgun meta:
 		{10, -0.2, 0.4, true, "shotgun-shell", 12, 24},
 		{5, 0, 0.4, true, "shotgun", 1, 1},
-		{3, 0, 1.2, true, "piercing-shotgun-shell", 12, 24},
+		{3, 0, 1.2, true, "piercing-shotgun-shell", 8, 24},
 		{2, 0, 1.2, true, "combat-shotgun", 1, 1},
 
 		--modular armor meta:
-		{0.8, -3, 1, true, "modular-armor", 1, 1},
-		{0.5, 0.3, 1, true, "power-armor", 1, 1},
+		{0.7, -3, 1, true, "modular-armor", 1, 1},
+		{0.4, 0.3, 1, true, "power-armor", 1, 1},
 		-- {0.5, -1,3, true, "power-armor-mk2", 1, 1},
 		{2, 0, 1, true, "solar-panel-equipment", 1, 2},
 		{2, 0, 1, true, "battery-equipment", 1, 1},
 		{1.6, 0, 1, true, "energy-shield-equipment", 1, 2},
-		{0.8, 0.5, 1.5, true, "personal-laser-defense-equipment", 1, 1},
 		{0.8, 0, 1, true, "night-vision-equipment", 1, 1},
+		{0.4, 0.5, 1.5, true, "personal-laser-defense-equipment", 1, 1},
 		
 		--loader meta:
 		{math_max(1.5 * difficulty - 1.25, 0), 0, 0.2, false, "loader", 1, 2},
@@ -170,7 +172,7 @@ local function treasure_chest_loot(difficulty, planet)
 			{2, 0, 1, true, "uranium-cannon-shell", 12, 32},
 			{4, 0.4, 1.6, true, "explosive-uranium-cannon-shell", 12, 32},
 			{10, 0, 1, false, "uranium-238", 8, 32},
-			{0.1, 0, 1, false, "uranium-235", 2, 8},
+			{0.1, 0, 1, false, "uranium-235", 2, 12},
 			{2, 0.2, 1, false, "nuclear-reactor", 1, 1},
 			{2, 0.2, 1, false, "centrifuge", 1, 1},
 			{1, 0.25, 1, false, "nuclear-fuel", 1, 1},
@@ -214,8 +216,8 @@ local function treasure_chest_loot(difficulty, planet)
 	if planet.type.id == 14 then --lavawrld
 		specialised_loot_raw = {
 			{6, -1, 3, true, "flamethrower-turret", 1, 1},
-			{6, -1, 2, true, "flamethrower", 1, 1},
-			{12, -1, 2, true, "flamethrower-ammo", 16, 32},
+			{7, -1, 2, true, "flamethrower", 1, 1},
+			{14, -1, 2, true, "flamethrower-ammo", 16, 32},
 		}
 	end
 
@@ -313,6 +315,12 @@ function Public.treasure_chest(surface, position, container_name)
 		local low = math_max(1, math_ceil(loot.min_count * difficulty_scaling))
 		local high = math_max(1, math_ceil(loot.max_count * difficulty_scaling))
 		local _count = math_random(low, high)
+		local lucky = math_random(1,180)
+		if lucky == 1 then --lucky
+			_count = _count * 3
+		elseif lucky <= 10 then
+			_count = _count * 2
+		end
 		i.insert({name = loot.name, count = _count})
 	end
 end

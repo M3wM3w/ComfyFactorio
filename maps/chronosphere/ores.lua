@@ -137,8 +137,116 @@ end
 
 ---- SCRAP ----
 
+
+
+
+local scrap_yield_amounts = {
+	["iron-plate"] = 8,
+	["iron-gear-wheel"] = 4,
+	["iron-stick"] = 8,
+	["copper-plate"] = 8,
+	["copper-cable"] = 12,
+	["electronic-circuit"] = 4,
+	["steel-plate"] = 4,
+	["pipe"] = 4,
+	["solid-fuel"] = 4,
+	["empty-barrel"] = 3,
+	["crude-oil-barrel"] = 3,
+	["lubricant-barrel"] = 3,
+	["petroleum-gas-barrel"] = 3,
+	["heavy-oil-barrel"] = 3,
+	["light-oil-barrel"] = 3,
+	["water-barrel"] = 3,
+	["grenade"] = 3,
+	["battery"] = 3,
+	["explosives"] = 3,
+	["advanced-circuit"] = 3,
+	["nuclear-fuel"] = 0.1,
+	["pipe-to-ground"] = 1,
+	["plastic-bar"] = 3,
+	["processing-unit"] = 1,
+	["used-up-uranium-fuel-cell"] = 1,
+	["uranium-fuel-cell"] = 0.3,
+	["rocket-fuel"] = 0.3,
+	["rocket-control-unit"] = 0.3,
+	["low-density-structure"] = 0.3,
+	["heat-pipe"] = 1,
+	["green-wire"] = 8,
+	["red-wire"] = 8,
+	["engine-unit"] = 2,
+	["electric-engine-unit"] = 2,
+	["logistic-robot"] = 0.3,
+	["construction-robot"] = 0.3,
+	["land-mine"] = 1,
+	["rocket"] = 2,
+	["explosive-rocket"] = 2,
+	["cannon-shell"] = 2,
+	["explosive-cannon-shell"] = 2,
+	["uranium-cannon-shell"] = 2,
+	["explosive-uranium-cannon-shell"] = 2,
+	["artillery-shell"] = 0.3,
+	["cluster-grenade"] = 0.3,
+	["defender-capsule"] = 2,
+	["destroyer-capsule"] = 0.3,
+	["distractor-capsule"] = 0.3
+}
+
+local scrap_mining_chance_weights = {
+	{name = "iron-plate", chance = 600},
+	{name = "iron-gear-wheel", chance = 400},	
+	{name = "copper-plate", chance = 400},
+	{name = "copper-cable", chance = 200},	
+	{name = "electronic-circuit", chance = 150},
+	{name = "steel-plate", chance = 100},
+	{name = "pipe", chance = 75},
+	{name = "iron-stick", chance = 30},
+	{name = "solid-fuel", chance = 20},
+	{name = "battery", chance = 10},
+	{name = "crude-oil-barrel", chance = 10},
+	{name = "petroleum-gas-barrel", chance = 7},
+	{name = "heavy-oil-barrel", chance = 7},
+	{name = "light-oil-barrel", chance = 7},
+	{name = "lubricant-barrel", chance = 4},
+	{name = "empty-barrel", chance = 4},
+	{name = "water-barrel", chance = 4},
+	{name = "green-wire", chance = 4},
+	{name = "red-wire", chance = 4},
+	{name = "grenade", chance = 3},
+	{name = "pipe-to-ground", chance = 3},
+	{name = "explosives", chance = 3},
+	{name = "advanced-circuit", chance = 3},
+	{name = "plastic-bar", chance = 3},
+	{name = "engine-unit", chance = 2},
+	{name = "nuclear-fuel", chance = 1},
+	{name = "processing-unit", chance = 1},
+	{name = "used-up-uranium-fuel-cell", chance = 1},
+	{name = "uranium-fuel-cell", chance = 1},
+	{name = "rocket-fuel", chance = 1},
+	{name = "rocket-control-unit", chance = 1},	
+	{name = "low-density-structure", chance = 1},	
+	{name = "heat-pipe", chance = 1},
+	{name = "electric-engine-unit", chance = 1},
+	{name = "logistic-robot", chance = 1},
+	{name = "construction-robot", chance = 1},
+	{name = "land-mine", chance = 1},	
+	{name = "rocket", chance = 1},
+	{name = "explosive-rocket", chance = 1},
+	{name = "cannon-shell", chance = 1},
+	{name = "explosive-cannon-shell", chance = 1},
+	{name = "uranium-cannon-shell", chance = 1},
+	{name = "explosive-uranium-cannon-shell", chance = 1},
+	{name = "artillery-shell", chance = 1},
+	{name = "cluster-grenade", chance = 1},
+	{name = "defender-capsule", chance = 1},
+	{name = "destroyer-capsule", chance = 1},
+	{name = "distractor-capsule", chance = 1}
+}
+
+
+
+
 local scrap_raffle = {}				
-for _, t in pairs (Balance.scrap_mining_chance_weights) do
+for _, t in pairs (scrap_mining_chance_weights) do
 	for x = 1, t.chance, 1 do
 		table.insert(scrap_raffle, t.name)
 	end			
@@ -160,8 +268,8 @@ local function on_player_mined_entity(event)
   
   local amount_bonus_multiplier = Balance.scrap_quantity_multiplier(game.forces.enemy.evolution_factor)
 
-	local r1 = math.ceil(Balance.scrap_yield_amounts[scrap] * 0.3 * amount_bonus_multiplier)
-	local r2 = math.ceil(Balance.scrap_yield_amounts[scrap] * 1.7 * amount_bonus_multiplier)	
+	local r1 = math.ceil(scrap_yield_amounts[scrap] * 0.3 * amount_bonus_multiplier)
+	local r2 = math.ceil(scrap_yield_amounts[scrap] * 1.7 * amount_bonus_multiplier)	
 	local amount = math.random(r1, r2)
 	
 	local player = game.players[event.player_index]	

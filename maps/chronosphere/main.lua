@@ -245,7 +245,7 @@ function Public.chronojump(choice)
 
 	if objective.game_lost then goto continue end
 
-	if objective.chronojumps <= 29 then
+	if objective.chronojumps <= 24 then
 		award_coins(
 			Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + objective.jump_countdown_length - objective.passivetimer, Difficulty.get().difficulty_vote_value)
 		)
@@ -331,6 +331,8 @@ end
 
 local function drain_accumulators()
 	local objective = Chrono_table.get_table()
+	local difficulty = Difficulty.get().difficulty_vote_value
+
 	if objective.passivetimer < 10 then return end
 	if objective.chronocharges >= objective.chronochargesneeded then return end
 	if not objective.accumulators then return end
@@ -463,7 +465,7 @@ local function tick() --only even ticks trigger
 			drain_accumulators()
 		end
 		
-		if tick % 120 == 0 then
+		if tick % 140 == 0 then
 			Tick_functions.move_items()
 			Tick_functions.output_items()
 		end

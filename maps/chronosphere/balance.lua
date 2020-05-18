@@ -194,7 +194,7 @@ function Public.pistol_damage_multiplier(difficulty) return 2.5 end --3 will one
 
 function Public.coin_reward_per_second_jumped_early(seconds, difficulty)
 	local minutes = seconds / 60
-	local amount = minutes * 20 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
+	local amount = minutes * 25 * difficulty_sloped(difficulty, 0) -- No difficulty scaling seems best. (if this is changed, change the code so that coins are not awarded on the first jump)
 	return math_max(0,math_floor(amount))
 end
 
@@ -287,9 +287,9 @@ function Public.initial_cargo_boxes()
 		{name = "loader", count = 1},
 		{name = "coal", count = math_random(32, 64)},
 		{name = "coal", count = math_random(32, 64)},
-		{name = "iron-ore", count = math_random(32, 64)},
+		{name = "iron-ore", count = math_random(32, 128)},
+		{name = "copper-ore", count = math_random(32, 128)},
 		{name = "empty-barrel", count = math_random(16, 32)},
-		{name = "submachine-gun", count = 1},
 		{name = "submachine-gun", count = 1},
 		{name = "submachine-gun", count = 1},
 		{name = "shotgun", count = 1},
@@ -309,8 +309,6 @@ function Public.initial_cargo_boxes()
 		{name = "iron-plate", count = math_random(15, 23)},
 		{name = "iron-plate", count = math_random(15, 23)},
 		{name = "iron-plate", count = math_random(15, 23)},
-		{name = "iron-plate", count = math_random(15, 23)},
-		{name = "copper-plate", count = math_random(15, 23)},
 		{name = "copper-plate", count = math_random(15, 23)},
 		{name = "copper-plate", count = math_random(15, 23)},
 		{name = "copper-plate", count = math_random(15, 23)},
@@ -319,124 +317,18 @@ function Public.initial_cargo_boxes()
 		{name = "firearm-magazine", count = math_random(10, 30)},
 		{name = "firearm-magazine", count = math_random(10, 30)},
 		{name = "rail", count = math_random(16, 24)},
-		{name = "rail", count = math_random(16, 24)},
-		{name = "rail", count = math_random(16, 24)},
+		{name = "rail", count = math_random(16, 24)}
 	}
 end
 
 function Public.treasure_quantity_difficulty_scaling(difficulty) return difficulty_sloped(difficulty, 1) end
 
 function Public.Base_ore_loot_yield(jumps)
-	return 5 + jumps
+	return 13 + 2 * jumps
 end
 
 function Public.scrap_quantity_multiplier(evolution_factor)
 	return 1 + 3 * evolution_factor
 end
-
-Public.scrap_yield_amounts = {
-	["iron-plate"] = 8,
-	["iron-gear-wheel"] = 4,
-	["iron-stick"] = 8,
-	["copper-plate"] = 8,
-	["copper-cable"] = 12,
-	["electronic-circuit"] = 4,
-	["steel-plate"] = 4,
-	["pipe"] = 4,
-	["solid-fuel"] = 4,
-	["empty-barrel"] = 3,
-	["crude-oil-barrel"] = 3,
-	["lubricant-barrel"] = 3,
-	["petroleum-gas-barrel"] = 3,
-	["sulfuric-acid-barrel"] = 3,
-	["heavy-oil-barrel"] = 3,
-	["light-oil-barrel"] = 3,
-	["water-barrel"] = 3,
-	["grenade"] = 3,
-	["battery"] = 3,
-	["explosives"] = 3,
-	["advanced-circuit"] = 3,
-	["nuclear-fuel"] = 0.1,
-	["pipe-to-ground"] = 1,
-	["plastic-bar"] = 3,
-	["processing-unit"] = 1,
-	["used-up-uranium-fuel-cell"] = 1,
-	["uranium-fuel-cell"] = 0.3,
-	["rocket-fuel"] = 0.3,
-	["rocket-control-unit"] = 0.3,
-	["low-density-structure"] = 0.3,
-	["heat-pipe"] = 1,
-	["green-wire"] = 8,
-	["red-wire"] = 8,
-	["engine-unit"] = 2,
-	["electric-engine-unit"] = 2,
-	["logistic-robot"] = 0.3,
-	["construction-robot"] = 0.3,
-	["land-mine"] = 1,
-	["rocket"] = 2,
-	["explosive-rocket"] = 2,
-	["cannon-shell"] = 2,
-	["explosive-cannon-shell"] = 2,
-	["uranium-cannon-shell"] = 2,
-	["explosive-uranium-cannon-shell"] = 2,
-	["artillery-shell"] = 0.3,
-	["cluster-grenade"] = 0.3,
-	["defender-capsule"] = 2,
-	["destroyer-capsule"] = 0.3,
-	["distractor-capsule"] = 0.3
-}
-
-Public.scrap_mining_chance_weights = {
-	{name = "iron-plate", chance = 600},
-	{name = "iron-gear-wheel", chance = 400},	
-	{name = "copper-plate", chance = 400},
-	{name = "copper-cable", chance = 200},	
-	{name = "electronic-circuit", chance = 150},
-	{name = "steel-plate", chance = 100},
-	{name = "pipe", chance = 75},
-	{name = "iron-stick", chance = 30},
-	{name = "solid-fuel", chance = 20},
-	{name = "battery", chance = 10},
-	{name = "crude-oil-barrel", chance = 10},
-	{name = "petroleum-gas-barrel", chance = 7},
-	{name = "sulfuric-acid-barrel", chance = 7},
-	{name = "heavy-oil-barrel", chance = 7},
-	{name = "light-oil-barrel", chance = 7},
-	{name = "lubricant-barrel", chance = 4},
-	{name = "empty-barrel", chance = 4},
-	{name = "water-barrel", chance = 4},
-	{name = "green-wire", chance = 4},
-	{name = "red-wire", chance = 4},
-	{name = "grenade", chance = 3},
-	{name = "pipe-to-ground", chance = 3},
-	{name = "explosives", chance = 3},
-	{name = "advanced-circuit", chance = 3},
-	{name = "plastic-bar", chance = 3},
-	{name = "engine-unit", chance = 2},
-	{name = "nuclear-fuel", chance = 1},
-	{name = "processing-unit", chance = 1},
-	{name = "used-up-uranium-fuel-cell", chance = 1},
-	{name = "uranium-fuel-cell", chance = 1},
-	{name = "rocket-fuel", chance = 1},
-	{name = "rocket-control-unit", chance = 1},	
-	{name = "low-density-structure", chance = 1},	
-	{name = "heat-pipe", chance = 1},
-	{name = "electric-engine-unit", chance = 1},
-	{name = "logistic-robot", chance = 1},
-	{name = "construction-robot", chance = 1},
-	{name = "land-mine", chance = 1},	
-	{name = "rocket", chance = 1},
-	{name = "explosive-rocket", chance = 1},
-	{name = "cannon-shell", chance = 1},
-	{name = "explosive-cannon-shell", chance = 1},
-	{name = "uranium-cannon-shell", chance = 1},
-	{name = "explosive-uranium-cannon-shell", chance = 1},
-	{name = "artillery-shell", chance = 1},
-	{name = "cluster-grenade", chance = 1},
-	{name = "defender-capsule", chance = 1},
-	{name = "destroyer-capsule", chance = 1},
-	{name = "distractor-capsule", chance = 1}
-}
-
 
 return Public
