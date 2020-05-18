@@ -227,7 +227,7 @@ end
 
 Public.send_near_biters_to_objective = function()
   local objective = Chrono_table.get_table()
-	if objective.passivetimer < 10800 then return end
+	if objective.passivetimer < 36000 then return end
 	if not objective.locomotive then return end
 	if not objective.locomotive_cargo[1] then return end
   if not objective.locomotive_cargo[2] then return end
