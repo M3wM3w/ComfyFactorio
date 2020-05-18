@@ -465,7 +465,7 @@ local function tick() --only even ticks trigger
 			drain_accumulators()
 		end
 		
-		if tick % 140 == 0 then
+		if tick % 120 == 0 then
 			Tick_functions.move_items()
 			Tick_functions.output_items()
 		end
