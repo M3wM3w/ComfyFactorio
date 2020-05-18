@@ -94,7 +94,7 @@ function Public_chrono.restart_settings()
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 5
 	game.map_settings.unit_group.min_group_gathering_time = 1800
 	game.map_settings.unit_group.max_group_gathering_time = 18000
-	game.map_settings.unit_group.max_wait_time_for_late_members = 1800
+	game.map_settings.unit_group.max_wait_time_for_late_members = 600
 	game.forces.neutral.character_inventory_slots_bonus = 500
 	game.forces.enemy.evolution_factor = 0.0001
 	game.forces.scrapyard.set_friend('enemy', true)
@@ -130,9 +130,7 @@ function Public_chrono.objective_died()
 	objective.accumulators = {}
 	objective.game_lost = true
 	objective.game_reset_tick = game.tick + 1800
-	for _, player in pairs(game.connected_players) do
-		player.play_sound{path="utility/game_lost", volume_modifier=0.75}
-	end
+	game.play_sound{path="utility/game_lost", volume_modifier=0.75}
 end
 
 local function check_nuke_silos()
@@ -168,13 +166,16 @@ function Public_chrono.process_jump()
 		game.print({"chronosphere.message_evolve"}, {r=0.98, g=0.36, b=0.22})
 	elseif objective.chronojumps >= 15 and objective.computermessage == 0 then
 		game.print({"chronosphere.message_quest1"}, {r=0.98, g=0.36, b=0.22})
-    objective.computermessage = 1
+    	objective.computermessage = 1
+		game.play_sound{path="utility/new_objective", volume_modifier=0.85}
 	elseif objective.chronojumps >= 20 and objective.computermessage == 2 then
 		game.print({"chronosphere.message_quest3"}, {r=0.98, g=0.36, b=0.22})
-    objective.computermessage = 3
+    	objective.computermessage = 3
+		game.play_sound{path="utility/new_objective", volume_modifier=0.85}
 	elseif objective.chronojumps >= 25 and objective.computermessage == 4 then
 		game.print({"chronosphere.message_quest5"}, {r=0.98, g=0.36, b=0.22})
-    objective.computermessage = 5
+    	objective.computermessage = 5
+		game.play_sound{path="utility/new_objective", volume_modifier=0.85}
 	end
 	if (objective.passivetimer - objective.jump_countdown_length) * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.75 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
     	game.print({"chronosphere.message_overstay"}, {r=0.98, g=0.36, b=0.22})

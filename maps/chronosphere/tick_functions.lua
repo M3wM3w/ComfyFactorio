@@ -161,11 +161,11 @@ end
 function Public_tick.spawn_poison()
   local random_x = math_random(-460,460)
   local random_y = math_random(-460,460)
-  create_poison_cloud{x = position.x, y = position.y}
+  create_poison_cloud{x = random_x, y = random_y}
   if math_random(1,3) == 1 then
     local random_angles = {math_rad(math_random(359)),math_rad(math_random(359))}
-    create_poison_cloud{x = position.x + 24 * math_cos(random_angles[1]), y = position.y + 24 * math_sin(random_angles[1])}
-    create_poison_cloud{x = position.x + 24 * math_cos(random_angles[2]), y = position.y + 24 * math_sin(random_angles[2])}
+    create_poison_cloud{x = random_x + 24 * math_cos(random_angles[1]), y = random_y + 24 * math_sin(random_angles[1])}
+    create_poison_cloud{x = random_x + 24 * math_cos(random_angles[2]), y = random_y + 24 * math_sin(random_angles[2])}
   end
 end
 

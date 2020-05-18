@@ -403,7 +403,7 @@ local function tick() --only even ticks trigger
 		--surface.force_generate_chunk_requests()
 	end
 	
-	if tick % 14 == 0 and objective.planet[1].type.id == 18 then
+	if tick % 12 == 0 and objective.planet[1].type.id == 18 then
 		Tick_functions.spawn_poison()
 	end
 	if tick % 60 == 2 then

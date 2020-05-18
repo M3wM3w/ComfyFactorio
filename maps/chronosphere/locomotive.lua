@@ -418,7 +418,10 @@ function Public.create_wagon_room()
 	end
 
 	for loot_i = 1, #cargo_boxes, 1 do
-		if not positions[i] then break end
+		if not positions[i] then
+			log("ran out of cargo box positions")
+			break
+		end
 		local e = surface.create_entity({name = "wooden-chest", position = positions[i], force="player", create_build_effect_smoke = false})
 		local inventory = e.get_inventory(defines.inventory.chest)
 		inventory.insert(cargo_boxes[loot_i])

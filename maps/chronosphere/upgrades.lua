@@ -21,9 +21,7 @@ local function check_win()
             objective.game_won = true
             objective.game_lost = true
             objective.chronocharges = 200000000 - 300
-            for _, player in pairs(game.connected_players) do
-					player.play_sound{path="utility/game_won", volume_modifier=0.85}
-				end
+			game.play_sound{path="utility/game_won", volume_modifier=0.85}
             local message = {"chronosphere.message_game_won1"}
 						local message2 = "Number of delivered fish: " .. objective.mainscore
             game.print(message, {r=0.98, g=0.66, b=0.22})
@@ -251,7 +249,8 @@ function Public.trigger_poison()
     objective.poisontimeout = 120
     local objs = {objective.locomotive, objective.locomotive_cargo[1], objective.locomotive_cargo[2], objective.locomotive_cargo[3]}
     local surface = objective.surface
-    game.print({"chronosphere.message_poison_defense"}, {r=0.98, g=0.66, b=0.22})
+	game.print({"chronosphere.message_poison_defense"}, {r=0.98, g=0.66, b=0.22})
+	Server.to_discord_embed("Triggering poison defense. Let's kill everything!")
     for i = 1, 4, 1 do
       surface.create_entity({name = "poison-capsule", position = objs[i].position, force = "player", target = objs[i], speed = 1 })
     end
