@@ -1,0 +1,115 @@
+0.21
+Ore bonus yield limited at the maximum biter difficulty.
+
+0.20
+a big part of the lootboxes are now hidden within the rocks
+
+0.19
+markets are now also fish bank terminals
+fish can not be deconstructed anymore
+
+0.18
+cargo wagons, tanks and cars can now only detonate with less than 150 health
+
+0.17
+explosives are now a new game mechanic
+loot rebalances
+ore yield balance
+
+0.16
+oil should no longer clutter
+increased rock destruction performance (maybe)
+rocks now heal over time
+
+0.15
+players in vehicles no longer get hungry
+faster mining speed but lower ore yield for more exploration
+new fully staged chest loot
+
+0.14
+hunger over time reduced
+reduced worms
+ore vein spawn fix
+
+0.13
+biter attack events frequency reduced
+players in vehicles are safe from random biter spawns
+hunger gain from passing time reduced
+
+0.12
+reduced ore spill from rock destruction to reduce lagspike
+ore veins are usually bigger now and can appear earlier
+biters have a bit more damage against rocks
+market adjustments
+readded worms in main tunnels
+crude oil is allowed to spawn a bit closer
+access to the lakes and labyrinth areas should be a bit wider now
+damage against huge rocks has been increased
+biter spawn interval adjustments
+
+0.11
+mining speed buff
+ore veins are more common
+
+0.10
+difficulty adjustments
+spawn fixes
+
+0.09
+ore veins are more common with more yield
+added info panel
+added more worms
+added extra bases in main mine shafts
+adjusted running speed modifier
+adjusted biter attack events
+modified chest loot tables
+mining trees now makes you earn fish
+
+0.08
+rock "labyrinth" biome
+periodic biter attack events, the mines have become more dangerous
+custom spawn trees
+
+0.07
+small chance that rocks might reveal an ore vein
+rocks now always drop stone
+players are now getting hungry
+
+0.06
+added stats gui
+mining productivity research will now upgrade your backpack to ease your mining
+fishing is more enjoyable now
+rebalanced oil spots
+spawn inventory loadout changes
+
+0.05
+biter & worm generation is now completely custom
+biters claws now have a hard time to dig through the solid rock
+secret shops spawn now in lake biomes
+mining productivity research boosts cave rock mining speed for triple the value
+
+0.04
+biters no longer instantly surround the player
+
+0.03
+market nerf
+darkness buff
+mining productivity research now applies to cave rock mining
+lakes now have fish
+added cave treasure
+
+0.02
+space cleared around enemy spawners
+fish market adjustments
+maximum ore spill variable (rest gets inserted directly)
+biters now also pop out of destroyed rocks
+adjustments to ore chances
+noise adjustments
+different enemies now spawn the deeper you dig
+enemy spawn pool redone
+darkness is now a hazard, stay near lamps for survival
+caves are now permanently dark
+added lake biomes
+
+0.01
+diggy diggy hole

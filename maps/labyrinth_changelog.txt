@@ -1,0 +1,12 @@
+0.03
+biters will spawn weighted
+drops from enemies will stop more soon
+infinity chests have been nerfed
+more ore patches
+
+0.02
+anti-turret creep things
+
+0.01
+loot table adjustments
+the dungeon inhabitants will now try to swarm to the entrance sometimes
