@@ -1,0 +1,5 @@
+-- constants for time
+TICKS = 60
+SECONDS = 3600
+MINUTES = 216000
+HOURS = 12960000
