@@ -18,7 +18,7 @@ local function create_particles(surface, position, amount)
         return
     end
     local math_random = math.random
-    for i = 1, amount, 1 do
+    for _ = 1, amount, 1 do
         local m = math_random(8, 24)
         local m2 = m * 0.005
 
@@ -126,7 +126,7 @@ local function spawn_worm(surface, position, evolution_index)
     surface.create_entity({name = worm_name, position = position})
 end
 
-local function unearthing_worm(surface, position)
+local function unearthing_worm(surface, position, evolution_factor)
     if not surface then
         return
     end
@@ -143,7 +143,8 @@ local function unearthing_worm(surface, position)
         return
     end
 
-    local evolution_index = math.ceil(game.forces.enemy.evolution_factor * 10)
+    local evolution = evolution_factor or game.forces.enemy.evolution_factor
+    local evolution_index = math.ceil(evolution * 10)
     if evolution_index < 1 then
         evolution_index = 1
     end

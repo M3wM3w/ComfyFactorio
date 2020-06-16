@@ -80,6 +80,11 @@ local noises = {
         {modifier = 0.009, weight = 1},
         {modifier = 0.05, weight = 0.25},
         {modifier = 0.25, weight = 0.05}
+    },
+	["scrap_towny_ffa"] = {{modifier = 0.005, weight = 1},
+        {modifier = 0.01, weight = 0.35},
+        {modifier = 0.05, weight = 0.23},
+        {modifier = 0.1, weight = 0.11}
     }
 }
 

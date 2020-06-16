@@ -123,6 +123,7 @@ require 'modules.autostash'
 --require 'maps.pitch_black.main'
 --require 'maps.cube'
 --require 'maps.forest_circle'
+--require 'maps.scrap_towny_ffa.main'
 -----------------------------
 
 ---- more modules here ----
@@ -138,6 +139,7 @@ require 'modules.autostash'
 --require 'terrain_layouts.scrap_01'
 --require 'terrain_layouts.watery_world'
 --require 'terrain_layouts.tree_01'
+--require 'terrain_layouts.scrap_towny_ffa'
 ------
 
 if _DUMP_ENV then

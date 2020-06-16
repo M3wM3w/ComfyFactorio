@@ -18,7 +18,7 @@ local function create_particles(surface, position, amount)
         return
     end
     local math_random = math.random
-    for i = 1, amount, 1 do
+    for _ = 1, amount, 1 do
         local m = math_random(6, 12)
         local m2 = m * 0.005
 
@@ -75,7 +75,7 @@ local function spawn_biter(surface, position, evolution)
     end
 end
 
-local function unearthing_biters(surface, position, amount)
+local function unearthing_biters(surface, position, amount, evolution_factor)
     if not surface then
         return
     end
@@ -92,7 +92,7 @@ local function unearthing_biters(surface, position, amount)
         return
     end
 
-    local evolution = game.forces.enemy.evolution_factor
+    local evolution = evolution_factor or game.forces.enemy.evolution_factor
 
     local ticks = amount * 30
     ticks = ticks + 90
