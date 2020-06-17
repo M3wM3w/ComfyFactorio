@@ -95,10 +95,8 @@ local function on_init()
 	--global.towny.chunk_generated = {}
 
 	Nauvis.initialize()
+	Team.initialize()
 
-	Team.setup_player_force()
-	Team.setup_rogue_force()
-	Team.setup_enemy_force()	-- should be done after other forces
 end
 
 local tick_actions = {

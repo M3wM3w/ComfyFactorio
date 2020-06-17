@@ -333,8 +333,6 @@ function Public.add_new_force(force_name)
 	force.technologies["artillery"].enabled = false
 	force.technologies["artillery-shell-range-1"].enabled = false
 	force.technologies["artillery-shell-speed-1"].enabled = false
-	force.set_ammo_damage_modifier("landmine", -0.6)
-	--force.set_ammo_damage_modifier("artillery-shell", -0.75)
 end
 
 local function kill_force(force_name)
@@ -371,7 +369,7 @@ local player_force_disabled_recipes = {"lab", "automation-science-pack", "stone-
 local player_force_enabled_recipes = {"submachine-gun", "assembling-machine-1", "small-lamp", "shotgun", "shotgun-shell", "underground-belt", "splitter", "steel-plate", "car", "cargo-wagon", "constant-combinator", "engine-unit", "green-wire", "locomotive", "rail", "train-stop", "arithmetic-combinator", "decider-combinator"}
 
 -- setup the player force (this is the default for Outlanders)
-function Public.setup_player_force()
+local function setup_player_force()
 	local p = game.permissions.create_group("outlander")
 	-- disable permissions
 	for action_name, _ in pairs(defines.input_action) do
@@ -433,7 +431,7 @@ function Public.setup_player_force()
 	--force.set_ammo_damage_modifier("artillery-shell", -0.75)
 end
 
-function Public.setup_rogue_force()
+local function setup_rogue_force()
 	local p = game.permissions.create_group("rogue")
 	-- disable permissions
 	for action_name, _ in pairs(defines.input_action) do
@@ -495,7 +493,7 @@ function Public.setup_rogue_force()
 	--force.set_ammo_damage_modifier("artillery-shell", -0.75)
 end
 
-function Public.setup_enemy_force()
+local function setup_enemy_force()
 	local e_force = game.forces["enemy"]
 	e_force.evolution_factor = 1	-- this should never change since we are changing biter types on spawn
 	e_force.set_friend(game.forces.player, true)		-- outlander force (player) should not be attacked by turrets
@@ -602,6 +600,12 @@ local function on_console_chat(event)
 		player.clear_console()
 		game.print(">> " .. player.name .. " is trying to gain an unfair advantage!")
 	end
+end
+
+function Public.initialize()
+	setup_player_force()
+	setup_rogue_force()
+	setup_enemy_force()
 end
 
 local Event = require 'utils.event'
