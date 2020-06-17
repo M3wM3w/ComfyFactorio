@@ -112,28 +112,28 @@ function Public.unit_groups_start_moving()
 end
 
 function Public.swarm(town_center, radius)
-	local radius = radius or 32
-	local town_center = town_center or roll_market()
-	if not town_center or radius > 510 then return end
+	local r = radius or 32
+	local tc = town_center or roll_market()
+	if not tc or radius > 510 then return end
 
 	-- skip if we have to many swarms already
 	local count = table_size(global.towny.swarms)
 	local towns = #global.towny.town_centers
 	if count > 3 * towns then return end
 
-	local market = town_center.market
+	local market = tc.market
 	local surface = market.surface
 
 	-- find a spawner
-	local spawner = get_random_close_spawner(surface, market, radius)
+	local spawner = get_random_close_spawner(surface, market, r)
 	if not spawner then
-		radius = radius + 16
+		r = r + 16
 		local future = game.tick + 1
 		-- schedule to run this method again with a higher radius on next tick
 		if not tick_schedule[future] then tick_schedule[future] = {} end
 		tick_schedule[future][#tick_schedule[future] + 1] = {
 			callback = 'swarm',
-			params = {town_center, radius}
+			params = {tc, r}
 		}
 		return
 	end
@@ -183,7 +183,7 @@ local function on_tick()
 	for _, token in pairs(tick_schedule[game.tick]) do
 		local callback = token.callback
 		local params = token.params
-		if callback == 'swarm' then swarm(params[1], params[2]) end
+		if callback == 'swarm' then Public.swarm(params[1], params[2]) end
 	end
 	tick_schedule[game.tick] = nil
 end
