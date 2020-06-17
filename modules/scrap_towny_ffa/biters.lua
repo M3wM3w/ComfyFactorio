@@ -114,7 +114,7 @@ end
 function Public.swarm(town_center, radius)
 	local r = radius or 32
 	local tc = town_center or roll_market()
-	if not tc or radius > 510 then return end
+	if not tc or r > 510 then return end
 
 	-- skip if we have to many swarms already
 	local count = table_size(global.towny.swarms)
