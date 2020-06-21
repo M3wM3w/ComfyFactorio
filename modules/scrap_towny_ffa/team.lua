@@ -266,16 +266,6 @@ local function declare_war(player, item)
 	game.print(">> " .. player.name .. " has dropped the coal! Town " .. target_force.name .. " and " .. requesting_force.name .. " are now at war!", {255, 255, 0})
 end
 
--- reveal player's base to all
-local radius = 96
-local function reveal_entity_to_all(entity)
-	local chart_area = {{entity.position.x - radius, entity.position.y - radius}, {entity.position.x + radius, entity.position.y + radius}}
-	local surface = entity.surface
-	for _, force in pairs(game.forces) do
-		force.chart(surface, chart_area)
-	end
-end
-
 local function delete_chart_tag_for_all_forces(market)
 	local forces = game.forces
 	local position = market.position	
@@ -322,13 +312,15 @@ function Public.add_new_force(force_name)
 	end
 	local defs = {
 		defines.input_action.use_artillery_remote,
+		defines.input_action.open_achievements_gui,
+		defines.input_action.open_tutorials_gui,
 	}
 	for _, d in pairs(defs) do p.set_allows_action(d, false) end
 
 	-- friendly fire
 	force.friendly_fire = true
 	-- disable chart sharing
-	force.share_chart = true
+	force.share_chart = false
 	force.clear_chart("nauvis")
 
 	-- disable technologies
@@ -339,6 +331,8 @@ function Public.add_new_force(force_name)
 	force.technologies["artillery"].enabled = false
 	force.technologies["artillery-shell-range-1"].enabled = false
 	force.technologies["artillery-shell-speed-1"].enabled = false
+	force.recipes["radar"].enabled = false
+
 end
 
 local function kill_force(force_name)
@@ -366,12 +360,10 @@ local function kill_force(force_name)
 	global.towny.town_centers[force_name] = nil
 	global.towny.size_of_town_centers = global.towny.size_of_town_centers - 1
 	delete_chart_tag_for_all_forces(market)
-	-- when a town falls, reveal it's location
-	reveal_entity_to_all(market)
 	game.print(">> " .. force_name .. "'s town has fallen! [gps=" .. math.floor(market.position.x) .. "," .. math.floor(market.position.y) .. "]", {255, 255, 0})
 end
 
-local player_force_disabled_recipes = {"lab", "automation-science-pack", "stone-brick"}
+local player_force_disabled_recipes = {"lab", "automation-science-pack", "stone-brick", "radar"}
 local player_force_enabled_recipes = {"submachine-gun", "assembling-machine-1", "small-lamp", "shotgun", "shotgun-shell", "underground-belt", "splitter", "steel-plate", "car", "cargo-wagon", "constant-combinator", "engine-unit", "green-wire", "locomotive", "rail", "train-stop", "arithmetic-combinator", "decider-combinator"}
 
 -- setup the player force (this is the default for Outlanders)
@@ -405,7 +397,6 @@ local function setup_player_force()
 		defines.input_action.setup_blueprint,
 		defines.input_action.setup_single_blueprint_record,
 		defines.input_action.upgrade_open_blueprint,
-		defines.input_action.use_artillery_remote,
 		defines.input_action.deconstruct,
 		defines.input_action.clear_selected_deconstruction_item,
 		defines.input_action.cancel_deconstruct,
@@ -413,7 +404,11 @@ local function setup_player_force()
 		defines.input_action.toggle_deconstruction_item_tile_filter_mode,
 		defines.input_action.set_deconstruction_item_tile_selection_mode,
 		defines.input_action.set_deconstruction_item_trees_and_rocks_only,
-		defines.input_action.market_offer
+		defines.input_action.market_offer,
+
+		defines.input_action.use_artillery_remote,
+		defines.input_action.open_achievements_gui,
+		defines.input_action.open_tutorials_gui,
 	}
 	for _, d in pairs(defs) do p.set_allows_action(d, false) end
 	local force = game.forces.player

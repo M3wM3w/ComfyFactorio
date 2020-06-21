@@ -30,6 +30,10 @@ local function on_player_joined_game(event)
 	local player = game.players[event.player_index]
 	local surface = game.surfaces[default_surface]
 
+	player.game_view_settings.show_minimap = false
+	player.game_view_settings.show_map_view_options = false
+	--player.game_view_settings.show_side_menu = false
+
 	Info.toggle_button(player)
 	Info.show(player)
 	Team.set_player_color(player)
@@ -81,6 +85,9 @@ end
 
 local function on_init()
 	--log("on_init")
+	game.enemy_has_vision_on_land_mines = false
+	game.draw_resource_selection = false
+
 	global.towny = {}
 	global.towny.cooldowns = {}
 	global.towny.cooldowns.last_respawn = {}
