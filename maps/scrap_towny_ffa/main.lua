@@ -82,16 +82,17 @@ end
 local function on_init()
 	--log("on_init")
 	global.towny = {}
-	global.towny.requests = {}
 	global.towny.cooldowns = {}
 	global.towny.cooldowns.last_respawn = {}
 	global.towny.cooldowns.last_death = {}
 	global.towny.cooldowns.requests = {}
 	global.towny.cooldowns.rogue = {}
 	global.towny.cooldowns.town_placement = {}
-	global.towny.town_centers = {}
+	global.towny.requests = {}
 	global.towny.size_of_town_centers = 0
+	global.towny.spawn_point = {}
 	global.towny.swarms = {}
+	global.towny.town_centers = {}
 	--global.towny.chunk_generated = {}
 
 	Nauvis.initialize()

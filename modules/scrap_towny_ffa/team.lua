@@ -105,6 +105,9 @@ end
 
 function Public.set_player_to_outlander(player)
 	player.force = game.forces.player
+	if global.towny.spawn_point[player_name] then
+		global.towny.spawn_point[player.name] = nil
+	end
 	if game.permissions.get_group("outlander") == nil then game.permissions.create_group("outlander") end
 	game.permissions.get_group("outlander").add_player(player)
 	player.tag = "[Outlander]"
@@ -114,6 +117,9 @@ end
 
 local function set_player_to_rogue(player)
 	player.force = game.forces["rogue"]
+	if global.towny.spawn_point[player_name] then
+		global.towny.spawn_point[player.name] = nil
+	end
 	if game.permissions.get_group("rogue") == nil then game.permissions.create_group("rogue") end
 	game.permissions.get_group("rogue").add_player(player)
 	player.tag = "[Rogue]"
@@ -303,8 +309,8 @@ function Public.update_town_chart_tags()
 			end
 		end	
 	end
-	game.forces["player"].clear_chart(game.surfaces["nauvis"])
-	game.forces["rogue"].clear_chart(game.surfaces["nauvis"])
+	if game.forces["player"] ~= nil then game.forces["player"].clear_chart(game.surfaces["nauvis"]) end
+	if game.forces["rogue"] ~= nil then game.forces["rogue"].clear_chart(game.surfaces["nauvis"]) end
 end
 
 function Public.add_new_force(force_name)

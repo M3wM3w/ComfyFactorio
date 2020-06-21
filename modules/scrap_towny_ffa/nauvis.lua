@@ -40,11 +40,17 @@ local function initialize_nauvis()
             }
         }
     }
+    mgs.cliff_settings = {
+        name = "cliff",
+        cliff_elevation_0 = 5,
+        cliff_elevation_interval = 10,
+        richness = 0.4
+    }
     -- water = 0 means no water allowed
     -- water = 1 means elevation is not reduced when calculating water tiles (elevation < 0)
     -- water = 2 means elevation is reduced by 10 when calculating water tiles (elevation < 0)
     --			or rather, the water table is 10 above the normal elevation
-    mgs.water = 0
+    --mgs.water = 0
     mgs.peaceful_mode = false
     mgs.starting_area = "none"
     mgs.terrain_segmentation = 8
@@ -75,7 +81,7 @@ local function initialize_nauvis()
         -- here we are overriding the cliffiness noise-layer with a fixed value of 0 to disable cliffs
         -- it allows to free up the cliffiness noise expression (which may or may not be useful)
         -- disable cliffs
-        cliffiness = 0,
+        --cliffiness = 0,
 
         -- we can disable starting lakes two ways, one by setting starting-lake-noise-amplitude = 0
         -- or by making the elevation a very large number
@@ -92,7 +98,7 @@ local function initialize_nauvis()
         -- setting it to a fixed number would mean a flat map
         -- elevation < 0 means there is water unless the water table has been changed
         --elevation = -1,
-        elevation = 0,
+        --elevation = 0,
         --elevation-persistence = 0,
 
         -- testing
