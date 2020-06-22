@@ -1,4 +1,6 @@
 local math_random = math.random
+local math_floor = math.floor
+local Evolution = require "modules.scrap_towny_ffa.evolution"
 
 local valid_entities = {
 	["rock-big"] = true,
@@ -35,8 +37,11 @@ local function set_raffle()
 	global.rocks_yield_ore_veins.mixed_ores = {"iron-ore", "copper-ore", "stone", "coal"}
 end
 
-local function get_amount()
-	return (10 + math_random(1, 2 ^ math_random(1, 10)))
+local function get_amount(position)
+	local base = 256
+	local relative_evolution = Evolution.get_evolution(position)
+	local tier = 8 + math_floor(relative_evolution * 16)
+	return (math_random(1, base) + math_random(1, 2 ^ tier))
 end
 
 local function draw_chain(surface, count, ore, ore_entities, ore_positions)
@@ -54,7 +59,7 @@ local function draw_chain(surface, count, ore, ore_entities, ore_positions)
 					position.x = p.x
 					position.y = p.y
 					ore_positions[p.x .. "_" .. p.y] = true
-					ore_entities[#ore_entities + 1] = {name = name, position = p, amount = get_amount()}
+					ore_entities[#ore_entities + 1] = {name = name, position = p, amount = get_amount(p)}
 					break
 				end
 			else
@@ -64,7 +69,7 @@ local function draw_chain(surface, count, ore, ore_entities, ore_positions)
 							position.x = p.x
 							position.y = p.y
 							ore_positions[p.x .. "_" .. p.y] = true
-							ore_entities[#ore_entities + 1] = {name = name, position = p, amount = get_amount(), fast_replace = true}
+							ore_entities[#ore_entities + 1] = {name = name, position = p, amount = get_amount(p), fast_replace = true}
 							break
 						end
 					end
@@ -113,9 +118,9 @@ local function ore_vein(event)
 	end	
 
 	local position = event.entity.position
-	local ore_entities = {{name = ore, position = {x = position.x, y = position.y}, amount = get_amount()}}
+	local ore_entities = {{name = ore, position = {x = position.x, y = position.y}, amount = get_amount(position)}}
 	if ore == "mixed" then
-		ore_entities = {{name = global.rocks_yield_ore_veins.mixed_ores[math_random(1, #global.rocks_yield_ore_veins.mixed_ores)], position = {x = position.x, y = position.y}, amount = get_amount()}}
+		ore_entities = {{name = global.rocks_yield_ore_veins.mixed_ores[math_random(1, #global.rocks_yield_ore_veins.mixed_ores)], position = {x = position.x, y = position.y}, amount = get_amount(position)}}
 	end
 	
 	local ore_positions = {[event.entity.position.x .. "_" .. event.entity.position.y] = true}

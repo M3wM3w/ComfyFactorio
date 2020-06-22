@@ -331,7 +331,7 @@ function Public.add_new_force(force_name)
 	force.technologies["artillery"].enabled = false
 	force.technologies["artillery-shell-range-1"].enabled = false
 	force.technologies["artillery-shell-speed-1"].enabled = false
-	force.recipes["radar"].enabled = false
+	--force.recipes["radar"].enabled = false
 
 end
 
@@ -363,7 +363,7 @@ local function kill_force(force_name)
 	game.print(">> " .. force_name .. "'s town has fallen! [gps=" .. math.floor(market.position.x) .. "," .. math.floor(market.position.y) .. "]", {255, 255, 0})
 end
 
-local player_force_disabled_recipes = {"lab", "automation-science-pack", "stone-brick", "radar"}
+local player_force_disabled_recipes = {"lab", "automation-science-pack", "stone-brick"}
 local player_force_enabled_recipes = {"submachine-gun", "assembling-machine-1", "small-lamp", "shotgun", "shotgun-shell", "underground-belt", "splitter", "steel-plate", "car", "cargo-wagon", "constant-combinator", "engine-unit", "green-wire", "locomotive", "rail", "train-stop", "arithmetic-combinator", "decider-combinator"}
 
 -- setup the player force (this is the default for Outlanders)
@@ -470,7 +470,11 @@ local function setup_rogue_force()
 		defines.input_action.toggle_deconstruction_item_tile_filter_mode,
 		defines.input_action.set_deconstruction_item_tile_selection_mode,
 		defines.input_action.set_deconstruction_item_trees_and_rocks_only,
-		defines.input_action.market_offer
+		defines.input_action.market_offer,
+
+		defines.input_action.use_artillery_remote,
+		defines.input_action.open_achievements_gui,
+		defines.input_action.open_tutorials_gui,
 	}
 	for _, d in pairs(defs) do p.set_allows_action(d, false) end
 	local force = game.create_force("rogue")

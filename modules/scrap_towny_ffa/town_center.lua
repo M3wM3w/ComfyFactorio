@@ -320,6 +320,12 @@ function Public.set_market_health(entity, final_damage_amount)
 	rendering.set_text(town_center.health_text, "HP: " .. town_center.health .. " / " .. town_center.max_health)	
 end
 
+function Public.update_coin_balance(force)
+	local town_center = global.towny.town_centers[force.name]
+	rendering.set_text(town_center.coins_text, "Coins: " .. town_center.coin_balance)
+end
+
+
 local function is_color_used(color, town_centers)
 	for _, center in pairs(town_centers) do
 		if center.color then
@@ -385,6 +391,9 @@ local function found_town(event)
 	town_center.market = surface.create_entity({name = "market", position = entity.position, force = force_name})
 	town_center.chunk_position = {math.floor(town_center.market.position.x / 32), math.floor(town_center.market.position.y / 32)}
 	town_center.max_health = 1000
+	town_center.coin_balance = 0
+	town_center.input_buffer = {}
+	town_center.output_buffer = {}
 	town_center.health = town_center.max_health
 	town_center.color = get_color()
 	town_center.research_counter = 1
@@ -394,11 +403,23 @@ local function found_town(event)
 	town_center.upgrades.laser_turret.slots = 0
 	town_center.upgrades.laser_turret.locations = {}
 
+	town_center.coins_text = rendering.draw_text{
+		text = "Coins: " .. town_center.coin_balance,
+		surface = surface,
+		target = town_center.market,
+		target_offset = {0, -2.75},
+		color = {200, 200, 200},
+		scale = 1.00,
+		font = "default-game",
+		alignment = "center",
+		scale_with_zoom = false
+	}
+
 	town_center.health_text = rendering.draw_text{
 		text = "HP: " .. town_center.health .. " / " .. town_center.max_health,
 		surface = surface,
 		target = town_center.market,
-		target_offset = {0, -2.5},
+		target_offset = {0, -3.25},
 		color = {200, 200, 200},
 		scale = 1.00,
 		font = "default-game",
@@ -410,7 +431,7 @@ local function found_town(event)
 		text = player.name .. "'s Town",
 		surface = surface,
 		target = town_center.market,
-		target_offset = {0, -3.25},
+		target_offset = {0, -4.25},
 		color = town_center.color,
 		scale = 1.30,
 		font = "default-game",

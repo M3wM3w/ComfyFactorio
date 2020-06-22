@@ -86,7 +86,7 @@ end
 local function on_init()
 	--log("on_init")
 	game.enemy_has_vision_on_land_mines = false
-	game.draw_resource_selection = false
+	game.draw_resource_selection = true
 
 	global.towny = {}
 	global.towny.cooldowns = {}

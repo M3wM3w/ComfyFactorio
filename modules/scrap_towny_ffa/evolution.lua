@@ -387,6 +387,10 @@ local function get_relative_worm_evolution(position)
     return relative_evolution
 end
 
+function Public.get_evolution(position)
+    return get_relative_biter_evolution(position)
+end
+
 function Public.get_biter_evolution(entity)
     return get_relative_biter_evolution(entity.position)
 end
