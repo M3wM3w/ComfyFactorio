@@ -54,8 +54,8 @@ local function initialize_nauvis()
     mgs.peaceful_mode = false
     mgs.starting_area = "none"
     mgs.terrain_segmentation = 8
-    mgs.width = 4096
-    mgs.height = 4096
+    mgs.width = 2048
+    mgs.height = 2048
     --mgs.starting_points = {
     --	{x = 0, y = 0}
     --}

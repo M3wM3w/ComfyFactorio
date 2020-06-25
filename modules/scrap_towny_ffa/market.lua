@@ -1,4 +1,3 @@
-local math_min = math.min
 local Town_center = require "modules.scrap_towny_ffa.town_center"
 
 local upgrade_functions = {
@@ -96,9 +95,6 @@ local function set_offers(town_center)
 	table.insert(market_items, {price = {{'coin', 1}}, offer = {type = 'give-item', item = 'stone', count = 6}})
 	table.insert(market_items, {price = {{'coin', 1}}, offer = {type = 'give-item', item = 'coal', count = 6}})
 	table.insert(market_items, {price = {{'coin', 1}}, offer = {type = 'give-item', item = 'uranium-ore', count = 4}})
-	table.insert(market_items, {price = {{'coin', 8}}, offer = {type = 'give-item', item = 'copper-plate', count = 1}})
-	table.insert(market_items, {price = {{'coin', 8}}, offer = {type = 'give-item', item = 'iron-plate', count = 1}})
-	table.insert(market_items, {price = {{'coin', 32}}, offer = {type = 'give-item', item = 'steel-plate', count = 1}})
 	table.insert(market_items, {price = {{'coin', 300}}, offer = {type = 'give-item', item = 'loader', count = 1}})
 	table.insert(market_items, {price = {{'coin', 600}}, offer = {type = 'give-item', item = 'fast-loader', count = 1}})
 	table.insert(market_items, {price = {{'coin', 900}}, offer = {type = 'give-item', item = 'express-loader', count = 1}})
@@ -109,9 +105,9 @@ local function set_offers(town_center)
 	table.insert(market_items, {price = {{'stone', 7}}, offer = {type = 'give-item', item = 'coin', count = 1}})
 	table.insert(market_items, {price = {{'coal', 7}}, offer = {type = 'give-item', item = 'coin', count = 1}})
 	table.insert(market_items, {price = {{'uranium-ore', 5}}, offer = {type = 'give-item', item = 'coin', count = 1}})
-	table.insert(market_items, {price = {{'copper-cable', 8}}, offer = {type = 'give-item', item = 'coin', count = 1}})
-	table.insert(market_items, {price = {{'iron-gear-wheel', 4}}, offer = {type = 'give-item', item = 'coin', count = 1}})
-	table.insert(market_items, {price = {{'iron-stick', 2}}, offer = {type = 'give-item', item = 'coin', count = 1}})
+	table.insert(market_items, {price = {{'copper-cable', 12}}, offer = {type = 'give-item', item = 'coin', count = 1}})
+	table.insert(market_items, {price = {{'iron-gear-wheel', 3}}, offer = {type = 'give-item', item = 'coin', count = 1}})
+	table.insert(market_items, {price = {{'iron-stick', 12}}, offer = {type = 'give-item', item = 'coin', count = 1}})
 	table.insert(market_items, {price = {{'empty-barrel', 1}}, offer = {type = 'give-item', item = 'coin', count = 1}})
 
 	for _, item in pairs(market_items) do
@@ -166,7 +162,7 @@ local function inside(pos, area)
 	return pos.x >= area.left_top.x and pos.x <= area.right_bottom.x and pos.y >= area.left_top.y and pos.y <= area.right_bottom.y
 end
 
-local function on_tick(event)
+local function on_tick(_)
 	if not global.towny.town_centers then return end
 	local items = {"burner-inserter", "inserter", "long-handed-inserter", "fast-inserter",
 				   "filter-inserter", "stack-inserter", "stack-filter-inserter",
@@ -175,7 +171,6 @@ local function on_tick(event)
 		local market = town_center.market
 		local offers = market.get_market_items()
 		if offers == nil then set_offers(town_center) end
-		local pos = market.position
 		local s = market.surface
 		local force = market.force
 		-- get the bounding box for the market
@@ -185,10 +180,6 @@ local function on_tick(event)
 		for _, e in pairs(entities) do
 			if e.name == "loader" or e.name == "fast-loader" or e.name == "express-loader" then
 				local loader_type = e.loader_type
-				local loader_container = e.loader_container
-				local loader_container_name = "none"
-				if loader_container then loader_container_name = loader_container.name end
-				log(e.name .. " " .. loader_type .. " " .. loader_container.name)
 			else
 				local ppos = e.pickup_position
 				local dpos = e.drop_position
@@ -197,7 +188,7 @@ local function on_tick(event)
 					local stack = e.held_stack
 					local spos = e.held_stack_position
 					if inside(spos, bb) then
-						local filter = nil
+						local filter
 						local filter_mode = e.inserter_filter_mode
 						if filter_mode ~= nil then
 							for i = 1, e.filter_slot_count do

@@ -218,11 +218,11 @@ local function on_chunk_generated(event)
 	--global.towny.chunk_generated[key] = true
 end
 
-local function on_chunk_charted(event)
-	for f in pairs(game.forces) do
-		if game.forces[f].valid then game.forces[f].clear_chart(game.surfaces[event.surface_index]) end
-	end
-end
+--local function on_chunk_charted(event)
+--	for f in pairs(game.forces) do
+--		if game.forces[f].valid then game.forces[f].clear_chart(game.surfaces[event.surface_index]) end
+--	end
+--end
 
 local Event = require 'utils.event'
 --Event.add(defines.events.on_init, on_init)

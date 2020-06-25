@@ -92,7 +92,7 @@ function Public.add_player_to_town(player, town_center)
 	player.force = market.force
 	Public.remove_plane(player)
 	global.towny.spawn_point[player.name] = force.get_spawn_position(surface)
-	game.permissions.get_group("Default").add_player(player)
+	game.permissions.get_group(force.name).add_player(player)
 	player.tag = ""
 	Public.set_player_color(player)
 end
@@ -105,7 +105,7 @@ end
 
 function Public.set_player_to_outlander(player)
 	player.force = game.forces.player
-	if global.towny.spawn_point[player_name] then
+	if global.towny.spawn_point[player.name] then
 		global.towny.spawn_point[player.name] = nil
 	end
 	if game.permissions.get_group("outlander") == nil then game.permissions.create_group("outlander") end
@@ -117,7 +117,7 @@ end
 
 local function set_player_to_rogue(player)
 	player.force = game.forces["rogue"]
-	if global.towny.spawn_point[player_name] then
+	if global.towny.spawn_point[player.name] then
 		global.towny.spawn_point[player.name] = nil
 	end
 	if game.permissions.get_group("rogue") == nil then game.permissions.create_group("rogue") end
@@ -303,26 +303,72 @@ function Public.update_town_chart_tags()
 	if game.forces["rogue"] ~= nil then game.forces["rogue"].clear_chart(game.surfaces["nauvis"]) end
 end
 
+local function reset_permissions(permissions_group)
+	for action_name, _ in pairs(defines.input_action) do
+		permissions_group.set_allows_action(defines.input_action[action_name], true)
+	end
+end
+
+local function disable_blueprints(permissions_group)
+	local defs = {
+		defines.input_action.alt_select_blueprint_entities,
+		defines.input_action.cancel_new_blueprint,
+		defines.input_action.change_blueprint_record_label,
+		defines.input_action.clear_selected_blueprint,
+		defines.input_action.create_blueprint_like,
+		defines.input_action.cycle_blueprint_backwards,
+		defines.input_action.cycle_blueprint_forwards,
+		defines.input_action.delete_blueprint_library,
+		defines.input_action.delete_blueprint_record,
+		defines.input_action.drop_blueprint_record,
+		defines.input_action.drop_to_blueprint_book,
+		defines.input_action.export_blueprint,
+		defines.input_action.grab_blueprint_record,
+		defines.input_action.import_blueprint,
+		defines.input_action.import_blueprint_string,
+		defines.input_action.open_blueprint_library_gui,
+		defines.input_action.open_blueprint_record,
+		defines.input_action.select_blueprint_entities,
+		defines.input_action.setup_blueprint,
+		defines.input_action.setup_single_blueprint_record,
+		defines.input_action.upgrade_open_blueprint,
+		defines.input_action.deconstruct,
+		defines.input_action.clear_selected_deconstruction_item,
+		defines.input_action.cancel_deconstruct,
+		defines.input_action.toggle_deconstruction_item_entity_filter_mode,
+		defines.input_action.toggle_deconstruction_item_tile_filter_mode,
+		defines.input_action.set_deconstruction_item_tile_selection_mode,
+		defines.input_action.set_deconstruction_item_trees_and_rocks_only,
+	}
+	for _, d in pairs(defs) do permissions_group.set_allows_action(d, false) end
+end
+
+local function disable_artillery(permissions_group)
+	permissions_group.set_allows_action(defines.input_action.use_artillery_remote, false)
+end
+
+local function disable_tutorial(permissions_group)
+	permissions_group.set_allows_action(defines.input_action.open_achievements_gui, false)
+end
+
+local function disable_achievements(permissions_group)
+	permissions_group.set_allows_action(defines.input_action.open_tutorials_gui, false)
+end
+
 function Public.add_new_force(force_name)
 	-- disable permissions
 	local force = game.create_force(force_name)
 	local p = game.permissions.create_group(force_name)
-	for action_name, _ in pairs(defines.input_action) do
-		p.set_allows_action(defines.input_action[action_name], true)
-	end
-	local defs = {
-		defines.input_action.use_artillery_remote,
-		defines.input_action.open_achievements_gui,
-		defines.input_action.open_tutorials_gui,
-	}
-	for _, d in pairs(defs) do p.set_allows_action(d, false) end
-
+	reset_permissions(p)
+	disable_blueprints(p)
+	disable_artillery(p)
+	disable_achievements(p)
+	disable_tutorial(p)
 	-- friendly fire
 	force.friendly_fire = true
 	-- disable chart sharing
 	force.share_chart = false
 	force.clear_chart("nauvis")
-
 	-- disable technologies
 	force.research_queue_enabled = true
 	force.technologies["atomic-bomb"].enabled = false
@@ -331,7 +377,7 @@ function Public.add_new_force(force_name)
 	force.technologies["artillery"].enabled = false
 	force.technologies["artillery-shell-range-1"].enabled = false
 	force.technologies["artillery-shell-speed-1"].enabled = false
-	--force.recipes["radar"].enabled = false
+	force.recipes["radar"].enabled = false
 
 end
 
@@ -363,54 +409,18 @@ local function kill_force(force_name)
 	game.print(">> " .. force_name .. "'s town has fallen! [gps=" .. math.floor(market.position.x) .. "," .. math.floor(market.position.y) .. "]", {255, 255, 0})
 end
 
-local player_force_disabled_recipes = {"lab", "automation-science-pack", "stone-brick"}
+local player_force_disabled_recipes = {"lab", "automation-science-pack", "stone-brick", "radar"}
 local player_force_enabled_recipes = {"submachine-gun", "assembling-machine-1", "small-lamp", "shotgun", "shotgun-shell", "underground-belt", "splitter", "steel-plate", "car", "cargo-wagon", "constant-combinator", "engine-unit", "green-wire", "locomotive", "rail", "train-stop", "arithmetic-combinator", "decider-combinator"}
 
 -- setup the player force (this is the default for Outlanders)
 local function setup_player_force()
 	local p = game.permissions.create_group("outlander")
 	-- disable permissions
-	for action_name, _ in pairs(defines.input_action) do
-		p.set_allows_action(defines.input_action[action_name], true)
-	end
-	local defs = {
-		defines.input_action.start_research,
-		defines.input_action.open_technology_gui,
-		defines.input_action.alt_select_blueprint_entities,
-		defines.input_action.cancel_new_blueprint,
-		defines.input_action.change_blueprint_record_label,
-		defines.input_action.clear_selected_blueprint,
-		defines.input_action.create_blueprint_like,
-		defines.input_action.cycle_blueprint_backwards,
-		defines.input_action.cycle_blueprint_forwards,
-		defines.input_action.delete_blueprint_library,
-		defines.input_action.delete_blueprint_record,
-		defines.input_action.drop_blueprint_record,
-		defines.input_action.drop_to_blueprint_book,
-		defines.input_action.export_blueprint,
-		defines.input_action.grab_blueprint_record,
-		defines.input_action.import_blueprint,
-		defines.input_action.import_blueprint_string,
-		defines.input_action.open_blueprint_library_gui,
-		defines.input_action.open_blueprint_record,
-		defines.input_action.select_blueprint_entities,
-		defines.input_action.setup_blueprint,
-		defines.input_action.setup_single_blueprint_record,
-		defines.input_action.upgrade_open_blueprint,
-		defines.input_action.deconstruct,
-		defines.input_action.clear_selected_deconstruction_item,
-		defines.input_action.cancel_deconstruct,
-		defines.input_action.toggle_deconstruction_item_entity_filter_mode,
-		defines.input_action.toggle_deconstruction_item_tile_filter_mode,
-		defines.input_action.set_deconstruction_item_tile_selection_mode,
-		defines.input_action.set_deconstruction_item_trees_and_rocks_only,
-		defines.input_action.market_offer,
-
-		defines.input_action.use_artillery_remote,
-		defines.input_action.open_achievements_gui,
-		defines.input_action.open_tutorials_gui,
-	}
-	for _, d in pairs(defs) do p.set_allows_action(d, false) end
+	reset_permissions(p)
+	disable_blueprints(p)
+	disable_artillery(p)
+	disable_achievements(p)
+	disable_tutorial(p)
 	local force = game.forces.player
 	-- disable research
 	force.disable_research()
@@ -429,54 +439,16 @@ local function setup_player_force()
 		recipes[recipe_name].enabled = true
 	end
 	force.set_ammo_damage_modifier("landmine", -0.6)
-	--force.set_ammo_damage_modifier("artillery-shell", -0.75)
 end
 
 local function setup_rogue_force()
 	local p = game.permissions.create_group("rogue")
 	-- disable permissions
-	for action_name, _ in pairs(defines.input_action) do
-		p.set_allows_action(defines.input_action[action_name], true)
-	end
-	local defs = {
-		defines.input_action.start_research,
-		defines.input_action.open_technology_gui,
-		defines.input_action.alt_select_blueprint_entities,
-		defines.input_action.cancel_new_blueprint,
-		defines.input_action.change_blueprint_record_label,
-		defines.input_action.clear_selected_blueprint,
-		defines.input_action.create_blueprint_like,
-		defines.input_action.cycle_blueprint_backwards,
-		defines.input_action.cycle_blueprint_forwards,
-		defines.input_action.delete_blueprint_library,
-		defines.input_action.delete_blueprint_record,
-		defines.input_action.drop_blueprint_record,
-		defines.input_action.drop_to_blueprint_book,
-		defines.input_action.export_blueprint,
-		defines.input_action.grab_blueprint_record,
-		defines.input_action.import_blueprint,
-		defines.input_action.import_blueprint_string,
-		defines.input_action.open_blueprint_library_gui,
-		defines.input_action.open_blueprint_record,
-		defines.input_action.select_blueprint_entities,
-		defines.input_action.setup_blueprint,
-		defines.input_action.setup_single_blueprint_record,
-		defines.input_action.upgrade_open_blueprint,
-		defines.input_action.use_artillery_remote,
-		defines.input_action.deconstruct,
-		defines.input_action.clear_selected_deconstruction_item,
-		defines.input_action.cancel_deconstruct,
-		defines.input_action.toggle_deconstruction_item_entity_filter_mode,
-		defines.input_action.toggle_deconstruction_item_tile_filter_mode,
-		defines.input_action.set_deconstruction_item_tile_selection_mode,
-		defines.input_action.set_deconstruction_item_trees_and_rocks_only,
-		defines.input_action.market_offer,
-
-		defines.input_action.use_artillery_remote,
-		defines.input_action.open_achievements_gui,
-		defines.input_action.open_tutorials_gui,
-	}
-	for _, d in pairs(defs) do p.set_allows_action(d, false) end
+	reset_permissions(p)
+	disable_blueprints(p)
+	disable_artillery(p)
+	disable_achievements(p)
+	disable_tutorial(p)
 	local force = game.create_force("rogue")
 	-- disable research
 	force.disable_research()
@@ -495,7 +467,6 @@ local function setup_rogue_force()
 		recipes[recipe_name].enabled = true
 	end
 	force.set_ammo_damage_modifier("landmine", -0.6)
-	--force.set_ammo_damage_modifier("artillery-shell", -0.75)
 end
 
 local function setup_enemy_force()

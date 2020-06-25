@@ -402,6 +402,10 @@ local function found_town(event)
 	town_center.upgrades.laser_turret = {}
 	town_center.upgrades.laser_turret.slots = 0
 	town_center.upgrades.laser_turret.locations = {}
+	town_center.evolution = {}
+	town_center.evolution.biters = 0
+	town_center.evolution.spitters = 0
+	town_center.evolution.worms = 0
 
 	town_center.coins_text = rendering.draw_text{
 		text = "Coins: " .. town_center.coin_balance,

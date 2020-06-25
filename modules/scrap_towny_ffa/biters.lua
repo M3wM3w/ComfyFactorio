@@ -118,7 +118,7 @@ function Public.swarm(town_center, radius)
 
 	-- skip if we have to many swarms already
 	local count = table_size(global.towny.swarms)
-	local towns = #global.towny.town_centers
+	local towns = table_size(global.towny.town_centers)
 	if count > 3 * towns then return end
 
 	local market = tc.market

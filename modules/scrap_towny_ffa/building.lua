@@ -31,6 +31,7 @@ local entity_type_whitelist = {
 	["infinity-container"] = true,
 	["infinity-pipe"] = true,
 	["inserter"] = true,
+	["lab"] = true,
 	["lamp"] = true,
 	["land-mine"] = true,
 	["loader"] = true,
@@ -56,7 +57,6 @@ local entity_type_whitelist = {
 	["transport-belt"] = true,
 	["underground-belt"] = true,
 	["wall"] = true,
-	["lab"] = true,
 }
 
 local function is_position_isolated(surface, force, position)
@@ -71,7 +71,7 @@ local function is_position_isolated(surface, force, position)
 			if count > 1 then return end
 		end
 	end
-	
+
 	return true
 end
 
@@ -125,61 +125,97 @@ function Public.near_town(position, surface, radius)
 	return false
 end
 
-local function prevent_isolation(event)
+local function prevent_isolation_entity(event, player)
+	local p = player or nil
 	local entity = event.created_entity
 	if not entity.valid then return end
-	local itemstack = event.stack
+	local entity_name = entity.name
+	local item = event.item
+	if item == nil then return end
+	local item_name = item.name
 	local force = entity.force
 	if force == game.forces["player"] then return end
 	if force == game.forces["rogue"] then return end
-	--if not entity_type_whitelist[entity.type] then return end
-	local surface = event.created_entity.surface
-	
+	local surface = entity.surface
+	local error = false
 	if is_position_isolated(surface, force, entity.position) then
-		error_floaty(surface, entity.position, "Building is not connected to town!")
-		if itemstack.valid then
-			refund_item(event, itemstack.name)
-		end
+		error = true
 		entity.destroy()
+		if entity_name ~= "entity-ghost" and entity_name ~= "tile-ghost" then
+			refund_item(event, item_name)
+		end
 		return true
-	end	
+	end
+	if error == true then
+		if p ~= nil then
+			p.play_sound({path="utility/cannot_build", position=p.position, volume_modifier=0.75})
+		else
+			error_floaty(surface, entity.position, "Building is not connected to town!")
+		end
+	end
 end
 
-local function prevent_isolation_landfill(event)
-	if event.item.name ~= "landfill" then return end
+local function prevent_isolation_tile(event, player)
+	local p = player or nil
+	local tile = event.tile
+	if not tile.valid then return end
+	local tile_name = tile.name
 	local surface = game.surfaces[event.surface_index]
 	local tiles = event.tiles
-	
 	local force
 	if event.player_index then
 		force = game.players[event.player_index].force
 	else
 		force = event.robot.force
 	end
-	
-	for _, placed_tile in pairs(tiles) do
-		local position = placed_tile.position
+	local error = false
+	local position
+	for _, t in pairs(tiles) do
+		local old_tile = t.old_tile
+		position = t.position
 		if is_position_isolated(surface, force, position) then
-			error_floaty(surface, position, "Tile is not connected to town!")
-			surface.set_tiles({{name = "water", position = position}}, true)			
-			refund_item(event, "landfill")		
+			error = true
+			surface.set_tiles({{name = old_tile.name, position = position }}, true)
+			if tile.name ~= "tile-ghost" then
+				refund_item(event, tile_name)
+			end
 		end
-	end	
+	end
+	if error == true then
+		if p ~= nil then
+			p.play_sound({path="utility/cannot_build", position=p.position, volume_modifier=0.75})
+		else
+			error_floaty(surface, position, "Tile is not connected to town!")
+		end
+	end
 end
 
-local function restrictions(event)
+local function restrictions(event, player)
+	local p = player or nil
 	local entity = event.created_entity
 	if not entity.valid then return end
-	
+	local entity_name = entity.name
+	local surface = entity.surface
+	local position = entity.position
+	local error = false
 	if entity.force == game.forces["player"] or entity.force == game.forces["rogue"] then
 		if Public.near_town(position, surface, 32) then
-			refund_item(event, event.stack.name)
-			error_floaty(entity.surface, entity.position, "Building too close to a town center!")
+			error = true
 			entity.destroy()
+			if entity_name ~= "entity-ghost" then
+				refund_item(event, event.stack.name)
+			end
 		else
 			entity.force = game.forces["neutral"]
 		end	
 		return 
+	end
+	if error == true then
+		if p ~= nil then
+			p.play_sound({path="utility/cannot_build", position=p.position, volume_modifier=0.75})
+		else
+			error_floaty(surface, position, "Can't build near town!")
+		end
 	end
 
 	if not neutral_whitelist[entity.type] then return end
@@ -187,22 +223,26 @@ local function restrictions(event)
 
 end
 
+-- called when a player places an item, or a ghost
 local function on_built_entity(event)
-	if prevent_isolation(event) then return end
-	restrictions(event)
-end
-
-local function on_player_built_tile(event)
-	prevent_isolation_landfill(event)
+	local player = game.players[event.player_index]
+	if prevent_isolation_entity(event, player) then return end
+	restrictions(event, player)
 end
 
 local function on_robot_built_entity(event)
-	if prevent_isolation(event) then return end
+	if prevent_isolation_entity(event) then return end
 	restrictions(event)
 end
 
+-- called when a player places landfill
+local function on_player_built_tile(event)
+	local player = game.players[event.player_index]
+	prevent_isolation_tile(event, player)
+end
+
 local function on_robot_built_tile(event)
-	prevent_isolation_landfill(event)
+	prevent_isolation_tile(event)
 end
 
 local Event = require 'utils.event'

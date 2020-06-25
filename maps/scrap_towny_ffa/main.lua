@@ -118,9 +118,10 @@ local tick_actions = {
 }
 
 local function on_nth_tick(event)	-- run each second
-	local tick = game.tick % 3600	-- tick will recycle minute
-	if not tick_actions[tick] then return end
-	tick_actions[tick]()
+	local tick = event.tick
+	local seconds = tick % 3600	-- tick will recycle minute
+	if not tick_actions[seconds] then return end
+	tick_actions[seconds]()
 end
 
 local Event = require 'utils.event'

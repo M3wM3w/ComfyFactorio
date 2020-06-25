@@ -175,8 +175,8 @@ local function on_entity_damaged(event)
 end
 
 local function on_tick(event)
+	local tick = event.tick
 	if global.explosion_schedule then		
-		local tick = game.tick
 		local explosion_schedule_is_alive = false
 		for explosion_index = 1, #global.explosion_schedule, 1 do			
 			if #global.explosion_schedule[explosion_index] > 0 then

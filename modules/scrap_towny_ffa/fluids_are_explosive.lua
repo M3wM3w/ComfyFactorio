@@ -1,5 +1,7 @@
 --This will add a new game mechanic so that containers with certain fluids explode when they get damaged or are destroyed.
 --Made by MewMew
+local math_random = math.random
+local math_floor = math.floor
 local Pollution = require "modules.scrap_towny_ffa.pollution"
 
 local empty_tile_damage_decay = 50
@@ -23,7 +25,7 @@ local fluid_damages = { -- Fluid Whitelist -- add fluid and a damage value to en
 local function shuffle(tbl)
 	local size = #tbl
 		for i = size, 1, -1 do
-			local rand = math.random(size)
+			local rand = math_random(size)
 			tbl[i], tbl[rand] = tbl[rand], tbl[i]
 		end
 	return tbl
@@ -72,7 +74,7 @@ local function process_explosion_tile(pos, explosion_index, current_radius)
 	end
 	
 	if global.fluid_explosion_schedule[explosion_index].damage_remaining > 5000 and current_radius < 2 then
-		if math.random(1,2) ==  1 then
+		if math_random(1,2) ==  1 then
 			explosion_animation = "big-explosion"
 		else
 			explosion_animation = "big-artillery-explosion"
@@ -88,7 +90,7 @@ local function process_explosion_tile(pos, explosion_index, current_radius)
 end
 
 local function create_explosion_schedule(entity)		
-	local explosives_amount = math.floor(entity.fluidbox[1].amount)
+	local explosives_amount = math_floor(entity.fluidbox[1].amount)
 	
 	if explosives_amount < 1 then return end		
 	local center_position = entity.position
@@ -148,8 +150,8 @@ local function on_entity_damaged(event)
 end
 
 local function on_tick(event)
-	if global.fluid_explosion_schedule then		
-		local tick = game.tick
+	local tick = event.tick
+	if global.fluid_explosion_schedule then
 		local explosion_schedule_is_alive = false
 		for explosion_index = 1, #global.fluid_explosion_schedule, 1 do			
 			if #global.fluid_explosion_schedule[explosion_index] > 0 then

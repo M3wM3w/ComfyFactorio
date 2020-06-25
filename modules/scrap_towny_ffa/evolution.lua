@@ -540,11 +540,7 @@ local function update_evolution(force_name, technology)
     -- town_center is a reference to a global table
     if not town_center then return end
     -- initialize if not already
-    if not town_center.evolution then town_center.evolution = {} end
     local evo = town_center.evolution
-    if evo.biters == nil then evo.biters = 0.0 end
-    if evo.spitters == nil then evo.spitters = 0.0 end
-    if evo.worms == nil then evo.worms = 0.0 end
     -- get the weights for this technology
     local biter_weight = technology_weights[technology].biter
     local spitter_weight = technology_weights[technology].spitter
