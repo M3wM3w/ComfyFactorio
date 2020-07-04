@@ -1,11 +1,13 @@
 --This will add a new game mechanic so that containers with explosives actually go boom when they get damaged.
 --Made by MewMew
-
+local math_min = math.min
 local Pollution = require "modules.scrap_towny_ffa.pollution"
 
-local damage_per_explosive = 100
+--local damage_per_explosive = 100
+local damage_per_explosive = 50
 local empty_tile_damage_decay = 100
 local out_of_map_tile_health = 1500
+local max_volatility = 20
 
 local explosive_items = {
 	["explosives"] = 1,
@@ -17,22 +19,22 @@ local explosive_items = {
 	["explosive-cannon-shell"] = 5,
 	["explosive-uranium-cannon-shell"] = 5,
 	["uranium-cannon-shell"] = 5,
-	["atomic-bomb"] = 100,
+--	["atomic-bomb"] = 100,
 	["explosive-rocket"] = 5,
 	["rocket"] = 2,
 	["flamethrower-ammo"] = 2,
-	["crude-oil-barrel"] = 2,
 	["petroleum-gas-barrel"] = 2,
-	["light-oil-barrel"] = 2,
-	["heavy-oil-barrel"] = 2,
-	["lubricant-barrel"] = 1,
-	["shotgun-shell"] = 1,
-	["piercing-shotgun-shell"] = 1,
-	["firearm-magazine"] = 1,
-	["piercing-rounds-magazine"] = 1,
-	["uranium-rounds-magazine"] = 1,
+	--	["crude-oil-barrel"] = 2,
+--	["light-oil-barrel"] = 2,
+--	["heavy-oil-barrel"] = 2,
+--	["lubricant-barrel"] = 1,
+--	["shotgun-shell"] = 1,
+--	["piercing-shotgun-shell"] = 1,
+--	["firearm-magazine"] = 1,
+--	["piercing-rounds-magazine"] = 1,
+--	["uranium-rounds-magazine"] = 1,
 	["cliff-explosives"] = 2,
-	["solid-fuel"] = 1
+--	["solid-fuel"] = 1
 }
 
 local circle_coordinates = {
@@ -65,7 +67,7 @@ local function process_explosion_tile(pos, explosion_index, current_radius)
 	local surface = game.surfaces[global.explosion_schedule[explosion_index].surface]					
 	local target_entities = surface.find_entities_filtered({area={{pos.x - 0.5, pos.y - 0.5},{pos.x + 0.499, pos.y + 0.499}}}) 
 	local explosion_animation = "explosion"
-	
+
 	local tile = surface.get_tile(pos)	
 	if tile.name == "out-of-map" then						
 		if global.explosion_schedule[explosion_index].damage_remaining >= out_of_map_tile_health then
@@ -127,7 +129,7 @@ local function volatility(inventory)
 		local c = inventory.get_item_count(item)
 		result = result + (c * v)
 	end
-	return result
+	return math_min(max_volatility, result)
 end
 
 local function create_explosion_schedule(entity)
@@ -176,14 +178,14 @@ end
 
 local function on_tick(event)
 	local tick = event.tick
-	if global.explosion_schedule then		
+	if global.explosion_schedule then
 		local explosion_schedule_is_alive = false
 		for explosion_index = 1, #global.explosion_schedule, 1 do			
 			if #global.explosion_schedule[explosion_index] > 0 then
 				explosion_schedule_is_alive = true
 				for radius = 1, #global.explosion_schedule[explosion_index], 1 do
 					if global.explosion_schedule[explosion_index][radius].trigger_tick == tick then	
-						for tile_index = 1, #global.explosion_schedule[explosion_index][radius], 1 do							
+						for tile_index = 1, #global.explosion_schedule[explosion_index][radius], 1 do
 							local continue_explosion = process_explosion_tile(global.explosion_schedule[explosion_index][radius][tile_index], explosion_index, radius)
 							if not continue_explosion then
 								global.explosion_schedule[explosion_index] = {}

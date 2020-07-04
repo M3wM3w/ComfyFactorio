@@ -1,8 +1,8 @@
 require "modules.custom_death_messages"
 require "modules.flashlight_toggle_button"
 require "modules.global_chat_toggle"
-require "modules.biters_yield_coins"
 require "modules.worms_create_oil_patches"
+require "modules.biters_yield_coins"
 require "modules.no_arti_remote"
 require "modules.scrap_towny_ffa.building"
 require "modules.scrap_towny_ffa.town_center"
@@ -75,7 +75,7 @@ local function on_player_respawned(event)
 	spawn_point = Spawn.get_spawn_point(player, surface)
 	-- reset cooldown
 	global.towny.cooldowns.last_respawn[player.name] = game.tick
-	player.teleport(spawn_point, surface)
+	player.teleport(surface.find_non_colliding_position("character", spawn_point, 0, 0.5, false), surface)
 end
 
 local function on_player_died(event)

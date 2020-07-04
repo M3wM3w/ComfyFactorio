@@ -367,18 +367,27 @@ function Public.add_new_force(force_name)
 	-- friendly fire
 	force.friendly_fire = true
 	-- disable chart sharing
-	force.share_chart = false
+	force.share_chart = true
 	force.clear_chart("nauvis")
 	-- disable technologies
 	force.research_queue_enabled = true
 	force.technologies["atomic-bomb"].enabled = false
-	force.technologies["explosive-rocketry"].enabled = false
 	force.technologies["rocketry"].enabled = false
+	force.technologies["explosive-rocketry"].enabled = false
 	force.technologies["artillery"].enabled = false
 	force.technologies["artillery-shell-range-1"].enabled = false
 	force.technologies["artillery-shell-speed-1"].enabled = false
-	force.recipes["radar"].enabled = false
-
+	-- disable recipes
+	--force.recipes["radar"].enabled = false
+	force.recipes["rocket-launcher"].enabled = false
+	force.recipes["rocket"].enabled = false
+	force.recipes["explosive-rocket"].enabled = false
+	force.recipes["cluster-grenade"].enabled = false
+	force.recipes["atomic-bomb"].enabled = false
+	force.recipes["artillery-turret"].enabled = false
+	force.recipes["artillery-wagon"].enabled = false
+	force.recipes["artillery-targeting-remote"].enabled = false
+	force.recipes["artillery-shell"].enabled = false
 end
 
 local function kill_force(force_name)

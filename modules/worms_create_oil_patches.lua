@@ -15,7 +15,8 @@ local decay_ticks = 2
 local worms = {
     ["small-worm-turret"] = { corpse="small-worm-corpse", patch_size = { min=30000, max=90000} },
     ["medium-worm-turret"] = { corpse="medium-worm-corpse", patch_size = { min=60000, max=120000 } },
-    ["big-worm-turret"] = { corpse="big-worm-corpse", patch_size = { min=90000, max=300000 } }
+    ["big-worm-turret"] = { corpse="big-worm-corpse", patch_size = { min=90000, max=300000 } },
+    ["behemoth-worm-turret"] = { corpse="behemoth-worm-corpse", patch_size = { min=120000, max=600000 } }
 }
 
 local function destroy_worm(name, position, surface)
@@ -63,12 +64,14 @@ local function process_worm(entity)
         callback = 'remove_corpse',
         params = {name, position, surface}
     }
-    local tick3 = game.tick + death_animation_ticks + decay_ticks + 1
-    if not tick_schedule[tick3] then tick_schedule[tick3] = {} end
-    tick_schedule[tick3][#tick_schedule[tick3] + 1] = {
-        callback = 'create_oil_patch',
-        params = {name, position, surface}
-    }
+    if math_random(1,4) == 1 then
+        local tick3 = game.tick + death_animation_ticks + decay_ticks + 1
+        if not tick_schedule[tick3] then tick_schedule[tick3] = {} end
+        tick_schedule[tick3][#tick_schedule[tick3] + 1] = {
+            callback = 'create_oil_patch',
+            params = {name, position, surface}
+        }
+    end
 end
 
 local function on_entity_died(event)
@@ -76,7 +79,8 @@ local function on_entity_died(event)
     local test = {
         ["small-worm-turret"] = true,
         ["medium-worm-turret"] = true,
-        ["big-worm-turret"] = true
+        ["big-worm-turret"] = true,
+        ["behemoth-worm-turret"] = true
     }
     if test[entity.name] ~= nil then
         process_worm(entity)

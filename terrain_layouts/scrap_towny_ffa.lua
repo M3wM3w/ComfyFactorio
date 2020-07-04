@@ -33,6 +33,7 @@ local mining_chance_weights = {
 	{name = "water-barrel", chance = 10},
 	{name = "green-wire", chance = 10},
 	{name = "red-wire", chance = 10},
+	{name = "cliff-explosives", chance = 5},
 	{name = "explosives", chance = 5},
 	{name = "advanced-circuit", chance = 5},
 	{name = "nuclear-fuel", chance = 1},
@@ -59,7 +60,7 @@ local mining_chance_weights = {
 	{name = "uranium-cannon-shell", chance = 1},
 	{name = "explosive-uranium-cannon-shell", chance = 1},
 	--{name = "artillery-shell", chance = 1},
-	{name = "cluster-grenade", chance = 2},
+	--{name = "cluster-grenade", chance = 2},
 	{name = "defender-capsule", chance = 5},
 	{name = "destroyer-capsule", chance = 1},
 	{name = "distractor-capsule", chance = 2}
@@ -84,6 +85,7 @@ local scrap_yield_amounts = {
 	["light-oil-barrel"] = 3,
 	["water-barrel"] = 3,
 	["battery"] = 2,
+	["cliff-explosives"] = 4,
 	["explosives"] = 4,
 	["advanced-circuit"] = 2,
 	["nuclear-fuel"] = 0.1,
@@ -102,7 +104,7 @@ local scrap_yield_amounts = {
 	["electric-engine-unit"] = 2,
 	["logistic-robot"] = 0.3,
 	["construction-robot"] = 0.3,
-	
+
 	["land-mine"] = 1,
 	["grenade"] = 2,
 	--["rocket"] = 2,
@@ -112,7 +114,7 @@ local scrap_yield_amounts = {
 	["uranium-cannon-shell"] = 2,
 	["explosive-uranium-cannon-shell"] = 2,
 	--["artillery-shell"] = 0.3,
-	["cluster-grenade"] = 0.3,
+	--["cluster-grenade"] = 0.3,
 	["defender-capsule"] = 2,
 	["destroyer-capsule"] = 0.3,
 	["distractor-capsule"] = 0.3
@@ -218,15 +220,19 @@ local function on_chunk_generated(event)
 	--global.towny.chunk_generated[key] = true
 end
 
---local function on_chunk_charted(event)
---	for f in pairs(game.forces) do
---		if game.forces[f].valid then game.forces[f].clear_chart(game.surfaces[event.surface_index]) end
---	end
---end
+local function on_chunk_charted(event)
+	local force = event.force
+	local surface = game.surfaces[event.surface_index]
+	if force.valid then
+		if force == game.forces["player"] or force == game.forces["rogue"] then
+			force.clear_chart(surface)
+		end
+	end
+end
 
 local Event = require 'utils.event'
 --Event.add(defines.events.on_init, on_init)
 Event.add(defines.events.on_chunk_generated, on_chunk_generated)
---Event.add(defines.events.on_chunk_charted, on_chunk_charted)
+Event.add(defines.events.on_chunk_charted, on_chunk_charted)
 Event.add(defines.events.on_player_mined_entity, on_player_mined_entity)
 Event.add(defines.events.on_entity_died, on_entity_died)

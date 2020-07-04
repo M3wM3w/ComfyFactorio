@@ -40,7 +40,7 @@ end
 local function get_amount(position)
 	local base = 256
 	local relative_evolution = Evolution.get_evolution(position)
-	local tier = 8 + math_floor(relative_evolution * 16)
+	local tier = 4 + math_floor(relative_evolution * 16)
 	return (math_random(1, base) + math_random(1, 2 ^ tier))
 end
 

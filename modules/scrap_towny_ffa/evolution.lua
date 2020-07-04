@@ -24,7 +24,11 @@ local worms = {
 }
 
 -- evolution max distance in tiles
-local max_evolution_distance = 512
+local max_evolution_distance = 1024
+local max_pollution_behemoth = 256
+local max_pollution_big = 64
+local max_pollution_medium = 16
+local max_factor = 0.8
 
 -- technology weights (biter, spitter, worm)
 local technology_weights = {
@@ -254,6 +258,9 @@ for _, weight in pairs(technology_weights) do
     max_spitter_weight = max_spitter_weight + weight.spitter
     max_worm_weight = max_worm_weight + weight.worm
 end
+max_biter_weight = max_biter_weight * max_factor
+max_spitter_weight = max_spitter_weight * max_factor
+max_worm_weight = max_worm_weight * max_factor
 
 local function get_unit_size(evolution)
     -- returns a value 0-3 that represents the unit size
@@ -416,11 +423,10 @@ local function set_biter_type(entity)
     if entity.name == entity_name then return end
     local surface = entity.surface
     local pollution = surface.get_pollution(position)
-    -- pollution is typically 0-400
-    local behemoth = math_floor(pollution / 400)
-    local big = math_floor((pollution - (behemoth * 400)) / 80)
-    local medium = math_floor((pollution - (behemoth * 400) - (big * 80)) / 20)
-    local small = pollution - (behemoth * 400) - (big * 80) - (medium * 20) + 1
+    local behemoth = math_floor(pollution / max_pollution_behemoth)
+    local big = math_floor((pollution - (behemoth * max_pollution_behemoth)) / max_pollution_big)
+    local medium = math_floor((pollution - (behemoth * max_pollution_behemoth) - (big * max_pollution_big)) / max_pollution_medium)
+    local small = pollution - (behemoth * max_pollution_behemoth) - (big * max_pollution_big) - (medium * max_pollution_medium) + 1
 
     if entity.valid then
         for _ = 1, behemoth do
@@ -460,11 +466,10 @@ local function set_spitter_type(entity)
     if entity.name == entity_name then return end
     local surface = entity.surface
     local pollution = surface.get_pollution(position)
-    -- pollution is typically 0-400
-    local behemoth = math_floor(pollution / 200)
-    local big = math_floor((pollution - (behemoth * 200)) / 30)
-    local medium = math_floor((pollution - (behemoth * 200) - (big * 30)) / 12)
-    local small = pollution - (behemoth * 200) - (big * 30) - (medium * 12) + 1
+    local behemoth = math_floor(pollution / max_pollution_behemoth)
+    local big = math_floor((pollution - (behemoth * max_pollution_behemoth)) / max_pollution_big)
+    local medium = math_floor((pollution - (behemoth * max_pollution_behemoth) - (big * max_pollution_big)) / max_pollution_medium)
+    local small = pollution - (behemoth * max_pollution_behemoth) - (big * max_pollution_big) - (medium * max_pollution_medium) + 1
 
     if entity.valid then
         for _ = 1, behemoth do
