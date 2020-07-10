@@ -1,6 +1,5 @@
 local WPT = require 'maps.mountain_fortress_v3.table'
 
-local math_random = math.random
 local nom_msg = {'munch', 'munch', 'yum'}
 
 local Public = {}
@@ -10,8 +9,8 @@ local function feed_floaty_text(unit)
         {
             name = 'flying-text',
             position = unit.position,
-            text = nom_msg[math_random(1, #nom_msg)],
-            color = {math_random(50, 100), 0, 255}
+            text = nom_msg[math.random(1, #nom_msg)],
+            color = {math.random(50, 100), 0, 255}
         }
     )
 end
@@ -21,11 +20,11 @@ local function floaty_hearts(entity, c)
     local b = 1.35
     for a = 1, c, 1 do
         local p = {
-            (position.x + 0.4) + (b * -1 + math_random(0, b * 20) * 0.1),
-            position.y + (b * -1 + math_random(0, b * 20) * 0.1)
+            (position.x + 0.4) + (b * -1 + math.random(0, b * 20) * 0.1),
+            position.y + (b * -1 + math.random(0, b * 20) * 0.1)
         }
         entity.surface.create_entity(
-            {name = 'flying-text', position = p, text = '♥', color = {math_random(150, 255), 0, 255}}
+            {name = 'flying-text', position = p, text = '♥', color = {math.random(150, 255), 0, 255}}
         )
     end
 end
@@ -69,7 +68,7 @@ local function feed_pet(unit)
     end
     unit.health = unit.health + 8 + math.floor(unit.prototype.max_health * 0.05)
     feed_floaty_text(unit)
-    floaty_hearts(unit, math_random(1, 2))
+    floaty_hearts(unit, math.random(1, 2))
     return true
 end
 
@@ -94,7 +93,7 @@ function Public.biter_pets_tame_unit(player, unit, forced)
     end
 
     if not forced then
-        if math_random(1, math.floor(unit.prototype.max_health * 0.01) + 1) ~= 1 then
+        if math.random(1, math.floor(unit.prototype.max_health * 0.01) + 1) ~= 1 then
             feed_floaty_text(unit)
             return true
         end
@@ -151,7 +150,7 @@ end
 local function on_player_changed_position(event)
     local this = WPT.get()
 
-    if math_random(1, 100) ~= 1 then
+    if math.random(1, 100) ~= 1 then
         return
     end
     local player = game.players[event.player_index]

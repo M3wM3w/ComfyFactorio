@@ -1,12 +1,10 @@
-local Color = require 'utils.color_presets'
-local Task = require 'utils.task'
 local Server = require 'utils.server'
-local WPT = require 'maps.mountain_fortress_v3.table'
+local FDT = require 'maps.fish_defender.table'
 
 local mapkeeper = '[color=blue]Mapkeeper:[/color]'
 
 commands.add_command(
-    'mf_commands',
+    'fishy_commands',
     'Usable only for admins - controls the scenario!',
     function(cmd)
         local p
@@ -21,8 +19,6 @@ commands.add_command(
             end
         end
 
-        local this = WPT.get()
-        local reset_map = require 'maps.mountain_fortress_v3.main'.reset_map
         local param = cmd.parameter
 
         if param == 'restart' or param == 'shutdown' or param == 'reset' or param == 'restartnow' then
@@ -33,6 +29,9 @@ commands.add_command(
         end
 
         ::continue::
+
+        local this = FDT.get()
+        local reset_map = require 'maps.fish_defender.main'.on_init
 
         if not this.reset_are_you_sure then
             this.reset_are_you_sure = true
@@ -62,7 +61,7 @@ commands.add_command(
         elseif param == 'restartnow' then
             this.reset_are_you_sure = nil
             p(player.name .. ' has restarted the game.')
-            Server.start_scenario('Mountain_Fortress_v3')
+            Server.start_scenario('Fish_Defender')
             return
         elseif param == 'shutdown' then
             if this.shutdown then
@@ -91,58 +90,6 @@ commands.add_command(
             reset_map()
             p('[WARNING] Game has been reset!')
             return
-        end
-    end
-)
-
-commands.add_command(
-    'set_queue_speed',
-    'Usable only for admins - sets the queue speed of this map!',
-    function(cmd)
-        local p
-        local player = game.player
-        local param = tonumber(cmd.parameter)
-
-        if player then
-            if player ~= nil then
-                p = player.print
-                if not player.admin then
-                    p("[ERROR] You're not admin!", Color.fail)
-                    return
-                end
-                if not param then
-                    return
-                end
-                p('Queue speed set to: ' .. param)
-                Task.set_queue_speed(param)
-            else
-                p = log
-                p('Queue speed set to: ' .. param)
-                Task.set_queue_speed(param)
-            end
-        end
-    end
-)
-
-commands.add_command(
-    'get_queue_speed',
-    'Usable only for admins - gets the queue speed of this map!',
-    function()
-        local p
-        local player = game.player
-
-        if player then
-            if player ~= nil then
-                p = player.print
-                if not player.admin then
-                    p("[ERROR] You're not admin!", Color.fail)
-                    return
-                end
-                p(Task.get_queue_speed())
-            else
-                p = log
-                p(Task.get_queue_speed())
-            end
         end
     end
 )

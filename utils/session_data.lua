@@ -1,5 +1,3 @@
--- luacheck: ignore
-
 local Global = require 'utils.global'
 local Game = require 'utils.game'
 local Token = require 'utils.token'
@@ -17,7 +15,8 @@ local trusted = {}
 local set_data = Server.set_data
 local try_get_data = Server.try_get_data
 local concat = table.concat
-local nth_tick = 54001 -- nearest prime to 15 minutes in ticks
+local trusted_value = 2592000
+local nth_tick = 18000 -- nearest prime to 5 minutes in ticks
 
 Global.register(
     {
@@ -34,15 +33,6 @@ Global.register(
 
 local Public = {}
 
-if _DEBUG then
-    printinfo =
-        Token.register(
-        function(data)
-            game.print(serpent.block(data))
-        end
-    )
-end
-
 local try_download_data =
     Token.register(
     function(data)
@@ -50,7 +40,7 @@ local try_download_data =
         local value = data.value
         if value then
             session[key] = value
-            if value > 2592000 then
+            if value > trusted_value then
                 trusted[key] = true
             end
         else
@@ -65,52 +55,69 @@ local try_upload_data =
     Token.register(
     function(data)
         local key = data.key
-        local player = game.get_player(key)
         local value = data.value
+        local player = game.get_player(key)
         if value then
-            local old_time = session[key]
-            if not online_track[player.name] then
-                online_track[player.name] = 0
+            local old_time_ingame = value
+
+            if not online_track[key] then
+                online_track[key] = 0
             end
-            local new_time = old_time + player.online_time - online_track[player.name]
+
+            local new_time = old_time_ingame + player.online_time - online_track[key]
+            if new_time <= 0 then
+                new_time = old_time_ingame + player.online_time
+                print('[ERROR] ' .. key .. ' had new time set as negative value: ' .. new_time)
+                return
+            end
             set_data(session_data_set, key, new_time)
-            online_track[player.name] = player.online_time
-            session[key] = value
+            session[key] = new_time
+            online_track[key] = player.online_time
         end
     end
 )
 
-local function tick()
+--- Uploads each connected players play time to the dataset
+local function upload_data()
     for _, p in pairs(game.connected_players) do
         Public.try_ul_data(p.name)
     end
 end
 
+--- Prints out game.tick to real hour/minute
+---@param int
+function Public.format_time(ticks)
+    local seconds = ticks / 60
+    local minutes = math.floor((seconds) / 60)
+    local hours = math.floor((minutes) / 60)
+    local min = math.floor(minutes - 60 * hours)
+    return string.format('%dh:%02dm', hours, minutes, min)
+end
+
 --- Tries to get data from the webpanel and updates the local table with values.
 -- @param data_set player token
 function Public.try_dl_data(key)
-    local key = tostring(key)
+    key = tostring(key)
     local secs = Server.get_current_time()
     if secs == nil then
         raw_print(error_offline)
+        session[key] = game.players[key].online_time
         return
     else
         try_get_data(session_data_set, key, try_download_data)
-        secs = nil
     end
 end
 
 --- Tries to get data from the webpanel and updates the local table with values.
 -- @param data_set player token
 function Public.try_ul_data(key)
-    local key = tostring(key)
+    key = tostring(key)
     local secs = Server.get_current_time()
     if secs == nil then
         raw_print(error_offline)
         return
     else
         try_get_data(session_data_set, key, try_upload_data)
-        secs = nil
     end
 end
 
@@ -158,11 +165,8 @@ Event.add(
         if not player then
             return
         end
-        if game.is_multiplayer() then
-            Public.try_dl_data(player.name)
-        else
-            session[player.name] = player.online_time
-        end
+
+        Public.try_dl_data(player.name)
     end
 )
 
@@ -173,18 +177,24 @@ Event.add(
         if not player then
             return
         end
-        if game.is_multiplayer() then
-            Public.try_ul_data(player.name)
-        end
+
+        Public.try_ul_data(player.name)
     end
 )
 
-Event.on_nth_tick(nth_tick, tick)
+Event.on_nth_tick(nth_tick, upload_data)
 
 Server.on_data_set_changed(
     session_data_set,
     function(data)
         session[data.key] = data.value
+        if data.value > trusted_value then
+            trusted[data.key] = true
+        else
+            if trusted[data.key] then
+                trusted[data.key] = false
+            end
+        end
     end
 )
 

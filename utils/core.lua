@@ -20,10 +20,10 @@ local ticks_to_minutes = 1 / minutes_to_ticks
 local ticks_to_hours = 1 / hours_to_ticks
 
 -- local vars
-local Module = {}
+local Public = {}
 
 --- Measures distance between pos1 and pos2
-function Module.distance(pos1, pos2)
+function Public.distance(pos1, pos2)
     local dx = pos2.x - pos1.x
     local dy = pos2.y - pos1.y
     return sqrt(dx * dx + dy * dy)
@@ -33,7 +33,7 @@ end
 -- @param msg <string|table> table if locale is used
 -- @param player <LuaPlayer> the player not to send the message to
 -- @param color <table> the color to use for the message, defaults to white
-function Module.print_except(msg, player, color)
+function Public.print_except(msg, player, color)
     if not color then
         color = Color.white
     end
@@ -45,13 +45,23 @@ function Module.print_except(msg, player, color)
     end
 end
 
+function Public.print_to(player_ident, msg)
+    local player = Public.validate_player(player_ident)
+
+    if player then
+        player.print(prefix .. msg, Color.yellow)
+    else
+        game.print(prefix .. msg, Color.yellow)
+    end
+end
+
 --- Prints a message to all online admins
 -- @param msg <string|table> table if locale is used
--- @param source <LuaPlayer|string|nil> string must be the name of a player, nil for server_commands.
-function Module.print_admins(msg, source)
+-- @param source <LuaPlayer|string|nil> string must be the name of a player, nil for server.
+function Public.print_admins(msg, source)
     local source_name
     local chat_color
-    if source then
+    if source and game.players[source] then
         if type(source) == 'string' then
             source_name = source
             chat_color = game.players[source].chat_color
@@ -63,7 +73,7 @@ function Module.print_admins(msg, source)
         source_name = 'Server'
         chat_color = Color.yellow
     end
-    local formatted_msg = {'utils_core.print_admins',prefix, source_name, msg}
+    local formatted_msg = prefix .. '(ADMIN) ' .. source_name .. ': ' .. msg
     log(formatted_msg)
     for _, p in pairs(game.connected_players) do
         if p.admin then
@@ -73,14 +83,14 @@ function Module.print_admins(msg, source)
 end
 
 --- Returns a valid string with the name of the actor of a command.
-function Module.get_actor()
+function Public.get_actor()
     if game.player then
         return game.player.name
     end
     return '<server>'
 end
 
-function Module.cast_bool(var)
+function Public.cast_bool(var)
     if var then
         return true
     else
@@ -88,13 +98,21 @@ function Module.cast_bool(var)
     end
 end
 
-function Module.find_entities_by_last_user(player, surface, filters)
+function Public.find_entities_by_last_user(player, surface, filters)
     if type(player) == 'string' or not player then
-        error("bad argument #1 to '" .. debug.getinfo(1, 'n').name .. "' (number or LuaPlayer expected, got " .. type(player) .. ')', 1)
+        error(
+            "bad argument #1 to '" ..
+                debug.getinfo(1, 'n').name .. "' (number or LuaPlayer expected, got " .. type(player) .. ')',
+            1
+        )
         return
     end
     if type(surface) ~= 'table' and type(surface) ~= 'number' then
-        error("bad argument #2 to '" .. debug.getinfo(1, 'n').name .. "' (number or LuaSurface expected, got " .. type(surface) .. ')', 1)
+        error(
+            "bad argument #2 to '" ..
+                debug.getinfo(1, 'n').name .. "' (number or LuaSurface expected, got " .. type(surface) .. ')',
+            1
+        )
         return
     end
     local entities = {}
@@ -103,7 +121,7 @@ function Module.find_entities_by_last_user(player, surface, filters)
         surface = game.surfaces[surface]
     end
     if type(player) == 'number' then
-        player = Game.get_player_by_index(player)
+        player = game.get_player(player)
     end
     filter.force = player.force.name
     for _, e in pairs(surface.find_entities_filtered(filter)) do
@@ -114,7 +132,7 @@ function Module.find_entities_by_last_user(player, surface, filters)
     return entities
 end
 
-function Module.ternary(c, t, f)
+function Public.ternary(c, t, f)
     if c then
         return t
     else
@@ -123,7 +141,7 @@ function Module.ternary(c, t, f)
 end
 
 --- Takes a time in ticks and returns a string with the time in format "x hour(s) x minute(s)"
-function Module.format_time(ticks)
+function Public.format_time(ticks)
     local result = {}
 
     local hours = floor(ticks * ticks_to_hours)
@@ -150,7 +168,7 @@ end
 
 --- Prints a message letting the player know they cannot run a command
 -- @param name string name of the command
-function Module.cant_run(name)
+function Public.cant_run(name)
     Game.player_print("Can't run command (" .. name .. ') - insufficient permission.')
 end
 
@@ -158,7 +176,7 @@ end
 -- @param actor string with the actor's name (usually acquired by calling get_actor)
 -- @param command the command's name as table element
 -- @param parameters the command's parameters as a table (optional)
-function Module.log_command(actor, command, parameters)
+function Public.log_command(actor, command, parameters)
     local action = concat {'[Admin-Command] ', actor, ' used: ', command}
     if parameters then
         action = concat {action, ' ', parameters}
@@ -166,7 +184,7 @@ function Module.log_command(actor, command, parameters)
     log(action)
 end
 
-function Module.comma_value(n) -- credit http://richard.warburton.it
+function Public.comma_value(n) -- credit http://richard.warburton.it
     local left, num, right = match(n, '^([^%d]*%d)(%d*)(.-)$')
     return left .. (num:reverse():gsub('(%d%d%d)', '%1,'):reverse()) .. right
 end
@@ -175,7 +193,7 @@ end
 -- @param arg the variable to check
 -- @param arg_types the type as a table of sings
 -- @return boolean
-function Module.verify_mult_types(arg, arg_types)
+function Public.verify_mult_types(arg, arg_types)
     for _, arg_type in pairs(arg_types) do
         if type(arg) == arg_type then
             return true
@@ -185,7 +203,7 @@ function Module.verify_mult_types(arg, arg_types)
 end
 
 --- Returns a random RGB color as a table
-function Module.random_RGB()
+function Public.random_RGB()
     return {r = random(0, 255), g = random(0, 255), b = random(0, 255)}
 end
 
@@ -194,7 +212,7 @@ end
 -- @param key string
 -- @param value nil|boolean|number|string|table to set the element to
 -- @return value
-function Module.set_and_return(tbl, key, value)
+function Public.set_and_return(tbl, key, value)
     tbl[key] = value
     return value
 end
@@ -202,8 +220,27 @@ end
 --- Takes msg and prints it to all players. Also prints to the log and discord
 -- @param msg <string> The message to print
 -- @param warning_prefix <string> The name of the module/warning
-function Module.action_warning(warning_prefix, msg)
+function Public.action_warning(warning_prefix, msg)
     game.print(prefix .. msg, Color.yellow)
+    msg = format('%s %s', warning_prefix, msg)
+    log(msg)
+    Server.to_discord_bold(msg)
+end
+
+--- Takes msg and prints it to all players. Also prints to the log and discord
+-- @param msg <string> The message to print
+-- @param warning_prefix <string> The name of the module/warning
+function Public.action_warning_embed(warning_prefix, msg)
+    game.print(prefix .. msg, Color.yellow)
+    msg = format('%s %s', warning_prefix, msg)
+    log(msg)
+    Server.to_discord_embed(msg)
+end
+
+--- Takes msg and prints it to the log and discord.
+-- @param msg <string> The message to print
+-- @param warning_prefix <string> The name of the module/warning
+function Public.action_to_discord(warning_prefix, msg)
     msg = format('%s %s', warning_prefix, msg)
     log(msg)
     Server.to_discord_bold(msg)
@@ -213,11 +250,37 @@ end
 -- @param msg <string> The message to print
 -- @param warning_prefix <string> The name of the module/warning
 -- @param player <LuaPlayer> the player not to send the message to
-function Module.silent_action_warning(warning_prefix, msg, player)
-    Module.print_except(prefix .. msg, player, Color.yellow)
+function Public.silent_action_warning(warning_prefix, msg, player)
+    Public.print_except(prefix .. msg, player, Color.yellow)
     msg = format('%s %s', warning_prefix, msg)
     log(msg)
     Server.to_discord_bold(msg)
+end
+
+--- Takes a string, number, or LuaPlayer and returns a valid LuaPlayer or nil.
+-- Intended for commands as there are extra checks in place.
+-- @param <string|number|LuaPlayer>
+-- @return <LuaPlayer|nil> <string|nil> <number|nil> the LuaPlayer, their name, and their index
+function Public.validate_player(player_ident)
+    local data_type = type(player_ident)
+    local player
+
+    if data_type == 'table' and player_ident.valid then
+        local is_player = player_ident.is_player()
+        if is_player then
+            player = player_ident
+        end
+    elseif data_type == 'number' or data_type == 'string' then
+        player = game.get_player(player_ident)
+    else
+        return
+    end
+
+    if not player or not player.valid then
+        return
+    end
+
+    return player, player.name, player.index
 end
 
 -- add utility functions that exist in base factorio/util
@@ -229,16 +292,16 @@ require 'util'
 -- @param direction <defines.direction> north, east, south, west
 -- @param distance <number>
 -- @return <table> modified position
-Module.move_position = util.moveposition
+Public.move_position = util.moveposition
 
 --- Takes a direction and gives you the opposite
 -- @param direction <defines.direction> north, east, south, west, northeast, northwest, southeast, southwest
 -- @return <number> representing the direction
-Module.opposite_direction = util.oppositedirection
+Public.opposite_direction = util.oppositedirection
 
 --- Takes the string of a module and returns whether is it available or not
 -- @param name <string> the name of the module (ex. 'utils.core')
 -- @return <boolean>
-Module.is_module_available = util.ismoduleavailable
+Public.is_module_available = util.ismoduleavailable
 
-return Module
+return Public

@@ -1,19 +1,19 @@
 local Event = require 'utils.event'
 --local Power = require 'maps.mountain_fortress_v3.power'
+local Market = require 'maps.mountain_fortress_v3.basic_markets'
 local ICW = require 'maps.mountain_fortress_v3.icw.main'
 local WPT = require 'maps.mountain_fortress_v3.table'
 local Difficulty = require 'modules.difficulty_vote'
 local RPG = require 'maps.mountain_fortress_v3.rpg'
+local Gui = require 'utils.gui'
 local Server = require 'utils.server'
 local Alert = require 'utils.alert'
+local Math2D = require 'math2d'
 local format_number = require 'util'.format_number
 
 local Public = {}
-local random = math.random
-local rad = math.rad
 local concat = table.concat
-local cos = math.cos
-local sin = math.sin
+local main_frame_name = Gui.uid_name()
 
 local shopkeeper = '[color=blue]Shopkeeper:[/color]\n'
 
@@ -46,7 +46,7 @@ local function validate_player(player)
     if not player.connected then
         return false
     end
-    if not game.players[player.index] then
+    if not game.players[player.name] then
         return false
     end
     return true
@@ -70,7 +70,10 @@ local function property_boost(data)
             return
         end
         if player.afk_time < 200 then
-            if Public.contains_positions(player.position, area) or player.surface.index == locomotive_surface.index then
+            if
+                Math2D.bounding_box.contains_point(area, player.position) or
+                    player.surface.index == locomotive_surface.index
+             then
                 local pos = player.position
                 RPG.gain_xp(player, 0.3 * (rpg[player.index].bonus + this.xp_points))
 
@@ -86,6 +89,22 @@ local function property_boost(data)
             end
         end
     end
+end
+
+local function is_around_train(data)
+    local entity = data.entity
+    local aura = 60
+    local loco = data.locomotive.position
+    local area = {
+        left_top = {x = loco.x - aura, y = loco.y - aura},
+        right_bottom = {x = loco.x + aura, y = loco.y + aura}
+    }
+    local pos = entity.position
+
+    if Math2D.bounding_box.contains_point(area, pos) then
+        return true
+    end
+    return false
 end
 
 local function fish_tag()
@@ -189,10 +208,10 @@ local function create_poison_cloud(position)
     local surface = game.surfaces[active_surface_index]
 
     local random_angles = {
-        rad(random(359)),
-        rad(random(359)),
-        rad(random(359)),
-        rad(random(359))
+        math.rad(math.random(359)),
+        math.rad(math.random(359)),
+        math.rad(math.random(359)),
+        math.rad(math.random(359))
     }
 
     surface.create_entity({name = 'poison-cloud', position = {x = position.x, y = position.y}})
@@ -200,8 +219,8 @@ local function create_poison_cloud(position)
         {
             name = 'poison-cloud',
             position = {
-                x = position.x + 12 * cos(random_angles[1]),
-                y = position.y + 12 * sin(random_angles[1])
+                x = position.x + 12 * math.cos(random_angles[1]),
+                y = position.y + 12 * math.sin(random_angles[1])
             }
         }
     )
@@ -209,8 +228,8 @@ local function create_poison_cloud(position)
         {
             name = 'poison-cloud',
             position = {
-                x = position.x + 12 * cos(random_angles[2]),
-                y = position.y + 12 * sin(random_angles[2])
+                x = position.x + 12 * math.cos(random_angles[2]),
+                y = position.y + 12 * math.sin(random_angles[2])
             }
         }
     )
@@ -218,8 +237,8 @@ local function create_poison_cloud(position)
         {
             name = 'poison-cloud',
             position = {
-                x = position.x + 12 * cos(random_angles[3]),
-                y = position.y + 12 * sin(random_angles[3])
+                x = position.x + 12 * math.cos(random_angles[3]),
+                y = position.y + 12 * math.sin(random_angles[3])
             }
         }
     )
@@ -227,8 +246,8 @@ local function create_poison_cloud(position)
         {
             name = 'poison-cloud',
             position = {
-                x = position.x + 12 * cos(random_angles[4]),
-                y = position.y + 12 * sin(random_angles[4])
+                x = position.x + 12 * math.cos(random_angles[4]),
+                y = position.y + 12 * math.sin(random_angles[4])
             }
         }
     )
@@ -237,70 +256,139 @@ end
 local function close_market_gui(player)
     local this = WPT.get()
 
-    local element = player.gui.center
+    local element = player.gui.screen
     local data = this.players[player.index].data
     if not data then
         return
     end
 
-    if element and element.valid then
-        element = element['market_gui']
-        if element and element.valid then
-            element.destroy()
-        end
-        if data.frame and data.frame.valid then
-            data.frame.destroy()
-            for k, _ in pairs(data) do
-                data[k] = nil
-            end
-        end
+    local frame = element[main_frame_name]
+    Public.close_gui_player(frame)
+    if data then
+        this.players[player.index].data = nil
     end
 end
 
-local function redraw_market_items(gui, player)
+local function redraw_market_items(gui, player, search_text)
     if not validate_player(player) then
         return
     end
-    local this = WPT.get()
+    local players = WPT.get('players')
 
     gui.clear()
 
     local inventory = player.get_main_inventory()
-    local player_item_count = inventory.get_item_count('coin')
+    local player_item_count
 
+    gui.add(
+        {
+            type = 'label',
+            caption = 'Upgrades: '
+        }
+    )
+
+    local upgrade_table = gui.add({type = 'table', column_count = 6})
+
+    for item, data in pairs(Public.get_items()) do
+        if data.upgrade then
+            if not search_text then
+                goto continue
+            end
+            if not search_text.text then
+                goto continue
+            end
+            if not string.lower(item:gsub('-', ' ')):find(search_text.text) then
+                goto continue
+            end
+            local item_count = data.stack
+            local item_cost = data.price
+
+            local frame = upgrade_table.add({type = 'flow'})
+            frame.style.vertical_align = 'bottom'
+
+            player_item_count = inventory.get_item_count(data.value)
+
+            local button =
+                frame.add(
+                {
+                    type = 'sprite-button',
+                    sprite = data.sprite or 'item/' .. item,
+                    number = item_count,
+                    name = item,
+                    tooltip = data.tooltip,
+                    style = 'slot_button',
+                    enabled = data.enabled
+                }
+            )
+            local label =
+                frame.add(
+                {
+                    type = 'label',
+                    caption = concat {'[item=', data.value, ']: '} .. format_number(item_cost, true)
+                }
+            )
+            label.style.font = 'default-bold'
+
+            if player_item_count < item_cost then
+                button.enabled = false
+            end
+            ::continue::
+        end
+    end
+    gui.add(
+        {
+            type = 'label',
+            caption = 'Items: '
+        }
+    )
+
+    local slider_value = math.ceil(players[player.index].data.slider.slider_value)
     local items_table = gui.add({type = 'table', column_count = 6})
 
-    local slider_value = math.ceil(this.players[player.index].data.slider.slider_value)
     for item, data in pairs(Public.get_items()) do
-        local item_count = data.stack * slider_value
-        local item_cost = data.price * slider_value
+        if not data.upgrade then
+            if not search_text then
+                goto continue
+            end
+            if not search_text.text then
+                goto continue
+            end
+            if not string.lower(item:gsub('-', ' ')):find(search_text.text) then
+                goto continue
+            end
+            local item_count = data.stack * slider_value
+            local item_cost = data.price * slider_value
 
-        local frame = items_table.add({type = 'flow'})
-        frame.style.vertical_align = 'bottom'
+            local frame = items_table.add({type = 'flow'})
+            frame.style.vertical_align = 'bottom'
 
-        local button =
-            frame.add(
-            {
-                type = 'sprite-button',
-                sprite = data.sprite or 'item/' .. item,
-                number = item_count,
-                name = item,
-                tooltip = data.tooltip,
-                style = 'slot_button',
-                enabled = data.enabled
-            }
-        )
-        local label =
-            frame.add(
-            {
-                type = 'label',
-                caption = concat {'[item=', data.value, ']: '} .. format_number(item_cost, true)
-            }
-        )
-        label.style.font = 'default-bold'
+            player_item_count = inventory.get_item_count(data.value)
 
-        if player_item_count < item_cost then
-            button.enabled = false
+            local button =
+                frame.add(
+                {
+                    type = 'sprite-button',
+                    sprite = data.sprite or 'item/' .. item,
+                    number = item_count,
+                    name = item,
+                    tooltip = data.tooltip,
+                    style = 'slot_button',
+                    enabled = data.enabled
+                }
+            )
+            local label =
+                frame.add(
+                {
+                    type = 'label',
+                    caption = concat {'[item=', data.value, ']: '} .. format_number(item_cost, true)
+                }
+            )
+            label.style.font = 'default-bold'
+
+            if player_item_count < item_cost then
+                button.enabled = false
+            end
+            ::continue::
         end
     end
 end
@@ -348,10 +436,18 @@ local function slider_changed(event)
     end
     slider_value = math.ceil(slider_value)
     this.players[player.index].data.text_input.text = slider_value
-    redraw_market_items(this.players[player.index].data.item_frame, player)
+    redraw_market_items(this.players[player.index].data.item_frame, player, this.players[player.index].data.search_text)
 end
 
 local function text_changed(event)
+    local element = event.element
+    if not element then
+        return
+    end
+    if not element.valid then
+        return
+    end
+
     local this = WPT.get()
     local player = game.players[event.player_index]
 
@@ -373,9 +469,7 @@ local function text_changed(event)
         return
     end
 
-    this.players[player.index].data.slider.slider_value = value
-
-    redraw_market_items(data.item_frame, player)
+    redraw_market_items(data.item_frame, player, data.search_text)
 end
 
 local function gui_opened(event)
@@ -403,6 +497,10 @@ local function gui_opened(event)
     local inventory = player.get_main_inventory()
     local player_item_count = inventory.get_item_count('coin')
 
+    if not this.players[player.index].data then
+        this.players[player.index].data = {}
+    end
+
     local data = this.players[player.index].data
 
     if data.frame then
@@ -414,7 +512,7 @@ local function gui_opened(event)
             type = 'frame',
             caption = 'Market',
             direction = 'vertical',
-            name = 'market_gui'
+            name = main_frame_name
         }
     )
 
@@ -487,7 +585,7 @@ local function gui_opened(event)
     this.players[player.index].data.item_frame = pane
     this.players[player.index].data.coins_left = coinsleft
 
-    redraw_market_items(pane, player)
+    redraw_market_items(pane, player, search_text)
 end
 
 local function gui_click(event)
@@ -518,7 +616,7 @@ local function gui_click(event)
         if slider_value > 1 then
             data.slider.slider_value = slider_value - 1
             data.text_input.text = data.slider.slider_value
-            redraw_market_items(data.item_frame, player)
+            redraw_market_items(data.item_frame, player, data.search_text)
         end
         return
     elseif name == 'more' then
@@ -526,7 +624,7 @@ local function gui_click(event)
         if slider_value <= 1e3 then
             data.slider.slider_value = slider_value + 1
             data.text_input.text = data.slider.slider_value
-            redraw_market_items(data.item_frame, player)
+            redraw_market_items(data.item_frame, player, data.search_text)
         end
         return
     end
@@ -535,7 +633,7 @@ local function gui_click(event)
         return
     end
 
-    if not player.opened == 'market_gui' then
+    if not player.opened == main_frame_name then
         return
     end
 
@@ -553,48 +651,78 @@ local function gui_click(event)
     local cost = (item.price * slider_value)
     local item_count = item.stack * slider_value
 
-    if name == 'locomotive_max_health' then
-        player.remove_item({name = item.value, count = cost})
+    if name == 'chest_limit_outside' then
+        if this.chest_limit_outside_upgrades == 8 then
+            local main_market_items = WPT.get('main_market_items')
+
+            main_market_items['chest_limit_outside'].enabled = false
+            main_market_items['chest_limit_outside'].tooltip = 'Max limit bought!'
+            redraw_market_items(data.item_frame, player, data.search_text)
+            return player.print("You can't purchase more chests.", {r = 0.98, g = 0.66, b = 0.22})
+        end
+        player.remove_item({name = item.value, count = item.price})
 
         local message =
             shopkeeper ..
-            player.name .. ' has bought the locomotive health modifier for ' .. format_number(cost, true) .. ' coins.'
+            player.name .. ' has bought the chest limit upgrade for ' .. format_number(item.price, true) .. ' coins.'
         Alert.alert_all_players(5, message)
         Server.to_discord_bold(
             table.concat {
                 player.name ..
-                    ' has bought the locomotive health modifier for ' .. format_number(cost, true) .. ' coins.'
+                    ' has bought the chest limit upgrade for ' .. format_number(item.price, true) .. ' coins.'
             }
         )
-        this.locomotive_max_health = this.locomotive_max_health + 2500 * item_count
+        this.chest_limit_outside_upgrades = this.chest_limit_outside_upgrades + item.stack
+
+        redraw_market_items(data.item_frame, player, data.search_text)
+        redraw_coins_left(data.coins_left, player)
+
+        return
+    end
+    if name == 'locomotive_max_health' then
+        player.remove_item({name = item.value, count = item.price})
+
+        local message =
+            shopkeeper ..
+            player.name ..
+                ' has bought the locomotive health modifier for ' .. format_number(item.price, true) .. ' coins.'
+        Alert.alert_all_players(5, message)
+        Server.to_discord_bold(
+            table.concat {
+                player.name ..
+                    ' has bought the locomotive health modifier for ' .. format_number(item.price, true) .. ' coins.'
+            }
+        )
+        this.locomotive_max_health = this.locomotive_max_health + 2500 * item.stack
         local m = this.locomotive_health / this.locomotive_max_health
         this.locomotive.health = 1000 * m
 
-        this.train_upgrades = this.train_upgrades + item_count
-        this.health_upgrades = this.health_upgrades + item_count
+        this.train_upgrades = this.train_upgrades + item.stack
+        this.health_upgrades = this.health_upgrades + item.stack
         rendering.set_text(this.health_text, 'HP: ' .. this.locomotive_health .. ' / ' .. this.locomotive_max_health)
 
-        redraw_market_items(data.item_frame, player)
+        redraw_market_items(data.item_frame, player, data.search_text)
         redraw_coins_left(data.coins_left, player)
 
         return
     end
     if name == 'locomotive_xp_aura' then
-        player.remove_item({name = item.value, count = cost})
+        player.remove_item({name = item.value, count = item.price})
 
         local message =
             shopkeeper ..
-            player.name .. ' has bought the locomotive xp aura modifier for ' .. format_number(cost, true) .. ' coins.'
+            player.name ..
+                ' has bought the locomotive xp aura modifier for ' .. format_number(item.price, true) .. ' coins.'
         Alert.alert_all_players(5, message)
         Server.to_discord_bold(
             table.concat {
                 player.name ..
-                    ' has bought the locomotive xp aura modifier for ' .. format_number(cost, true) .. ' coins.'
+                    ' has bought the locomotive xp aura modifier for ' .. format_number(item.price, true) .. ' coins.'
             }
         )
         this.locomotive_xp_aura = this.locomotive_xp_aura + 5
-        this.aura_upgrades = this.aura_upgrades + item_count
-        this.train_upgrades = this.train_upgrades + item_count
+        this.aura_upgrades = this.aura_upgrades + item.stack
+        this.train_upgrades = this.train_upgrades + item.stack
 
         if this.circle then
             rendering.destroy(this.circle)
@@ -609,45 +737,46 @@ local function gui_click(event)
             only_in_alt_mode = true
         }
 
-        redraw_market_items(data.item_frame, player)
+        redraw_market_items(data.item_frame, player, data.search_text)
         redraw_coins_left(data.coins_left, player)
 
         return
     end
 
     if name == 'xp_points_boost' then
-        player.remove_item({name = item.value, count = cost})
+        player.remove_item({name = item.value, count = item.price})
 
         local message =
             shopkeeper ..
-            player.name .. ' has bought the XP points modifier for ' .. format_number(cost, true) .. ' coins.'
+            player.name .. ' has bought the XP points modifier for ' .. format_number(item.price, true) .. ' coins.'
         Alert.alert_all_players(5, message)
         Server.to_discord_bold(
             table.concat {
-                player.name .. ' has bought the XP points modifier for ' .. format_number(cost) .. ' coins.'
+                player.name .. ' has bought the XP points modifier for ' .. format_number(item.price) .. ' coins.'
             }
         )
         this.xp_points = this.xp_points + 0.5
-        this.xp_points_upgrade = this.xp_points_upgrade + item_count
-        this.train_upgrades = this.train_upgrades + item_count
+        this.xp_points_upgrade = this.xp_points_upgrade + item.stack
+        this.train_upgrades = this.train_upgrades + item.stack
 
-        redraw_market_items(data.item_frame, player)
+        redraw_market_items(data.item_frame, player, data.search_text)
         redraw_coins_left(data.coins_left, player)
 
         return
     end
 
     if name == 'flamethrower_turrets' then
-        player.remove_item({name = item.value, count = cost})
-        if item_count >= 1 then
+        player.remove_item({name = item.value, count = item.price})
+        if item.stack >= 1 then
             local message =
                 shopkeeper ..
-                player.name .. ' has bought a flamethrower-turret slot for ' .. format_number(cost, true) .. ' coins.'
+                player.name ..
+                    ' has bought a flamethrower-turret slot for ' .. format_number(item.price, true) .. ' coins.'
             Alert.alert_all_players(5, message)
             Server.to_discord_bold(
                 table.concat {
                     player.name ..
-                        ' has bought a flamethrower-turret slot for ' .. format_number(cost, true) .. ' coins.'
+                        ' has bought a flamethrower-turret slot for ' .. format_number(item.price, true) .. ' coins.'
                 }
             )
         else
@@ -655,63 +784,65 @@ local function gui_click(event)
                 shopkeeper ..
                 player.name ..
                     ' has bought ' ..
-                        item_count .. ' flamethrower-turret slots for ' .. format_number(cost, true) .. ' coins.'
+                        item.stack .. ' flamethrower-turret slots for ' .. format_number(item.price, true) .. ' coins.'
             Alert.alert_all_players(5, message)
             Server.to_discord_bold(
                 table.concat {
                     player.name ..
                         ' has bought ' ..
-                            item_count .. ' flamethrower-turret slots for ' .. format_number(cost, true) .. ' coins.'
+                            item.stack ..
+                                ' flamethrower-turret slots for ' .. format_number(item.price, true) .. ' coins.'
                 }
             )
         end
-        this.upgrades.flame_turret.limit = this.upgrades.flame_turret.limit + item_count
-        this.upgrades.flame_turret.bought = this.upgrades.flame_turret.bought + item_count
+        this.upgrades.flame_turret.limit = this.upgrades.flame_turret.limit + item.stack
+        this.upgrades.flame_turret.bought = this.upgrades.flame_turret.bought + item.stack
 
-        redraw_market_items(data.item_frame, player)
+        redraw_market_items(data.item_frame, player, data.search_text)
         redraw_coins_left(data.coins_left, player)
 
         return
     end
     if name == 'land_mine' then
-        player.remove_item({name = item.value, count = cost})
+        player.remove_item({name = item.value, count = item.price})
 
-        if item_count >= 1 and this.upgrades.landmine.bought % 10 == 0 then
+        if item.stack >= 1 and this.upgrades.landmine.bought % 10 == 0 then
             local message =
                 shopkeeper ..
-                player.name .. ' has bought a landmine slot for ' .. format_number(cost, true) .. ' coins.'
+                player.name .. ' has bought a landmine slot for ' .. format_number(item.price, true) .. ' coins.'
             Alert.alert_all_players(3, message)
 
-            if cost >= 1000 then
+            if item.price >= 1000 then
                 Server.to_discord_bold(
                     table.concat {
                         player.name ..
                             ' has bought ' ..
-                                item_count .. ' landmine slots for ' .. format_number(cost, true) .. ' coins.'
+                                item.stack .. ' landmine slots for ' .. format_number(item.price, true) .. ' coins.'
                     }
                 )
             end
         end
 
-        this.upgrades.landmine.limit = this.upgrades.landmine.limit + item_count
-        this.upgrades.landmine.bought = this.upgrades.landmine.bought + item_count
+        this.upgrades.landmine.limit = this.upgrades.landmine.limit + item.stack
+        this.upgrades.landmine.bought = this.upgrades.landmine.bought + item.stack
 
-        redraw_market_items(data.item_frame, player)
+        redraw_market_items(data.item_frame, player, data.search_text)
         redraw_coins_left(data.coins_left, player)
         return
     end
     if name == 'skill_reset' then
-        player.remove_item({name = item.value, count = cost})
+        player.remove_item({name = item.value, count = item.price})
 
         local message =
             shopkeeper ..
             player.name ..
-                ' decided to recycle their RPG skills and start over for ' .. format_number(cost, true) .. ' coins.'
+                ' decided to recycle their RPG skills and start over for ' ..
+                    format_number(item.price, true) .. ' coins.'
         Alert.alert_all_players(10, message)
 
         RPG.rpg_reset_player(player, true)
 
-        redraw_market_items(data.item_frame, player)
+        redraw_market_items(data.item_frame, player, data.search_text)
         redraw_coins_left(data.coins_left, player)
         return
     end
@@ -726,7 +857,7 @@ local function gui_click(event)
                 player.insert({name = item.value, count = cost})
                 player.remove_item({name = name, count = inserted_count})
             end
-            redraw_market_items(data.item_frame, player)
+            redraw_market_items(data.item_frame, player, data.search_text)
             redraw_coins_left(data.coins_left, player)
         end
     end
@@ -747,20 +878,6 @@ local function gui_closed(event)
     end
 end
 
-local function inside(pos, area)
-    local lt = area.left_top
-    local rb = area.right_bottom
-
-    return pos.x >= lt.x and pos.y >= lt.y and pos.x <= rb.x and pos.y <= rb.y
-end
-
-local function contains_positions(pos, area)
-    if inside(pos, area) then
-        return true
-    end
-    return false
-end
-
 local function on_player_changed_position(event)
     local this = WPT.get()
     local player = game.players[event.player_index]
@@ -775,7 +892,7 @@ local function on_player_changed_position(event)
             left_top = {x = position.x - 10, y = position.y - 10},
             right_bottom = {x = position.x + 10, y = position.y + 10}
         }
-        if contains_positions(player.position, area) then
+        if Math2D.bounding_box.contains_point(area, player.position) then
             return
         end
         if not data then
@@ -854,7 +971,7 @@ local function create_market(data, rebuild)
     }
     local e =
         loco_surface.create_entity(
-        {name = biters[random(1, 4)], position = position, force = 'player', create_build_effect_smoke = false}
+        {name = biters[math.random(1, 4)], position = position, force = 'player', create_build_effect_smoke = false}
     )
     e.ai_settings.allow_destroy_when_commands_fail = false
     e.ai_settings.allow_try_return_to_spawner = false
@@ -885,6 +1002,173 @@ local function create_market(data, rebuild)
     end
 end
 
+local function contains_positions(area)
+    local function inside(pos)
+        local lt = area.left_top
+        local rb = area.right_bottom
+
+        return pos.x >= lt.x and pos.y >= lt.y and pos.x <= rb.x and pos.y <= rb.y
+    end
+
+    local wagons = ICW.get_table('wagons')
+    for _, wagon in pairs(wagons) do
+        if wagon.entity.name == 'cargo-wagon' then
+            if inside(wagon.entity.position, area) then
+                return true, wagon.entity
+            end
+        end
+    end
+    return false, nil
+end
+
+local function on_built_entity(event)
+    local entity = event.created_entity
+    if not entity.valid then
+        return
+    end
+
+    if entity.name ~= 'steel-chest' then
+        return
+    end
+
+    local map_name = 'mountain_fortress_v3'
+
+    if string.sub(entity.surface.name, 0, #map_name) ~= map_name then
+        return
+    end
+
+    local area = {
+        left_top = {x = entity.position.x - 3, y = entity.position.y - 3},
+        right_bottom = {x = entity.position.x + 3, y = entity.position.y + 3}
+    }
+
+    local success, train = contains_positions(area)
+
+    if not success then
+        return
+    end
+
+    local outside_chests = WPT.get('outside_chests')
+    local chests_linked_to = WPT.get('chests_linked_to')
+    local chest_limit_outside_upgrades = WPT.get('chest_limit_outside_upgrades')
+    local chest_created
+    local increased = false
+
+    for k, v in pairs(outside_chests) do
+        if v and v.valid then
+            if chests_linked_to[train.unit_number] then
+                local linked_to = chests_linked_to[train.unit_number].count
+                if linked_to == chest_limit_outside_upgrades then
+                    return
+                end
+                outside_chests[entity.unit_number] = entity
+
+                if not increased then
+                    chests_linked_to[train.unit_number].count = linked_to + 1
+                    chests_linked_to[train.unit_number][entity.unit_number] = true
+                    increased = true
+                    goto continue
+                end
+            else
+                outside_chests[entity.unit_number] = entity
+                chests_linked_to[train.unit_number] = {count = 1}
+            end
+
+            ::continue::
+            rendering.draw_text {
+                text = '♠',
+                surface = entity.surface,
+                target = entity,
+                target_offset = {0, -0.6},
+                scale = 2,
+                color = {r = 0, g = 0.6, b = 1},
+                alignment = 'center'
+            }
+            chest_created = true
+        end
+    end
+
+    if chest_created then
+        return
+    end
+
+    if next(outside_chests) == nil then
+        outside_chests[entity.unit_number] = entity
+        chests_linked_to[train.unit_number] = {count = 1}
+        chests_linked_to[train.unit_number][entity.unit_number] = true
+
+        rendering.draw_text {
+            text = '♠',
+            surface = entity.surface,
+            target = entity,
+            target_offset = {0, -0.6},
+            scale = 2,
+            color = {r = 0, g = 0.6, b = 1},
+            alignment = 'center'
+        }
+        return
+    end
+end
+
+local function on_player_and_robot_mined_entity(event)
+    local entity = event.entity
+
+    if not entity.valid then
+        return
+    end
+
+    local outside_chests = WPT.get('outside_chests')
+    local chests_linked_to = WPT.get('chests_linked_to')
+
+    if outside_chests[entity.unit_number] then
+        for k, v in pairs(chests_linked_to) do
+            if v[entity.unit_number] then
+                v.count = v.count - 1
+                if v.count <= 0 then
+                    chests_linked_to[k] = nil
+                end
+            end
+            if chests_linked_to[k] and chests_linked_to[k][entity.unit_number] then
+                chests_linked_to[k][entity.unit_number] = nil
+            end
+        end
+        outside_chests[entity.unit_number] = nil
+    end
+end
+
+local function divide_contents()
+    local outside_chests = WPT.get('outside_chests')
+    local target_chest
+
+    for key, chest in pairs(outside_chests) do
+        if not chest or not chest.valid then
+            return
+        end
+
+        local area = {
+            left_top = {x = chest.position.x - 4, y = chest.position.y - 4},
+            right_bottom = {x = chest.position.x + 4, y = chest.position.y + 4}
+        }
+        local success, entity = contains_positions(area)
+        if success then
+            target_chest = entity
+        else
+            return
+        end
+
+        local chest1 = chest.get_inventory(defines.inventory.chest)
+        local chest2 = target_chest.get_inventory(defines.inventory.cargo_wagon)
+
+        for item, count in pairs(chest1.get_contents()) do
+            local t = {name = item, count = count}
+            local c = chest2.insert(t)
+            if (c > 0) then
+                chest1.remove({name = item, count = c})
+            end
+        end
+    end
+end
+
 local function place_market()
     local this = WPT.get()
     local icw_table = ICW.get_table()
@@ -910,6 +1194,66 @@ local function place_market()
     end
 end
 
+local function add_random_loot_to_main_market(rarity)
+    local main_market_items = WPT.get('main_market_items')
+    local items = Market.get_random_item(rarity, true, false)
+
+    local types = game.item_prototypes
+    local ticker = 0
+
+    for k, v in pairs(main_market_items) do
+        if not v.static then
+            main_market_items[k] = nil
+        end
+    end
+
+    for k, v in pairs(items) do
+        local price = v.price[1][2] + math.random(1, 15) * rarity
+        local value = v.price[1][1]
+        local stack = 1
+        ticker = ticker + 1
+        if v.offer.item == 'coin' then
+            price = v.price[1][2]
+            stack = v.offer.count
+            if not stack then
+                stack = v.price[1][2]
+            end
+        end
+
+        if main_market_items[v.offer.item] then
+            main_market_items[v.offer.item] = nil
+        end
+        main_market_items[v.offer.item] = {
+            stack = stack,
+            value = value,
+            price = price,
+            tooltip = types[v.offer.item].localised_name,
+            upgrade = false
+        }
+        if ticker >= 9 then
+            return
+        end
+    end
+end
+
+local function on_research_finished()
+    local difficulty_poll_closing_timeout = Difficulty.get('difficulty_poll_closing_timeout')
+    if game.tick < difficulty_poll_closing_timeout then
+        return
+    end
+
+    local locomotive = WPT.get('locomotive')
+    if not locomotive or not locomotive.valid then
+        return
+    end
+
+    local breached_wall = WPT.get('breached_wall')
+    add_random_loot_to_main_market(breached_wall)
+    local message = 'New items have been unlocked at the locomotive market!'
+    Alert.alert_all_players(5, message, nil, 'achievement/tech-maniac', 0.1)
+    Public.refresh_gui()
+end
+
 local function tick()
     local ticker = game.tick
 
@@ -918,19 +1262,47 @@ local function tick()
         validate_index()
         set_locomotive_health()
         fish_tag()
+        divide_contents()
     end
 
     if ticker % 120 == 0 then
         Public.boost_players_around_train()
     end
 
-    if ticker % 600 == 0 then
+    if ticker % 2500 == 0 then
         Public.transfer_pollution()
     end
 
     if ticker % 1800 == 0 then
         set_player_spawn()
         refill_fish()
+    end
+end
+
+function Public.close_gui_player(frame)
+    if not frame then
+        return
+    end
+
+    if frame then
+        frame.destroy()
+    end
+end
+
+function Public.refresh_gui()
+    local players = game.connected_players
+    for i = 1, #players do
+        local player = players[i]
+
+        local gui = player.gui
+        local screen = gui.screen
+
+        local player_data = WPT.get('players')
+        local data = player_data[player.index].data
+
+        if screen and data and data.frame then
+            redraw_market_items(data.item_frame, player, data.search_text)
+        end
     end
 end
 
@@ -960,6 +1332,36 @@ function Public.boost_players_around_train()
     property_boost(data)
 end
 
+function Public.is_around_train(entity)
+    local locomotive = WPT.get('locomotive')
+    local active_surface_index = WPT.get('active_surface_index')
+
+    if not active_surface_index then
+        return false
+    end
+    if not locomotive then
+        return false
+    end
+    if not locomotive.valid then
+        return false
+    end
+
+    if not entity or not entity.valid then
+        return false
+    end
+
+    local surface = game.surfaces[active_surface_index]
+
+    local data = {
+        locomotive = locomotive,
+        surface = surface,
+        entity = entity
+    }
+
+    local success = is_around_train(data)
+    return success
+end
+
 function Public.render_train_hp()
     local this = WPT.get()
     local surface = game.surfaces[this.active_surface_index]
@@ -969,7 +1371,7 @@ function Public.render_train_hp()
         text = 'HP: ' .. this.locomotive_health .. ' / ' .. this.locomotive_max_health,
         surface = surface,
         target = this.locomotive,
-        target_offset = {0, -2.5},
+        target_offset = {0, -4.5},
         color = this.locomotive.color,
         scale = 1.40,
         font = 'default-game',
@@ -982,7 +1384,7 @@ function Public.render_train_hp()
         text = 'Comfy Choo Choo',
         surface = surface,
         target = this.locomotive,
-        target_offset = {0, -4.25},
+        target_offset = {0, -6.25},
         color = this.locomotive.color,
         scale = 1.80,
         font = 'default-game',
@@ -1063,91 +1465,196 @@ function Public.locomotive_spawn(surface, position)
     game.forces.player.set_spawn_position({0, 19}, locomotive.surface)
 end
 
-function Public.inside(pos, area)
-    local lt = area.left_top
-    local rb = area.right_bottom
-
-    return pos.x >= lt.x and pos.y >= lt.y and pos.x <= rb.x and pos.y <= rb.y
-end
-function Public.contains_positions(pos, area)
-    if Public.inside(pos, area) then
-        return true
-    end
-    return false
-end
-
 function Public.get_items()
-    local this = WPT.get()
+    local chest_limit_outside_upgrades = WPT.get('chest_limit_outside_upgrades')
+    local health_upgrades = WPT.get('health_upgrades')
+    local aura_upgrades = WPT.get('aura_upgrades')
+    local main_market_items = WPT.get('main_market_items')
+    local xp_points_upgrade = WPT.get('xp_points_upgrade')
+    local flame_turret = WPT.get('upgrades').flame_turret.bought
+    local landmine = WPT.get('upgrades').landmine.bought
 
-    local health_cost = 10000 * (1 + this.health_upgrades)
-    local aura_cost = 10000 * (1 + this.aura_upgrades)
-    local xp_point_boost_cost = 10000 * (1 + this.xp_points_upgrade)
-    local flamethrower_turrets_cost = 3500 * (1 + this.upgrades.flame_turret.bought)
-    local land_mine_cost = 2 * (1 + this.upgrades.landmine.bought)
+    local chest_limit_cost = 2500 * (1 + chest_limit_outside_upgrades)
+    local health_cost = 10000 * (1 + health_upgrades)
+    local aura_cost = 5000 * (1 + aura_upgrades)
+    local xp_point_boost_cost = 7500 * (1 + xp_points_upgrade)
+    local flamethrower_turrets_cost = 3000 * (1 + flame_turret)
+    local land_mine_cost = 2 * (1 + landmine)
     local skill_reset_cost = 100000
 
-    local items = {}
-    items['locomotive_max_health'] = {
+    if main_market_items['chest_limit_outside'] then
+        main_market_items['chest_limit_outside'] = {
+            stack = 1,
+            value = 'coin',
+            price = chest_limit_cost,
+            tooltip = main_market_items['chest_limit_outside'].tooltip,
+            sprite = 'achievement/so-long-and-thanks-for-all-the-fish',
+            enabled = main_market_items['chest_limit_outside'].enabled,
+            upgrade = true,
+            static = true
+        }
+    else
+        main_market_items['chest_limit_outside'] = {
+            stack = 1,
+            value = 'coin',
+            price = chest_limit_cost,
+            tooltip = 'Upgrades the amount of chests that can be placed outside.\nCan be purchased multiple times.',
+            sprite = 'achievement/so-long-and-thanks-for-all-the-fish',
+            enabled = true,
+            upgrade = true,
+            static = true
+        }
+    end
+    main_market_items['locomotive_max_health'] = {
         stack = 1,
         value = 'coin',
         price = health_cost,
         tooltip = 'Upgrades the train health.\nCan be purchased multiple times.',
         sprite = 'achievement/getting-on-track',
-        enabled = true
+        enabled = true,
+        upgrade = true,
+        static = true
     }
-    items['locomotive_xp_aura'] = {
+    main_market_items['locomotive_xp_aura'] = {
         stack = 1,
         value = 'coin',
         price = aura_cost,
         tooltip = 'Upgrades the XP aura that is around the train.',
         sprite = 'achievement/tech-maniac',
-        enabled = true
+        enabled = true,
+        upgrade = true,
+        static = true
     }
-    items['xp_points_boost'] = {
+    main_market_items['xp_points_boost'] = {
         stack = 1,
         value = 'coin',
         price = xp_point_boost_cost,
         tooltip = 'Upgrades the amount of XP points you get inside the XP aura',
         sprite = 'achievement/trans-factorio-express',
-        enabled = true
+        enabled = true,
+        upgrade = true,
+        static = true
     }
-    items['flamethrower_turrets'] = {
+    main_market_items['flamethrower_turrets'] = {
         stack = 1,
         value = 'coin',
         price = flamethrower_turrets_cost,
         tooltip = 'Upgrades the amount of flamethrowers that can be placed.',
         sprite = 'achievement/pyromaniac',
-        enabled = true
+        enabled = true,
+        upgrade = true,
+        static = true
     }
-    items['land_mine'] = {
+    main_market_items['land_mine'] = {
         stack = 1,
         value = 'coin',
         price = land_mine_cost,
         tooltip = 'Upgrades the amount of landmines that can be placed.',
         sprite = 'achievement/watch-your-step',
-        enabled = true
+        enabled = true,
+        upgrade = true,
+        static = true
     }
-    items['skill_reset'] = {
+    main_market_items['skill_reset'] = {
         stack = 1,
         value = 'coin',
         price = skill_reset_cost,
         tooltip = 'For when you have picked the wrong RPG path and want to start over.\nPoints will be kept.',
         sprite = 'achievement/golem',
-        enabled = true
+        enabled = true,
+        upgrade = true,
+        static = true
     }
 
-    items['small-lamp'] = {stack = 1, value = 'coin', price = 5, tooltip = 'Small Sunlight'}
-    items['wood'] = {stack = 50, value = 'coin', price = 12, tooltip = 'Some fine Wood'}
-    items['iron-ore'] = {stack = 50, value = 'coin', price = 12, tooltip = 'Some chunky iron'}
-    items['copper-ore'] = {stack = 50, value = 'coin', price = 12, tooltip = 'Some chunky copper'}
-    items['stone'] = {stack = 50, value = 'coin', price = 12, tooltip = 'Some chunky stone'}
-    items['coal'] = {stack = 50, value = 'coin', price = 12, tooltip = 'Some chunky coal'}
-    items['uranium-ore'] = {stack = 50, value = 'coin', price = 12, tooltip = 'Some chunky uranium'}
-    items['land-mine'] = {stack = 1, value = 'coin', price = 10, tooltip = 'Land Boom Danger'}
-    items['raw-fish'] = {stack = 1, value = 'coin', price = 4, tooltip = 'Flappy Fish'}
-    items['firearm-magazine'] = {stack = 1, value = 'coin', price = 5, tooltip = 'Firearm Pew'}
-    items['crude-oil-barrel'] = {stack = 1, value = 'coin', price = 8, tooltip = 'Crude Oil Flame'}
-    return items
+    main_market_items['small-lamp'] = {
+        stack = 1,
+        value = 'coin',
+        price = 5,
+        tooltip = 'Small Sunlight',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['wood'] = {
+        stack = 50,
+        value = 'coin',
+        price = 12,
+        tooltip = 'Some fine Wood',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['iron-ore'] = {
+        stack = 50,
+        value = 'coin',
+        price = 12,
+        tooltip = 'Some chunky iron',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['copper-ore'] = {
+        stack = 50,
+        value = 'coin',
+        price = 12,
+        tooltip = 'Some chunky copper',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['stone'] = {
+        stack = 50,
+        value = 'coin',
+        price = 12,
+        tooltip = 'Some chunky stone',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['coal'] = {
+        stack = 50,
+        value = 'coin',
+        price = 12,
+        tooltip = 'Some chunky coal',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['uranium-ore'] = {
+        stack = 50,
+        value = 'coin',
+        price = 12,
+        tooltip = 'Some chunky uranium',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['land-mine'] = {
+        stack = 1,
+        value = 'coin',
+        price = 10,
+        tooltip = 'Land Boom Danger',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['raw-fish'] = {
+        stack = 1,
+        value = 'coin',
+        price = 4,
+        tooltip = 'Flappy Fish',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['firearm-magazine'] = {
+        stack = 1,
+        value = 'coin',
+        price = 5,
+        tooltip = 'Firearm Pew',
+        upgrade = false,
+        static = true
+    }
+    main_market_items['crude-oil-barrel'] = {
+        stack = 1,
+        value = 'coin',
+        price = 8,
+        tooltip = 'Crude Oil Flame',
+        upgrade = false,
+        static = true
+    }
+    return main_market_items
 end
 
 function Public.transfer_pollution()
@@ -1155,15 +1662,13 @@ function Public.transfer_pollution()
     local active_surface_index = WPT.get('active_surface_index')
     local icw_locomotive = WPT.get('icw_locomotive')
     local surface = icw_locomotive.surface
-    local Diff = Difficulty.get()
-
     if not surface then
         return
     end
 
     local total_interior_pollution = surface.get_total_pollution()
 
-    local pollution = surface.get_total_pollution() * (3 / (4 / 3 + 1)) * Diff.difficulty_vote_value
+    local pollution = surface.get_total_pollution() * (3 / (4 / 3 + 1)) * Difficulty.get().difficulty_vote_value
     game.surfaces[active_surface_index].pollute(locomotive.position, pollution)
     game.pollution_statistics.on_flow('locomotive', pollution - total_interior_pollution)
     surface.clear_pollution()
@@ -1179,9 +1684,9 @@ function Public.enable_poison_defense()
     end
     local pos = locomotive.position
     create_poison_cloud({x = pos.x, y = pos.y})
-    if random(1, 3) == 1 then
-        local random_angles = {rad(random(359))}
-        create_poison_cloud({x = pos.x + 24 * cos(random_angles[1]), y = pos.y + -24 * sin(random_angles[1])})
+    if math.random(1, 3) == 1 then
+        local random_angles = {math.rad(math.random(359))}
+        create_poison_cloud({x = pos.x + 24 * math.cos(random_angles[1]), y = pos.y + -24 * math.sin(random_angles[1])})
     end
 end
 
@@ -1194,5 +1699,11 @@ Event.add(defines.events.on_gui_value_changed, slider_changed)
 Event.add(defines.events.on_gui_text_changed, text_changed)
 Event.add(defines.events.on_gui_closed, gui_closed)
 Event.add(defines.events.on_player_changed_position, on_player_changed_position)
+Event.add(defines.events.on_research_finished, on_research_finished)
+Event.add(defines.events.on_built_entity, on_built_entity)
+Event.add(defines.events.on_robot_built_entity, on_built_entity)
+Event.add(defines.events.on_entity_died, on_player_and_robot_mined_entity)
+Event.add(defines.events.on_pre_player_mined_item, on_player_and_robot_mined_entity)
+Event.add(defines.events.on_robot_mined_entity, on_player_and_robot_mined_entity)
 
 return Public

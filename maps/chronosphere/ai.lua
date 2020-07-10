@@ -97,7 +97,7 @@ local function set_active_biters(group)
   end
 end
 
-Public.destroy_inactive_biters = function()
+function Public.destroy_inactive_biters()
   local objective = Chrono_table.get_table()
   if objective.passivetimer < 60 then
       return
@@ -225,7 +225,7 @@ local function colonize(unit_group)
   --unit_group.destroy()
 end
 
-Public.send_near_biters_to_objective = function()
+function Public.send_near_biters_to_objective()
   local objective = Chrono_table.get_table()
 	if objective.chronojumps == 0 then return end
   if objective.passivetimer < 60 then return end
@@ -325,7 +325,7 @@ end
 
 local function generate_attack_target(nearest_player_unit)
   local objective = Chrono_table.get_table()
-
+  if objective.game_lost then return nil end
   local target = Rand.raffle(
     {
       nearest_player_unit,
@@ -357,7 +357,7 @@ local function generate_attack_target(nearest_player_unit)
       target = objective.locomotive
     end
   end
-  
+
   return target
 end
 
@@ -368,7 +368,7 @@ local function send_group(unit_group, nearest_player_unit)
 
   local target = generate_attack_target(nearest_player_unit)
 
-  if not target.valid then colonize(unit_group) return end
+  if not target or not target.valid then colonize(unit_group) return end
   local surface = target.surface
   local pollution = surface.get_pollution(target.position)
 
@@ -377,8 +377,8 @@ local function send_group(unit_group, nearest_player_unit)
     local pollution_to_eat = Balance.pollution_spent_per_attack(difficulty)
     surface.pollute(target.position, -pollution_to_eat)
     game.pollution_statistics.on_flow("biter-spawner", -pollution_to_eat)
-    
-  
+
+
     if #unit_group.members > 0 then game.pollution_statistics.on_flow(unit_group.members[1].name or "small-biter", - pollution_to_eat) end
 
     local commands = {}
@@ -387,30 +387,25 @@ local function send_group(unit_group, nearest_player_unit)
     local position = {target.position.x + vector[1], target.position.y + vector[2]}
     position = unit_group.surface.find_non_colliding_position("stone-furnace", position, 96, 1)
     if position then
-
-      -- game.print("group of " .. #unit_group.members .. " to " .. position.x .. ", " .. position.y)
-
       commands[#commands + 1] = {
         type = defines.command.attack_area,
         destination = position,
         radius = 24,
         distraction = defines.distraction.by_enemy
-    }
+      }
     end
 
-    -- game.print("group of " .. #unit_group.members .. " to " .. target.position.x .. ", " .. target.position.y)
-
     commands[#commands + 1] = {
-    type = defines.command.attack_area,
-    destination = target.position,
-    radius = 32,
-    distraction = defines.distraction.by_enemy
+      type = defines.command.attack_area,
+      destination = target.position,
+      radius = 32,
+      distraction = defines.distraction.by_enemy
     }
 
     commands[#commands + 1] = {
-    type = defines.command.attack,
-    target = target,
-    distraction = defines.distraction.by_enemy
+      type = defines.command.attack,
+      target = target,
+      distraction = defines.distraction.by_enemy
     }
 
     unit_group.set_command({
@@ -419,7 +414,6 @@ local function send_group(unit_group, nearest_player_unit)
       commands = commands
     })
   else
-    --game.print("not enough pollution for unit attack")
     colonize(unit_group)
   end
   return true
@@ -483,7 +477,7 @@ local function create_attack_group(surface)
 
 end
 
--- Public.rogue_group = function()
+-- function Public.rogue_group()
 --   local objective = Chrono_table.get_table()
 --   if objective.passivetimer < 60 then return end
 --   if not objective.locomotive then return end
@@ -508,7 +502,7 @@ end
 --   })
 -- end
 
-Public.pre_main_attack = function()
+function Public.pre_main_attack()
   local objective = Chrono_table.get_table()
   if objective.chronojumps == 0 then return end
   if objective.passivetimer < 60 then return end
@@ -516,7 +510,7 @@ Public.pre_main_attack = function()
   set_biter_raffle_table(surface)
 end
 
-Public.perform_main_attack = function()
+function Public.perform_main_attack()
   local objective = Chrono_table.get_table()
   if objective.chronojumps == 0 then return end
   if objective.passivetimer < 60 then return end
@@ -524,7 +518,7 @@ Public.perform_main_attack = function()
 	create_attack_group(surface)
 end
 
-Public.wake_up_sleepy_groups = function()
+function Public.wake_up_sleepy_groups()
   local objective = Chrono_table.get_table()
   if objective.chronojumps == 0 then return end
   if objective.passivetimer < 60 then return end

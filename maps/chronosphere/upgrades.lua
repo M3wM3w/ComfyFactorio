@@ -82,7 +82,7 @@ local function upgrade_out()
 	local positions = {{-16,-62},{15,-62},{-16,66},{15,66}}
 	local out = {}
 	for i = 1, 4, 1 do
-    local e = game.surfaces["cargo_wagon"].create_entity({name = "steel-chest", position = positions[i], force = "player"})
+    local e = game.surfaces["cargo_wagon"].create_entity({name = "blue-chest", position = positions[i], force = "player"})
 		e.destructible = false
 		e.minable = false
 		objective.outchests[i] = e

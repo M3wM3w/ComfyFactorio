@@ -9,6 +9,7 @@ local RPG = require 'maps.mountain_fortress_v3.rpg'
 local Mining = require 'maps.mountain_fortress_v3.mining'
 local Terrain = require 'maps.mountain_fortress_v3.terrain'
 local BiterHealthBooster = require 'modules.biter_health_booster'
+local Difficulty = require 'modules.difficulty_vote'
 local Traps = require 'maps.mountain_fortress_v3.traps'
 local Locomotive = require 'maps.mountain_fortress_v3.locomotive'
 local Alert = require 'utils.alert'
@@ -21,9 +22,6 @@ local WD = require 'modules.wave_defense.table'
 -- module
 local Public = {}
 
-local math_random = math.random
-local math_floor = math.floor
-local math_abs = math.abs
 --local raise_event = script.raise_event
 
 local mapkeeper = '[color=blue]Mapkeeper:[/color]\n'
@@ -94,7 +92,7 @@ local function set_objective_health(final_damage_amount)
         return
     end
 
-    this.locomotive_health = math_floor(this.locomotive_health - final_damage_amount)
+    this.locomotive_health = math.floor(this.locomotive_health - final_damage_amount)
     if this.locomotive_health > this.locomotive_max_health then
         this.locomotive_health = this.locomotive_max_health
     end
@@ -152,9 +150,9 @@ end
 
 local function hidden_biter(entity)
     local surface = entity.surface
-    local h = math_floor(math_abs(entity.position.y))
+    local h = math.floor(math.abs(entity.position.y))
     local m = 1 / Terrain.level_depth
-    local count = math_floor(math_random(0, h + Terrain.level_depth) * m) + 1
+    local count = math.floor(math.random(0, h + Terrain.level_depth) * m) + 1
     local position = surface.find_non_colliding_position('small-biter', entity.position, 16, 0.5)
     if not position then
         position = entity.position
@@ -164,13 +162,13 @@ local function hidden_biter(entity)
 
     for _ = 1, count, 1 do
         local unit
-        if math_random(1, 3) == 1 then
+        if math.random(1, 3) == 1 then
             unit = surface.create_entity({name = BiterRolls.wave_defense_roll_spitter_name(), position = position})
         else
             unit = surface.create_entity({name = BiterRolls.wave_defense_roll_biter_name(), position = position})
         end
 
-        if math_random(1, 64) == 1 then
+        if math.random(1, 64) == 1 then
             BiterHealthBooster.add_boss_unit(unit, m * h * 5 + 1, 0.38)
         end
     end
@@ -182,12 +180,12 @@ local function hidden_worm(entity)
 end
 
 local function hidden_biter_pet(event)
-    if math_random(1, 2048) ~= 1 then
+    if math.random(1, 2048) ~= 1 then
         return
     end
     BiterRolls.wave_defense_set_unit_raffle(math.sqrt(event.entity.position.x ^ 2 + event.entity.position.y ^ 2) * 0.25)
     local unit
-    if math_random(1, 3) == 1 then
+    if math.random(1, 3) == 1 then
         unit =
             event.entity.surface.create_entity(
             {name = BiterRolls.wave_defense_roll_spitter_name(), position = event.entity.position}
@@ -203,11 +201,22 @@ end
 
 local function hidden_treasure(event)
     local player = game.players[event.player_index]
-    local rpg_t = RPG.get_table()
-    local magic = rpg_t[player.index].magicka
-    if math.random(1, 320) ~= 1 then
-        return
+    local magic = RPG.get_table(player.index).magicka
+    local name = Difficulty.get('name')
+    if name == 'Easy' then
+        if math.random(1, 220) ~= 1 then
+            return
+        end
+    elseif name == 'Normal' then
+        if math.random(1, 320) ~= 1 then
+            return
+        end
+    elseif name == 'Hard' then
+        if math.random(1, 420) ~= 1 then
+            return
+        end
     end
+
     if magic > 50 then
         local msg = rare_treasure_chest_messages[math.random(1, #rare_treasure_chest_messages)]
         Alert.alert_player(player, 5, msg)
@@ -241,16 +250,17 @@ local function angry_tree(entity, cause)
     if entity.type ~= 'tree' then
         return
     end
+
     if math.abs(entity.position.y) < Terrain.level_depth then
         return
     end
-    if math_random(1, 4) == 1 then
+    if math.random(1, 4) == 1 then
         hidden_biter(entity)
     end
-    if math_random(1, 8) == 1 then
+    if math.random(1, 8) == 1 then
         hidden_worm(entity)
     end
-    if math_random(1, 16) ~= 1 then
+    if math.random(1, 16) ~= 1 then
         return
     end
     local position = false
@@ -260,12 +270,12 @@ local function angry_tree(entity, cause)
         end
     end
     if not position then
-        position = {entity.position.x + (-20 + math_random(0, 40)), entity.position.y + (-20 + math_random(0, 40))}
+        position = {entity.position.x + (-20 + math.random(0, 40)), entity.position.y + (-20 + math.random(0, 40))}
     end
 
     entity.surface.create_entity(
         {
-            name = projectiles[math_random(1, 5)],
+            name = projectiles[math.random(1, 5)],
             position = entity.position,
             force = 'neutral',
             source = entity.position,
@@ -277,7 +287,10 @@ local function angry_tree(entity, cause)
 end
 
 local function give_coin(player)
-    player.insert({name = 'coin', count = 1})
+    local coin_amount = WPT.get('coin_amount')
+    if coin_amount >= 1 then
+        player.insert({name = 'coin', count = coin_amount})
+    end
 end
 
 local function on_player_mined_entity(event)
@@ -326,6 +339,11 @@ local function on_player_mined_entity(event)
         this.mined_scrap = this.mined_scrap + 1
         Mining.on_player_mined_entity(event)
         give_coin(player)
+
+        if Locomotive.is_around_train(entity) then
+            return
+        end
+
         if math.random(1, 32) == 1 then
             hidden_biter(event.entity)
             entity.destroy()
@@ -336,7 +354,7 @@ local function on_player_mined_entity(event)
             entity.destroy()
             return
         end
-        if math_random(1, 512) == 1 then
+        if math.random(1, 512) == 1 then
             Traps(entity.surface, entity.position)
             return
         end
@@ -385,7 +403,7 @@ end
 
 local function get_damage(event)
     local entity = event.entity
-    local damage = event.original_damage_amount + event.original_damage_amount * math_random(1, 100)
+    local damage = event.original_damage_amount + event.original_damage_amount * math.random(1, 100)
     if entity.prototype.resistances then
         if entity.prototype.resistances.physical then
             damage = damage - entity.prototype.resistances.physical.decrease
@@ -412,7 +430,7 @@ local function kaboom(entity, target, damage)
         {
             name = 'flying-text',
             position = {entity.position.x + base_vector[1] * 0.5, entity.position.y + base_vector[2] * 0.5},
-            text = msg[math_random(1, #msg)],
+            text = msg[math.random(1, #msg)],
             color = {255, 0, 0}
         }
     )
@@ -435,12 +453,12 @@ local function kaboom(entity, target, damage)
         end
     end
 
-    vector[1] = vector[1] * 1.5
-    vector[2] = vector[2] * 1.5
+    vector[1] = vector[1] * 1.6
+    vector[2] = vector[2] * 1.6
 
-    local a = 0.25
+    local a = 0.30
 
-    for i = 1, 16, 1 do
+    for i = 1, 8, 1 do
         for x = i * -1 * a, i * a, 1 do
             for y = i * -1 * a, i * a, 1 do
                 local p = {entity.position.x + x + vector[1] * i, entity.position.y + y + vector[2] * i}
@@ -489,10 +507,8 @@ local function boss_puncher(event)
         return
     end
 
-    local wd = WD.get_table()
-    if wd.boss_wave_warning or wd.wave_number >= 1000 then
+    if math.random(1, 10) == 1 then
         kaboom(cause, entity, get_damage(event))
-        return
     end
 end
 
@@ -509,8 +525,16 @@ local function on_entity_damaged(event)
 
     protect_entities(event)
     biters_chew_rocks_faster(event)
-    if math_random(0, 512) == 1 then
-        boss_puncher(event)
+    local wave_number = WD.get_wave()
+    local boss_wave_warning = WD.alert_boss_wave()
+    local much_time = WPT.get('much_time')
+
+    if much_time then
+        if boss_wave_warning or wave_number >= 1500 then
+            if math.random(0, 512) == 1 then
+                boss_puncher(event)
+            end
+        end
     end
 end
 
@@ -596,11 +620,11 @@ local function on_entity_died(event)
         if entity.type == 'unit' or entity_type == 'unit-spawner' then
             this.biters_killed = this.biters_killed + 1
         end
-        if math.random(1, 32) == 1 then
+        if math.random(1, 64) == 1 then
             hidden_biter(event.entity)
             return
         end
-        if math_random(1, 512) == 1 then
+        if math.random(1, 512) == 1 then
             Traps(entity.surface, entity.position)
             return
         end
@@ -627,7 +651,7 @@ function Public.set_scores()
     if not loco.valid then
         return
     end
-    local score = math_floor(loco.position.y * -1)
+    local score = math.floor(loco.position.y * -1)
     for _, player in pairs(game.connected_players) do
         if score > Map_score.get_score(player) then
             Map_score.set_score(player, score)
@@ -644,11 +668,15 @@ function Public.loco_died()
         local Reset_map = require 'maps.mountain_fortress_v3.main'.reset_map
         wave_defense_table.game_lost = true
         wave_defense_table.target = nil
-        local pos = {
-            position = this.locomotive.position
-        }
+        local data = {}
+        if this.locomotive and this.locomotive.valid then
+            data.position = this.locomotive.position
+        else
+            data.position = {x = 0, y = 0}
+        end
+
         local msg = mapkeeper .. defeated_messages[math.random(1, #defeated_messages)] .. '\nBetter luck next time.'
-        Alert.alert_all_players_location(pos, msg)
+        Alert.alert_all_players_location(data, msg)
         Reset_map()
         return
     end
@@ -697,7 +725,7 @@ function Public.loco_died()
     )
 
     surface.spill_item_stack(this.locomotive.position, {name = 'coin', count = 512}, false)
-    this.game_reset_tick = game.tick + 1000
+    this.game_reset_tick = 5400
     for _, player in pairs(game.connected_players) do
         player.play_sound {path = 'utility/game_lost', volume_modifier = 0.75}
     end

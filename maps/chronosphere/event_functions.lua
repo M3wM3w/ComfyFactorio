@@ -11,12 +11,14 @@ local math_random = math.random
 local math_floor = math.floor
 local math_ceil = math.ceil
 
-local function get_ore_amount()
+local function get_ore_amount(scrap)
 	local objective = Chrono_table.get_table()
-
-	local amount = Balance.Base_ore_loot_yield(objective.chronojumps) * objective.planet[1].ore_richness.factor
-	if amount > 600 then amount = 600 end
+	local scaling = (game.forces.player.mining_drill_productivity_bonus - 1) / 2
+	local amount = Balance.Base_ore_loot_yield(objective.chronojumps, scrap) * (1 + scaling)
+	if not scrap then amount = amount * objective.planet[1].ore_richness.factor end
+	if amount > 500 then amount = 500 end
 	amount = math_random(math_floor(amount * 0.7), math_floor(amount * 1.3))
+	if amount < 1 then amount = 1 end
 	return amount
 end
 
@@ -36,6 +38,15 @@ local function reward_ores(amount, mined_loot, surface, player, entity)
 			surface.spill_item_stack(entity.position, {name = mined_loot, count = amount},true)
 		end
 	end
+end
+
+local function flying_text(surface, position, text)
+	surface.create_entity({
+		name = "flying-text",
+		position = {position.x, position.y - 0.5},
+		text = text,
+		color = {r=0.98, g=0.66, b=0.22}
+	})
 end
 
 function Public_event.biters_chew_rocks_faster(event)
@@ -130,44 +141,42 @@ function Public_event.choppy_loot(event)
 	if choppy_entity_yield[entity.name] then
 		if event.buffer then event.buffer.clear() end
 		if not event.player_index then return end
-		local amount = math_ceil(math_ceil(get_ore_amount() / 5))
+		local amount = math_ceil(get_ore_amount(false) / 2)
 		local second_item_amount = math_random(1,3)
 		local second_item = "wood"
 		local main_item = choppy_entity_yield[entity.name][math_random(1,#choppy_entity_yield[entity.name])]
-
-		entity.surface.create_entity({
-			name = "flying-text",
-			position = entity.position,
-			text = "+" .. amount .. " [item=" .. main_item .. "] +" .. second_item_amount .. " [item=" .. second_item .. "]",
-			color = {r=0.8,g=0.8,b=0.8}
-		})
-
+		local text = "+" .. amount .. " [item=" .. main_item .. "] +" .. second_item_amount .. " [item=" .. second_item .. "]"
 		local player = game.players[event.player_index]
+		flying_text(entity.surface, entity.position, text, {r = 0.8, g = 0.8, b = 0.8})
 		reward_ores(amount, main_item, entity.surface, player, player)
-
-		local inserted_count = player.insert({name = second_item, count = second_item_amount})
-		second_item_amount = second_item_amount - inserted_count
-		if second_item_amount > 0 then
-			entity.surface.spill_item_stack(entity.position,{name = second_item, count = second_item_amount}, true)
-		end
+		reward_ores(second_item_amount, second_item, entity.surface, player, player)
 	end
 end
 
 function Public_event.rocky_loot(event)
 	local objective = Chrono_table.get_table()
-	local surface = game.surfaces[objective.active_surface_index]
 	local player = game.players[event.player_index]
-	surface.spill_item_stack(player.position,{name = "raw-fish", count = math_random(1,3)},true)
-	local amount = math_floor(get_ore_amount())
+	local amount = math_ceil(get_ore_amount(false))
 	local rock_mining = {"iron-ore", "iron-ore", "iron-ore", "iron-ore", "copper-ore", "copper-ore", "copper-ore", "stone", "stone", "coal", "coal"}
 	local mined_loot = rock_mining[math_random(1,#rock_mining)]
-	surface.create_entity({
-		name = "flying-text",
-		position = {player.position.x, player.position.y - 0.5},
-		text = "+" .. amount .. " [img=item/" .. mined_loot .. "]",
-		color = {r=0.98, g=0.66, b=0.22}
-	})
-	reward_ores(amount, mined_loot, surface, player, player)
+	local text = "+" .. amount .. " [item=" .. mined_loot .. "]"
+	flying_text(player.surface, player.position, text, {r = 0.98, g = 0.66, b = 0.22})
+	reward_ores(amount, mined_loot, player.surface, player, player)
+	reward_ores(math_random(1,3), "raw-fish", player.surface, player, player)
+end
+
+function Public_event.scrap_loot(event)
+	local objective = Chrono_table.get_table()
+	local scrap_table = Balance.scrap()
+	local scrap = scrap_table.main[math_random(1, #scrap_table.main)]
+	local scrap2 = scrap_table.second[math_random(1, #scrap_table.second)]
+	local amount = math_ceil(get_ore_amount(true) * scrap.amount)
+	local amount2 = math_ceil(get_ore_amount(true) * scrap2.amount)
+	local player = game.players[event.player_index]
+	local text = "+" .. amount .. " [item=" .. scrap.name .. "] + " .. amount2 .. " [item=" .. scrap2.name .. "]"
+	flying_text(player.surface, player.position, text, {r = 0.98, g = 0.66, b = 0.22})
+	reward_ores(amount, scrap.name, player.surface, player, player)
+	reward_ores(amount2, scrap2.name, player.surface, player, player)
 end
 
 function Public_event.swamp_loot(event)
@@ -189,9 +198,9 @@ function Public_event.swamp_loot(event)
 		["spitter-spawner"] = 10,
 	}
 	local surface = game.surfaces[objective.active_surface_index]
-	local amount = math_floor(get_ore_amount() / 10)
+	local amount = math_floor(get_ore_amount(false) / 10)
 	if ore_yield[event.entity.name] then
-		amount = math_floor((get_ore_amount() * ore_yield[event.entity.name]) / 10)
+		amount = math_floor((get_ore_amount(false) * ore_yield[event.entity.name]) / 10)
 	end
 	if amount > 50 then amount = 50 end
 
@@ -263,7 +272,7 @@ end
 function Public_event.flamer_nerfs()
 	local objective = Chrono_table.get_table()
 	local difficulty = Difficulty.get().difficulty_vote_value
-	
+
 	local flame_researches = {
 		[1] = {name = "refined-flammables-1", bonus = 0.2},
 		[2] = {name = "refined-flammables-2", bonus = 0.2},
@@ -304,7 +313,7 @@ function Public_event.mining_buffs(event)
 	end
 
 	if mining_researches[event.research.name] == nil then return end
-	
+
 	local tech = mining_researches[event.research.name]
 
 	if tech.bonus_productivity then

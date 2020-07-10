@@ -35,7 +35,7 @@ local function on_entity_damaged(event)
     if not event.entity.valid then
         return
     end
-    event.entity.damage(event.final_damage_amount * 4, player.force, 'impact', player)
+    event.entity.damage(event.final_damage_amount * 3, player.force, 'impact', player)
 end
 
 Event.add(defines.events.on_entity_damaged, on_entity_damaged)

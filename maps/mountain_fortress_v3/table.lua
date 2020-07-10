@@ -9,7 +9,7 @@ local this = {
         logistic_research_level = 0,
         reset_counter = 1
     },
-    power_sources = {},
+    power_sources = {index = 1},
     refill_turrets = {index = 1},
     magic_crafters = {index = 1},
     magic_fluid_crafters = {index = 1},
@@ -35,18 +35,15 @@ function Public.reset_table()
     this.announced_message = false
     -- @end
     this.icw_locomotive = nil
-    this.game_lost = false
     this.debug = false
     this.fullness_enabled = true
     this.fullness_limit = 0.95
     this.locomotive_health = 10000
     this.locomotive_max_health = 10000
-    this.cargo_health = 10000
-    this.cargo_max_health = 10000
     this.train_upgrades = 0
     this.offline_players = {}
     this.biter_pets = {}
-    this.power_sources = {}
+    this.power_sources = {index = 1}
     this.flamethrower_damage = {}
     this.refill_turrets = {index = 1}
     this.magic_crafters = {index = 1}
@@ -74,10 +71,10 @@ function Public.reset_table()
             flame_turret = {}
         }
     }
-    this.aura_upgrades = 0
     if this.hidden_dimension then
         this.hidden_dimension.logistic_research_level = 0
     end
+    this.aura_upgrades = 0
     this.health_upgrades = 0
     this.breached_wall = 1
     this.entity_limits = {}
@@ -87,6 +84,17 @@ function Public.reset_table()
         y = 0
     }
     this.traps = {}
+    this.much_time = true
+    this.coin_amount = 1
+    this.difficulty_set = false
+    this.bonus_xp_on_join = 150
+    this.main_market_items = {}
+    this.outside_chests = {}
+    this.chests_linked_to = {}
+    this.chest_limit_outside_upgrades = 1
+    this.force_mining_speed = {
+        speed = 0
+    }
 end
 
 function Public.get(key)

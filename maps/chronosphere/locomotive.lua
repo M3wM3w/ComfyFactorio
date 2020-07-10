@@ -63,7 +63,7 @@ function Public.locomotive_spawn(surface, position, wagons)
 		 	xi = 0
 		end
 
-		local comfychest = surface.create_entity({name = "steel-chest", position = {position.x - 2 + xi, position.y - 2 + yi + i}, force = "player"})
+		local comfychest = surface.create_entity({name = "blue-chest", position = {position.x - 2 + xi, position.y - 2 + yi + i}, force = "player"})
 		comfychest.minable = false
 		--comfychest.destructible = false
 		if not objective.comfychests[i] then
@@ -257,7 +257,7 @@ function Public.create_wagon_room()
 		for i = 1, 12, 1 do
 			local step = math_floor((i-1)/4)
 			local y = -131 + i + step * 128 - step * 4
-			local e = surface.create_entity({name = "steel-chest", position = {x,y}, force = "player", create_build_effect_smoke = false})
+			local e = surface.create_entity({name = "red-chest", position = {x,y}, force = "player", create_build_effect_smoke = false})
 			e.destructible = false
 			e.minable = false
 			table.insert(objective.comfychests2, e)
@@ -302,7 +302,7 @@ function Public.create_wagon_room()
 	local market = surface.create_entity({name = "market", position = {-29, height * -0.5 + 4}, force="neutral", create_build_effect_smoke = false})
 	market.minable = false
 	market.destructible = false
-  local repairchest = surface.create_entity({name = "steel-chest", position = {-24, height * -0.5 + 3}, force = "player"})
+  local repairchest = surface.create_entity({name = "blue-chest", position = {-24, height * -0.5 + 3}, force = "player"})
   repairchest.minable = false
   repairchest.destructible = false
   objective.upgradechest[0] = repairchest
@@ -319,7 +319,7 @@ function Public.create_wagon_room()
   }
   local upgrades = Upgrades.upgrades()
   for i = 1, #upgrades, 1 do
-    local e = surface.create_entity({name = "steel-chest", position = {-21 + i, height * -0.5 + 3}, force = "player"})
+    local e = surface.create_entity({name = "blue-chest", position = {-21 + i, height * -0.5 + 3}, force = "player"})
     e.minable = false
     e.destructible = false
     objective.upgradechest[i] = e
@@ -453,23 +453,27 @@ function Public.enter_cargo_wagon(player, vehicle)
 	local objective = Chrono_table.get_table()
 	if not vehicle then log("no vehicle") return end
 	if not vehicle.valid then log("vehicle invalid") return end
+  if not objective.locomotive then log("locomotive missing") return end
+  if not objective.locomotive.valid then log("locomotive invalid") return end
 	if not game.surfaces["cargo_wagon"] then Public.create_wagon_room() end
 	local wagon_surface = game.surfaces["cargo_wagon"]
-	for i = 1, 3, 1 do
-		if not objective.locomotive_cargo[i] then log("no cargo") return end
-		if not objective.locomotive_cargo[i].valid then log("cargo invalid") return end
-		if vehicle == objective.locomotive_cargo[i] then
-			local x_vector = vehicle.position.x - player.position.x
-			local position
-			if x_vector > 0 then
-				position = {wagon_surface.map_gen_settings.width * -0.5, -128 + 128 * (i - 1)}
-			else
-				position = {wagon_surface.map_gen_settings.width * 0.5, -128 + 128 * (i - 1)}
-			end
-			player.teleport(wagon_surface.find_non_colliding_position("character", position, 128, 0.5), wagon_surface)
-			break
-		end
-	end
+  if vehicle.type == "cargo-wagon" then
+  	for i = 1, 3, 1 do
+  		if not objective.locomotive_cargo[i] then log("no cargo") return end
+  		if not objective.locomotive_cargo[i].valid then log("cargo invalid") return end
+  		if vehicle == objective.locomotive_cargo[i] then
+  			local x_vector = vehicle.position.x - player.position.x
+  			local position
+  			if x_vector > 0 then
+  				position = {wagon_surface.map_gen_settings.width * -0.5, -128 + 128 * (i - 1)}
+  			else
+  				position = {wagon_surface.map_gen_settings.width * 0.5, -128 + 128 * (i - 1)}
+  			end
+  			player.teleport(wagon_surface.find_non_colliding_position("character", position, 128, 0.5), wagon_surface)
+  			break
+  		end
+  	end
+  end
 	if player.surface.name == "cargo_wagon" and vehicle.type == "car" then
 		if objective.flame_boots then
 			objective.flame_boots[player.index] = {fuel = 1, steps = {}}
@@ -481,8 +485,13 @@ function Public.enter_cargo_wagon(player, vehicle)
 				break
 			end
 		end
-		local surface = objective.locomotive_cargo[1].surface
-		local position = {x = objective.locomotive_cargo[((used_exit - 1) % 3) + 1].position.x + math_sgn(used_exit - 3.5) * 2, y = objective.locomotive_cargo[((used_exit - 1) % 3) + 1].position.y}
+		local surface = objective.locomotive.surface
+    local position
+    if used_exit == 0 or objective.game_lost then
+      position = game.forces.player.get_spawn_position(surface)
+    else
+      position = {x = objective.locomotive_cargo[((used_exit - 1) % 3) + 1].position.x + math_sgn(used_exit - 3.5) * 2, y = objective.locomotive_cargo[((used_exit - 1) % 3) + 1].position.y}
+    end
  		local position2 = surface.find_non_colliding_position("character", position, 128, 0.5)
 		if not position2 then return end
 		player.teleport(position2, surface)

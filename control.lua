@@ -9,6 +9,7 @@ require 'utils.utils'
 require 'utils.table'
 require 'utils.color_data'
 require 'utils.session_data'
+require 'utils.jail_data'
 require 'chatbot'
 require 'commands'
 require 'antigrief'
@@ -16,6 +17,7 @@ require 'modules.corpse_markers'
 require 'modules.floaty_chat'
 require 'modules.autohotbar'
 require 'modules.show_inventory'
+require 'utils.debug.command'
 
 require 'comfy_panel.main'
 require 'comfy_panel.player_list'
@@ -145,9 +147,6 @@ require 'modules.autostash'
 if _DUMP_ENV then
     require 'utils.dump_env'
 end
-if _DEBUG then
-    require 'utils.debug.command'
-end
 
 local function on_player_created(event)
     local player = game.players[event.player_index]
@@ -156,7 +155,19 @@ local function on_player_created(event)
 end
 
 local function on_init()
+    local branch_version = '0.18.35'
+    local sub = string.sub
     game.forces.player.research_queue_enabled = true
+    local is_branch_18 = sub(branch_version, 3, 4)
+    local get_active_version = sub(game.active_mods.base, 3, 4)
+
+    is_branch_18 = is_branch_18 .. sub(branch_version, 6, 7)
+    get_active_version = get_active_version .. sub(game.active_mods.base, 6, 7)
+    if get_active_version >= is_branch_18 then
+        local default = game.permissions.get_group('Default')
+        default.set_allows_action(defines.input_action.flush_opened_entity_fluid, false)
+        default.set_allows_action(defines.input_action.flush_opened_entity_specific_fluid, false)
+    end
 end
 
 local loaded = _G.package.loaded

@@ -61,12 +61,18 @@ function Public.clear_corpses(value)
     if value then
         wave_defense.clear_corpses = value
     end
+    return wave_defense.clear_corpses
+end
+
+function Public.get_wave()
+    return wave_defense.wave_number
 end
 
 function Public.alert_boss_wave(value)
     if value then
         wave_defense.alert_boss_wave = value
     end
+    return wave_defense.alert_boss_wave
 end
 
 local on_init = function()

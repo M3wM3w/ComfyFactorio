@@ -72,7 +72,7 @@ end
 ---@param player LuaPlayer
 ---@param duration number in seconds
 ---@param sound string sound to play, nil to not play anything
-local function alert_to(player, duration, sound)
+local function alert_to(player, duration, sound, volume)
     local frame_holder = player.gui.left.add({type = 'flow'})
 
     local frame =
@@ -112,7 +112,8 @@ local function alert_to(player, duration, sound)
     active_alerts[id] = frame_holder
 
     if sound then
-        player.play_sound({path = sound, volume_modifier = 0.80})
+        volume = volume or 0.80
+        player.play_sound({path = sound, volume_modifier = volume})
     end
 
     return container
@@ -178,9 +179,9 @@ on_tick =
 ---@param duration table
 ---@param template function
 ---@param sound string sound to play, nil to not play anything
-function Public.alert_player_template(player, duration, template, sound)
+function Public.alert_player_template(player, duration, template, sound, volume)
     sound = sound or 'utility/new_objective'
-    local container = alert_to(player, duration, sound)
+    local container = alert_to(player, duration, sound, volume)
     if container then
         template(container, player)
     end
@@ -251,20 +252,22 @@ end
 ---@param duration number
 ---@param message string
 ---@param color string
-function Public.alert_player(player, duration, message, color)
+function Public.alert_player(player, duration, message, color, sprite, volume)
     Public.alert_player_template(
         player,
         duration,
         function(container)
             container.add {
                 type = 'sprite-button',
-                sprite = 'achievement/you-are-doing-it-right',
+                sprite = sprite or 'achievement/you-are-doing-it-right',
                 style = 'slot_button'
             }
             local label = container.add({type = 'label', name = close_alert_name, caption = message})
             label.style.single_line = false
             label.style.font_color = color or Color.comfy
-        end
+        end,
+        nil,
+        volume
     )
 end
 
@@ -306,11 +309,11 @@ end
 ---@param duration number
 ---@param message string
 ---@param color string
-function Public.alert_all_players(duration, message, color)
+function Public.alert_all_players(duration, message, color, sprite, volume)
     local players = game.connected_players
     for i = 1, #players do
         local player = players[i]
-        Public.alert_player(player, duration, message, color)
+        Public.alert_player(player, duration, message, color, sprite, volume)
     end
 end
 

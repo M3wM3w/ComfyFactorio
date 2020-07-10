@@ -220,6 +220,12 @@ stds.factorio_control = {
             fields = {'print'}
         },
 
+        commands = {
+            fields = {
+                'add_command'
+            }
+        },
+
         rendering = {
             other_fields = false,
             read_only = true,
@@ -342,6 +348,7 @@ stds.factorio_control = {
                 "json_to_table",
                 "kick_player",
                 "merge_forces",
+                "pollution_statistics",
                 "mute_player",
                 "play_sound",
                 "print",
@@ -359,6 +366,7 @@ stds.factorio_control = {
                 "show_message_dialog",
                 "table_to_json",
                 "take_screenshot",
+
                 "take_technology_screenshot",
                 "unban_player",
                 "unmute_player",
@@ -1259,6 +1267,8 @@ stds.factorio_defines = {
                         'quick_bar_pick_slot',
                         'quick_bar_set_selected_page',
                         'quick_bar_set_slot',
+                        'flush_opened_entity_fluid',
+                        'flush_opened_entity_specific_fluid',
                         'remove_cables',
                         'remove_train_station',
                         'reset_assembling_machine',

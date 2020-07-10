@@ -56,6 +56,21 @@ local function player_opened(player)
     return true, opened
 end
 
+local function last_tab(player)
+    local data = this.data[player.index]
+
+    if not data then
+        return false
+    end
+
+    local tab = data.last_tab
+    if not tab then
+        return false
+    end
+
+    return true, tab
+end
+
 local function validate_player(player)
     if not player then
         return false
@@ -156,10 +171,11 @@ end
 local function add_inventory(panel, source, target, caption, panel_type)
     local data = this.data[source.index]
     data.panel_type = data.panel_type or {}
-    local pane_name = panel.add({type = 'tab', caption = caption})
+    local pane_name = panel.add({type = 'tab', caption = caption, name = caption})
     local scroll_pane =
         panel.add {
         type = 'scroll-pane',
+        name = caption .. 'tab',
         direction = 'vertical',
         vertical_scroll_policy = 'always',
         horizontal_scroll_policy = 'never'
@@ -212,9 +228,11 @@ local function open_inventory(source, target)
 
     adjustSpace(frame)
 
-    local panel = frame.add({type = 'tabbed-pane'})
+    local panel = frame.add({type = 'tabbed-pane', name = 'tabbed_pane'})
+    panel.selected_tab_index = 1
 
     this.data[source.index].player_opened = target
+    this.data[source.index].last_tab = 'Main'
 
     local main = target.get_main_inventory().get_contents()
     local armor = target.get_inventory(defines.inventory.character_armor).get_contents()
@@ -237,6 +255,57 @@ local function open_inventory(source, target)
     end
 end
 
+local function on_gui_click(event)
+    local player = game.players[event.player_index]
+
+    local element = event.element
+
+    if not element or not element.valid then
+        return
+    end
+
+    local types = {
+        ['Main'] = true,
+        ['Armor'] = true,
+        ['Guns'] = true,
+        ['Ammo'] = true,
+        ['Trash'] = true
+    }
+
+    local name = element.name
+
+    if not types[name] then
+        return
+    end
+
+    local data = this.data[player.index]
+    if not data then
+        return
+    end
+
+    data.last_tab = name
+
+    local valid, target = player_opened(player)
+    if valid then
+        local main = target.get_main_inventory().get_contents()
+        local armor = target.get_inventory(defines.inventory.character_armor).get_contents()
+        local guns = target.get_inventory(defines.inventory.character_guns).get_contents()
+        local ammo = target.get_inventory(defines.inventory.character_ammo).get_contents()
+        local trash = target.get_inventory(defines.inventory.character_trash).get_contents()
+
+        local target_types = {
+            ['Main'] = main,
+            ['Armor'] = armor,
+            ['Guns'] = guns,
+            ['Ammo'] = ammo,
+            ['Trash'] = trash
+        }
+        local frame = Public.get_active_frame(player)
+        local panel_type = target_types[name]
+
+        redraw_inventory(frame, player, target, name, panel_type)
+    end
+end
 local function gui_closed(event)
     local player = game.players[event.player_index]
 
@@ -267,8 +336,32 @@ end
 local function update_gui()
     for _, player in pairs(game.connected_players) do
         local valid, target = player_opened(player)
+        local success, tab = last_tab(player)
+
         if valid then
-            open_inventory(player, target)
+            if success then
+                local main = target.get_main_inventory().get_contents()
+                local armor = target.get_inventory(defines.inventory.character_armor).get_contents()
+                local guns = target.get_inventory(defines.inventory.character_guns).get_contents()
+                local ammo = target.get_inventory(defines.inventory.character_ammo).get_contents()
+                local trash = target.get_inventory(defines.inventory.character_trash).get_contents()
+
+                local types = {
+                    ['Main'] = main,
+                    ['Armor'] = armor,
+                    ['Guns'] = guns,
+                    ['Ammo'] = ammo,
+                    ['Trash'] = trash
+                }
+
+                local frame = Public.get_active_frame(player)
+                local panel_type = types[tab]
+                if frame then
+                    if frame.name == tab .. 'tab' then
+                        redraw_inventory(frame, player, target, tab, panel_type)
+                    end
+                end
+            end
         else
             close_player_inventory(player)
         end
@@ -309,6 +402,15 @@ commands.add_command(
     end
 )
 
+function Public.get_active_frame(player)
+    if not player.gui.screen.inventory_gui then
+        return false
+    end
+    return player.gui.screen.inventory_gui.tabbed_pane.tabs[
+        player.gui.screen.inventory_gui.tabbed_pane.selected_tab_index
+    ].content
+end
+
 function Public.get(key)
     if key then
         return this[key]
@@ -328,6 +430,7 @@ end
 
 Event.add(defines.events.on_player_main_inventory_changed, update_gui)
 Event.add(defines.events.on_gui_closed, gui_closed)
+Event.add(defines.events.on_gui_click, on_gui_click)
 Event.add(defines.events.on_player_joined_game, on_player_joined_game)
 Event.add(defines.events.on_pre_player_left_game, on_pre_player_left_game)
 

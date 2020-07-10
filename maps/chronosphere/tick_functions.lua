@@ -15,36 +15,29 @@ local math_exp = math.exp
 function Public_tick.realtime_events()
   local objective = Chrono_table.get_table()
 
-  -- debug testing for natural jumps (e.g. for misfires):
-  --if objective.passivetimer == 5 then
-  --  objective.chronocharges = objective.chronochargesneeded - 10
-  --end
-
   if objective.planet[1].type.id == 19 then
-    if objective.passivetimer == 3 then
-    game.print({"chronosphere.message_danger1"}, {r=0.98, g=0.66, b=0.22})
-    elseif objective.passivetimer == 15 then
+    if objective.passivetimer == 10 then
+      game.print({"chronosphere.message_danger1"}, {r=0.98, g=0.66, b=0.22})
       game.print({"chronosphere.message_danger2"}, {r=0.98, g=0.66, b=0.22})
     elseif objective.passivetimer == 25 then
       game.print({"chronosphere.message_danger3"}, {r=0.98, g=0, b=0})
     elseif objective.passivetimer == 30 then
-      game.print({"chronosphere.message_danger4"}, {r=0.98, g=0.66, b=0.22})
-    elseif objective.passivetimer == 35 then
-      game.print({"chronosphere.message_danger5"}, {r=0.98, g=0, b=0})
+      game.print({"chronosphere.message_danger4"}, {r=0.98, g=0, b=0})
     end
   end
 
   if objective.jump_countdown_start_time == -1 and objective.passivetimer == math_floor(objective.chronochargesneeded * 0.50 / objective.passive_chronocharge_rate) and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
 		game.print({"chronosphere.message_rampup50"}, {r=0.98, g=0.66, b=0.22})
   end
-
+  
+  if objective.game_lost then return end
   if objective.jump_countdown_start_time ~= -1 then
-    if objective.passivetimer == objective.jump_countdown_start_time + objective.jump_countdown_length - 60 then
+    if objective.passivetimer == objective.jump_countdown_start_time + 180 - 60 then
       game.print({"chronosphere.message_jump60"}, {r=0.98, g=0.66, b=0.22})
-    elseif objective.passivetimer == objective.jump_countdown_start_time + objective.jump_countdown_length - 30 then
+    elseif objective.passivetimer == objective.jump_countdown_start_time + 180 - 30 then
       game.print({"chronosphere.message_jump30"}, {r=0.98, g=0.66, b=0.22})
-    elseif objective.passivetimer >= objective.jump_countdown_start_time + objective.jump_countdown_length - 10 and objective.jump_countdown_start_time + objective.jump_countdown_length - objective.passivetimer > 0 then
-      game.print({"chronosphere.message_jump_10orless", objective.jump_countdown_start_time + objective.jump_countdown_length - objective.passivetimer}, {r=0.98, g=0.66, b=0.22})
+    elseif objective.passivetimer >= objective.jump_countdown_start_time + 180 - 10 and objective.jump_countdown_start_time + 180 - objective.passivetimer > 0 then
+      game.print({"chronosphere.message_jump10", objective.jump_countdown_start_time + 180 - objective.passivetimer}, {r=0.98, g=0.66, b=0.22})
     end
   end
 end
@@ -59,7 +52,7 @@ function Public_tick.transfer_pollution()
   local total_interior_pollution = surface.get_total_pollution()
 
   local exterior_pollution =  total_interior_pollution * Balance.machine_pollution_transfer_from_inside_factor(difficulty, objective.upgrades[2])
-  
+
   game.surfaces[objective.active_surface_index].pollute(objective.locomotive.position, exterior_pollution)
   -- ascribe the difference to the locomotive:
 	game.pollution_statistics.on_flow("locomotive", exterior_pollution - total_interior_pollution)
@@ -149,7 +142,7 @@ local function create_poison_cloud(position)
   if not tile.valid then return end
   if tile.name == "water-shallow" or tile.name == "water-mud" then
     local random_angles = {math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359)),math_rad(math_random(359))}
-  
+
     surface.create_entity({name = "poison-cloud", position = {x = position.x, y = position.y}})
     surface.create_entity({name = "poison-cloud", position = {x = position.x + 12 * math_cos(random_angles[1]), y = position.y + 12 * math_sin(random_angles[1])}})
     surface.create_entity({name = "poison-cloud", position = {x = position.x + 12 * math_cos(random_angles[2]), y = position.y + 12 * math_sin(random_angles[2])}})

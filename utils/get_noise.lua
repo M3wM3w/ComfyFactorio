@@ -9,6 +9,7 @@ local noises = {
     },
     ['bb_ore'] = {{modifier = 0.0042, weight = 1}, {modifier = 0.031, weight = 0.08}, {modifier = 0.1, weight = 0.025}},
     ['cave_ponds'] = {{modifier = 0.01, weight = 1}, {modifier = 0.1, weight = 0.06}},
+    ['smol_areas'] = {{modifier = 0.01, weight = 1}, {modifier = 0.1, weight = 0.02}, {modifier = 0.1, weight = 0.03}},
     ['cave_worms'] = {{modifier = 0.001, weight = 1}, {modifier = 0.1, weight = 0.06}},
     ['cave_rivers'] = {
         {modifier = 0.005, weight = 1},

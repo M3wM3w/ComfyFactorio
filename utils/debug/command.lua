@@ -25,71 +25,77 @@ commands.add_command(
     end
 )
 
-commands.add_command(
-    'dump-log',
-    'Dumps value to log',
-    function(args)
-        local player = game.player
-        local p
-        if player then
-            p = player.print
-            if not player.admin then
-                p('Only admins can use this command.')
+if _DEBUG then
+    commands.add_command(
+        'dump-log',
+        'Dumps value to log',
+        function(args)
+            local player = game.player
+            local p
+            if player then
+                p = player.print
+                if not player.admin then
+                    p('Only admins can use this command.')
+                    return
+                end
+            else
+                p = player.print
+            end
+            if args.parameter == nil then
                 return
             end
-        else
-            p = player.print
-        end
-        if args.parameter == nil then return end
-        local func, err = loadstring('return ' .. args.parameter)
+            local func, err = loadstring('return ' .. args.parameter)
 
-        if not func then
-            p(err)
-            return
-        end
-
-        local suc, value = pcall(func)
-
-        if not suc then
-            p(value)
-            return
-        end
-
-        log(dump(value))
-    end
-)
-
-commands.add_command(
-    'dump-file',
-    'Dumps value to dump.lua',
-    function(args)
-        local player = game.player
-        local p
-        if player then
-            p = player.print
-            if not player.admin then
-                p('Only admins can use this command.')
+            if not func then
+                p(err)
                 return
             end
-        else
-            p = player.print
+
+            local suc, value = pcall(func)
+
+            if not suc then
+                p(value)
+                return
+            end
+
+            log(dump(value))
         end
-        if args.parameter == nil then return end
-        local func, err = loadstring('return ' .. args.parameter)
+    )
 
-        if not func then
-            p(err)
-            return
+    commands.add_command(
+        'dump-file',
+        'Dumps value to dump.lua',
+        function(args)
+            local player = game.player
+            local p
+            if player then
+                p = player.print
+                if not player.admin then
+                    p('Only admins can use this command.')
+                    return
+                end
+            else
+                p = player.print
+            end
+            if args.parameter == nil then
+                return
+            end
+            local func, err = loadstring('return ' .. args.parameter)
+
+            if not func then
+                p(err)
+                return
+            end
+
+            local suc, value = pcall(func)
+
+            if not suc then
+                p(value)
+                return
+            end
+
+            value = dump(value)
+            game.write_file('dump.lua', value, false)
         end
-
-        local suc, value = pcall(func)
-
-        if not suc then
-            p(value)
-            return
-        end
-
-        value = dump(value)
-        game.write_file('dump.lua', value, false)
-    end
-)
+    )
+end

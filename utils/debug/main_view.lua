@@ -1,15 +1,19 @@
 local Gui = require 'utils.gui'
 local Color = require 'utils.color_presets'
+local Event = require 'utils.event'
 
 local Public = {}
 
 local pages = {
     require 'utils.debug.public_global_view',
-    require 'utils.debug.global_view',
-    require 'utils.debug.package_view',
-    require 'utils.debug._g_view',
-    require 'utils.debug.event_view'
+    require 'utils.debug.global_view'
 }
+
+if _DEBUG then
+    pages[#pages + 1] = require 'utils.debug.package_view'
+    pages[#pages + 1] = require 'utils.debug._g_view'
+    pages[#pages + 1] = require 'utils.debug.event_view'
+end
 
 local main_frame_name = Gui.uid_name()
 local close_name = Gui.uid_name()
@@ -63,6 +67,32 @@ function Public.open_dubug(player)
 
     frame.add {type = 'button', name = close_name, caption = 'Close'}
 end
+
+Event.add(
+    defines.events.on_player_left_game,
+    function(event)
+        local player = game.players[event.player_index]
+        local frame = player.gui.screen[main_frame_name]
+        if frame then
+            Gui.destroy(frame)
+        end
+    end
+)
+
+Event.add(
+    defines.events.on_gui_closed,
+    function(event)
+        local type = event.gui_type
+
+        if type == defines.gui_type.custom then
+            local player = game.players[event.player_index]
+            local frame = player.gui.screen[main_frame_name]
+            if frame then
+                Gui.destroy(frame)
+            end
+        end
+    end
+)
 
 Gui.on_click(
     tab_name,

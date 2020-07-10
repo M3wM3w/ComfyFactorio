@@ -268,7 +268,10 @@ function Event.add_removable_function(event_name, func)
     end
 
     if Debug.is_closure(func) then
-        error('func cannot be a closure as that is a desync risk. Consider using Event.add_removable(event_name, token) instead.', 2)
+        error(
+            'func cannot be a closure as that is a desync risk. Consider using Event.add_removable(event_name, token) instead.',
+            2
+        )
     end
 
     local funcs = function_handlers[event_name]
@@ -375,7 +378,10 @@ function Event.add_removable_nth_tick_function(tick, func)
     end
 
     if Debug.is_closure(func) then
-        error('func cannot be a closure as that is a desync risk. Consider using Event.add_removable_nth_tick(tick, token) instead.', 2)
+        error(
+            'func cannot be a closure as that is a desync risk. Consider using Event.add_removable_nth_tick(tick, token) instead.',
+            2
+        )
     end
 
     local funcs = function_nth_tick_handlers[tick]
@@ -429,15 +435,15 @@ function Event.generate_event_name(name)
 end
 
 function Event.add_event_filter(event, filter)
-  local current_filters = script.get_event_filter(event)
+    local current_filters = script.get_event_filter(event)
 
-  if not current_filters then
-    current_filters = {filter}
-  else
-    table.insert(current_filters, filter)
-  end
+    if not current_filters then
+        current_filters = {filter}
+    else
+        table.insert(current_filters, filter)
+    end
 
-  script.set_event_filter(event, current_filters)
+    script.set_event_filter(event, current_filters)
 end
 
 local function add_handlers()

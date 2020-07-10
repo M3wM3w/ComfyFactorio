@@ -41,7 +41,7 @@ local function create_floaty_text(surface, position, name, count)
                 position.x,
                 position.y + autostash.floating_text_y_offsets[position.x .. '_' .. position.y]
             },
-            text = '-' .. count .. ' ' .. name,
+            text = {'', '-', count, ' ', game.item_prototypes[name].localised_name},
             color = {r = 255, g = 255, b = 255}
         }
     )
@@ -172,6 +172,9 @@ local function insert_item_into_chest(player_inventory, chests, filtered_chests,
         ['logistic-container'] = true
     }
 
+    local to_insert = math.floor(count / #chests)
+    local variator = count % #chests
+
     --Attempt to store into furnaces.
     if furnace then
         for _, chest in pairs(chests) do
@@ -191,15 +194,19 @@ local function insert_item_into_chest(player_inventory, chests, filtered_chests,
 
         for _, chest in pairs(chests) do
             if chest.type == 'furnace' then
+                local amount = to_insert
+                if variator > 0 then
+                    amount = amount + 1
+                    variator = variator - 1
+                end
+                if amount <= 0 then
+                    return
+                end
                 local chest_inventory = chest.get_inventory(defines.inventory.chest)
-                if chest_inventory.can_insert({name = name, count = count}) then
-                    local inserted_count = chest_inventory.insert({name = name, count = count})
+                if chest_inventory.can_insert({name = name, count = amount}) then
+                    local inserted_count = chest_inventory.insert({name = name, count = amount})
                     player_inventory.remove({name = name, count = inserted_count})
                     create_floaty_text(chest.surface, chest.position, name, inserted_count)
-                    count = count - inserted_count
-                    if count <= 0 then
-                        return
-                    end
                 end
             end
         end

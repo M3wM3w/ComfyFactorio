@@ -30,7 +30,9 @@ end
 function Public_chrono.restart_settings()
 	local get_score = Score.get_table()
 	local objective = Chrono_table.get_table()
-    objective.max_health = Balance.Chronotrain_max_HP
+	Difficulty.reset_difficulty_poll()
+	Difficulty.set_poll_closing_timeout(game.tick + 35 * 60 * 60)
+  objective.max_health = Balance.Chronotrain_max_HP
 	objective.health = Balance.Chronotrain_max_HP
 	objective.poisontimeout = 0
 	objective.chronocharges = 0
@@ -40,7 +42,6 @@ function Public_chrono.restart_settings()
 	objective.passivetimer = 0
 	objective.overstaycount = 0
 	objective.jump_countdown_start_time = -1
-	objective.jump_countdown_length = -1
 	objective.mainscore = 0
 	objective.active_biters = {}
 	objective.unit_groups = {}
@@ -68,8 +69,6 @@ function Public_chrono.restart_settings()
 	global.landfill_history = {}
 	global.mining_history = {}
 	get_score.score_table = {}
-	Difficulty.reset_difficulty_poll()
-	Difficulty.set_poll_closing_timeout(game.tick + 35 * 60 * 60)
 
 	game.difficulty_settings.technology_price_multiplier = Balance.Tech_price_multiplier
 	game.map_settings.enemy_evolution.destroy_factor = 0.005
@@ -80,7 +79,7 @@ function Public_chrono.restart_settings()
 	game.map_settings.enemy_expansion.min_expansion_cooldown = 3600
 	game.map_settings.enemy_expansion.settler_group_max_size = 8
 	game.map_settings.enemy_expansion.settler_group_min_size = 16
-    game.map_settings.enemy_expansion.max_expansion_distance = 9
+  game.map_settings.enemy_expansion.max_expansion_distance = 9
 	game.map_settings.pollution.enabled = true
 	game.map_settings.pollution.expected_max_per_chunk = 400
 	game.map_settings.pollution.min_to_show_per_chunk = 40
@@ -90,7 +89,7 @@ function Public_chrono.restart_settings()
 	game.map_settings.pollution.pollution_with_max_forest_damage = 10
 	game.map_settings.pollution.pollution_per_tree_damage = 0.1
 	game.map_settings.pollution.ageing = 0.1
-	game.map_settings.pollution.diffusion_ratio = 0.12
+	game.map_settings.pollution.diffusion_ratio = 0.1
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 5
 	game.map_settings.unit_group.min_group_gathering_time = 1800
 	game.map_settings.unit_group.max_group_gathering_time = 18000
@@ -118,6 +117,7 @@ function Public_chrono.objective_died()
 	for i = 1, 3, 1 do
 		surface.create_entity({name = "big-artillery-explosion", position = objective.locomotive_cargo[i].position})
 		objective.locomotive_cargo[i].destroy()
+		objective.locomotive_cargo[i] = nil
 	end
 	for i = 1, #objective.comfychests,1 do
 		--surface.create_entity({name = "big-artillery-explosion", position = objective.comfychests[i].position})
@@ -156,32 +156,30 @@ function Public_chrono.process_jump()
 	objective.biter_raffle = {}
 	objective.chronocharges = 0
 	objective.jump_countdown_start_time = -1
-	objective.jump_countdown_length = -1
-  	objective.dangertimer = 1200
+  objective.dangertimer = 1200
 	local message = "Comfylatron: Wheeee! Time jump underway! This is Jump number " .. objective.chronojumps
-	game.print(message, {r=0.98, g=0.66, b=0.22})
+	game.print({"chronosphere.message_jump", objective.chronojumps}, {r=0.98, g=0.66, b=0.22})
 	Server.to_discord_embed(message)
 
 	if objective.chronojumps == Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
 		game.print({"chronosphere.message_evolve"}, {r=0.98, g=0.36, b=0.22})
 	elseif objective.chronojumps >= 15 and objective.computermessage == 0 then
 		game.print({"chronosphere.message_quest1"}, {r=0.98, g=0.36, b=0.22})
-    	objective.computermessage = 1
+    objective.computermessage = 1
 		game.play_sound{path="utility/new_objective", volume_modifier=0.85}
 	elseif objective.chronojumps >= 20 and objective.computermessage == 2 then
 		game.print({"chronosphere.message_quest3"}, {r=0.98, g=0.36, b=0.22})
-    	objective.computermessage = 3
+    objective.computermessage = 3
 		game.play_sound{path="utility/new_objective", volume_modifier=0.85}
 	elseif objective.chronojumps >= 25 and objective.computermessage == 4 then
 		game.print({"chronosphere.message_quest5"}, {r=0.98, g=0.36, b=0.22})
-    	objective.computermessage = 5
+    objective.computermessage = 5
 		game.play_sound{path="utility/new_objective", volume_modifier=0.85}
 	end
-	if (objective.passivetimer - objective.jump_countdown_length) * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.75 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
-    	game.print({"chronosphere.message_overstay"}, {r=0.98, g=0.36, b=0.22})
-		Server.to_discord_embed("We took so long to get off that planet, our future destinations have evolved a little...")
-  	end
-  	if objective.planet[1].type.id == 19 then
+	if (objective.passivetimer - 180) * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.75 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
+    game.print({"chronosphere.message_overstay"}, {r=0.98, g=0.36, b=0.22})
+  end
+  if objective.planet[1].type.id == 19 then
 		check_nuke_silos()
 	end
 end
@@ -194,6 +192,11 @@ function Public_chrono.get_wagons(start)
 	wagons[3] = {inventory = {}, bar = 0, filters = {}}
 	if start then
 		wagons[1].inventory[1] = {name = "raw-fish", count = 100}
+		for i = 31, 38, 1 do
+			wagons[1].filters[i] = "atomic-bomb"
+		end
+		wagons[1].filters[39] = "coin"
+		wagons[1].filters[40] = "coin"
 		for i = 2, 3, 1 do
 			for j = 1,#Balance.wagon_starting_items do
 				wagons[i].inventory[j] = Balance.wagon_starting_items[j]
@@ -220,14 +223,14 @@ function Public_chrono.get_wagons(start)
 			wagons[3].inventory[i] = inventories.three[i]
 		end
 	end
-	
+
 	return wagons
 end
 
 function Public_chrono.post_jump()
 	local objective = Chrono_table.get_table()
 	local difficulty = Difficulty.get().difficulty_vote_value
-	  
+
   	game.forces.enemy.reset_evolution()
 	if objective.chronojumps + objective.overstaycount <= 40 and objective.planet[1].type.id ~= 17 then
 		game.forces.enemy.evolution_factor = 0 + 0.025 * (objective.chronojumps + objective.overstaycount)

@@ -1,4 +1,5 @@
 local Token = require 'utils.token'
+local Task = require 'utils.task'
 local ICW = require 'maps.mountain_fortress_v3.icw.main'
 local WPT = require 'maps.mountain_fortress_v3.table'
 local Event = require 'utils.event'
@@ -171,6 +172,28 @@ local function do_magic_fluid_crafters()
     magic_fluid_crafters.index = index
 end
 
+local function add_magic_crafter_output(entity, output, distance)
+    local magic_fluid_crafters = WPT.get('magic_fluid_crafters')
+    local magic_crafters = WPT.get('magic_crafters')
+    local rate = output.min_rate + output.distance_factor * distance
+
+    local fluidbox_index = output.fluidbox_index
+    local data = {
+        entity = entity,
+        last_tick = game.tick,
+        base_rate = rate,
+        rate = rate,
+        item = output.item,
+        fluidbox_index = fluidbox_index
+    }
+
+    if fluidbox_index then
+        magic_fluid_crafters[#magic_fluid_crafters + 1] = data
+    else
+        magic_crafters[#magic_crafters + 1] = data
+    end
+end
+
 local function tick()
     do_refill_turrets()
     do_magic_crafters()
@@ -180,63 +203,81 @@ end
 Public.deactivate_callback =
     Token.register(
     function(entity)
-        entity.active = false
-        entity.operable = false
-        entity.destructible = false
+        if entity and entity.valid then
+            entity.active = false
+            entity.operable = false
+            entity.destructible = false
+        end
     end
 )
 
 Public.neutral_force =
     Token.register(
     function(entity)
-        entity.force = 'neutral'
+        if entity and entity.valid then
+            entity.force = 'neutral'
+        end
     end
 )
 
 Public.enemy_force =
     Token.register(
     function(entity)
-        entity.force = 'enemy'
+        if entity and entity.valid then
+            entity.force = 'enemy'
+        end
     end
 )
 
 Public.active_not_destructible_callback =
     Token.register(
     function(entity)
-        entity.active = true
-        entity.operable = false
-        entity.destructible = false
+        if entity and entity.valid then
+            entity.active = true
+            entity.operable = false
+            entity.destructible = false
+        end
     end
 )
 
 Public.disable_minable_callback =
     Token.register(
     function(entity)
-        entity.minable = false
+        if entity and entity.valid then
+            entity.minable = false
+        end
     end
 )
 
 Public.disable_minable_and_ICW_callback =
     Token.register(
     function(entity)
-        entity.minable = false
-        local wagon = ICW.register_wagon(entity, true)
-        wagon.entity_count = 999
+        if entity and entity.valid then
+            entity.minable = false
+            local wagon = ICW.register_wagon(entity, true)
+            wagon.entity_count = 999
+        end
     end
 )
 
 Public.disable_destructible_callback =
     Token.register(
     function(entity)
-        entity.destructible = false
+        if entity and entity.valid then
+            entity.destructible = false
+        end
     end
 )
 Public.disable_active_callback =
     Token.register(
     function(entity)
-        entity.active = false
+        if entity and entity.valid then
+            entity.active = false
+        end
     end
 )
+
+local disable_active_callback = Public.disable_active_callback
 
 Public.refill_turret_callback =
     Token.register(
@@ -283,6 +324,152 @@ Public.power_source_callback =
     end
 )
 
+Public.magic_item_crafting_callback =
+    Token.register(
+    function(entity, data)
+        local callback_data = data.callback_data
+
+        entity.minable = false
+        entity.destructible = false
+        entity.operable = false
+
+        local recipe = callback_data.recipe
+        if recipe then
+            entity.set_recipe(recipe)
+        else
+            local furance_item = callback_data.furance_item
+            if furance_item then
+                local inv = entity.get_inventory(2) -- defines.inventory.furnace_source
+                inv.insert(furance_item)
+            end
+        end
+
+        local p = entity.position
+        local x, y = p.x, p.y
+        local distance = math.sqrt(x * x + y * y)
+
+        local output = callback_data.output
+        if #output == 0 then
+            add_magic_crafter_output(entity, output, distance)
+        else
+            for i = 1, #output do
+                local o = output[i]
+                add_magic_crafter_output(entity, o, distance)
+            end
+        end
+
+        if not callback_data.keep_active then
+            Task.set_timeout_in_ticks(2, disable_active_callback, entity) -- causes problems with refineries.
+        end
+    end
+)
+
+Public.magic_item_crafting_callback_weighted =
+    Token.register(
+    function(entity, data)
+        local callback_data = data.callback_data
+
+        entity.minable = false
+        entity.destructible = false
+        entity.operable = false
+
+        local weights = callback_data.weights
+        local loot = callback_data.loot
+
+        local p = entity.position
+
+        local i = math.random() * weights.total
+
+        local index = table.binary_search(weights, i)
+        if (index < 0) then
+            index = bit32.bnot(index)
+        end
+
+        local stack = loot[index].stack
+        if not stack then
+            return
+        end
+
+        local recipe = stack.recipe
+        if recipe then
+            entity.set_recipe(recipe)
+        else
+            local furance_item = stack.furance_item
+            if furance_item then
+                local inv = entity.get_inventory(2) -- defines.inventory.furnace_source
+                inv.insert(furance_item)
+            end
+        end
+
+        local x, y = p.x, p.y
+        local distance = math.sqrt(x * x + y * y)
+
+        local output = stack.output
+        if #output == 0 then
+            add_magic_crafter_output(entity, output, distance)
+        else
+            for o_i = 1, #output do
+                local o = output[o_i]
+                add_magic_crafter_output(entity, o, distance)
+            end
+        end
+
+        if not callback_data.keep_active then
+            Task.set_timeout_in_ticks(2, disable_active_callback, entity) -- causes problems with refineries.
+        end
+    end
+)
+
+function Public.prepare_weighted_loot(loot)
+    local total = 0
+    local weights = {}
+
+    for i = 1, #loot do
+        local v = loot[i]
+        total = total + v.weight
+        weights[#weights + 1] = total
+    end
+
+    weights.total = total
+
+    return weights
+end
+
+function Public.do_random_loot(entity, weights, loot)
+    if not entity.valid then
+        return
+    end
+
+    entity.operable = false
+    --entity.destructible = false
+
+    local i = math.random() * weights.total
+
+    local index = table.binary_search(weights, i)
+    if (index < 0) then
+        index = bit32.bnot(index)
+    end
+
+    local stack = loot[index].stack
+    if not stack then
+        return
+    end
+
+    local df = stack.distance_factor
+    local count
+    if df then
+        local p = entity.position
+        local x, y = p.x, p.y
+        local d = math.sqrt(x * x + y * y)
+
+        count = stack.count + d * df
+    else
+        count = stack.count
+    end
+
+    entity.insert {name = stack.name, count = count}
+end
+
 Public.firearm_magazine_ammo = {name = 'firearm-magazine', count = 200}
 Public.piercing_rounds_magazine_ammo = {name = 'piercing-rounds-magazine', count = 200}
 Public.uranium_rounds_magazine_ammo = {name = 'uranium-rounds-magazine', count = 200}
@@ -290,7 +477,7 @@ Public.light_oil_ammo = {name = 'light-oil', amount = 100}
 Public.artillery_shell_ammo = {name = 'artillery-shell', count = 15}
 Public.laser_turrent_power_source = {buffer_size = 2400000, power_production = 40000}
 
-Event.on_nth_tick(20, tick)
+Event.on_nth_tick(10, tick)
 --Event.add(defines.events.on_tick, tick)
 Event.add(defines.events.on_entity_died, turret_died)
 

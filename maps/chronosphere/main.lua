@@ -9,6 +9,7 @@ require "maps.chronosphere.terrain"
 require "modules.biter_noms_you"
 -- require "modules.custom_death_messages"
 local Server = require 'utils.server'
+local Chrono_table = require 'maps.chronosphere.table'
 local Ai = require "maps.chronosphere.ai"
 local Planets = require "maps.chronosphere.chronobubles"
 local Ores =require "maps.chronosphere.ores"
@@ -20,8 +21,8 @@ local Event_functions = require "maps.chronosphere.event_functions"
 local Balance = require "maps.chronosphere.balance"
 local Rand = require 'maps.chronosphere.random'
 local Chrono = require "maps.chronosphere.chrono"
-local Chrono_table = require 'maps.chronosphere.table'
 local Locomotive = require "maps.chronosphere.locomotive"
+local Minimap = require "maps.chronosphere.minimap"
 local Gui = require "maps.chronosphere.gui"
 local Difficulty = require 'modules.difficulty_vote'
 local math_random = math.random
@@ -151,6 +152,9 @@ local function reset_map()
 	local surface = game.surfaces[objective.active_surface_index]
 	generate_overworld(surface, planet)
 	Chrono.restart_settings()
+	for _,player in pairs(game.players) do
+		Minimap.minimap(player, true)
+	end
 
 	game.forces.player.set_spawn_position({12, 10}, surface)
 	Locomotive.locomotive_spawn(surface, {x = 16, y = 10}, Chrono.get_wagons(true))
@@ -246,7 +250,7 @@ function Public.chronojump(choice)
 
 	if objective.chronojumps <= 24 then
 		award_coins(
-			Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + objective.jump_countdown_length - objective.passivetimer, Difficulty.get().difficulty_vote_value)
+			Balance.coin_reward_per_second_jumped_early(objective.chronochargesneeded / objective.passive_chronocharge_rate + 180 - objective.passivetimer, Difficulty.get().difficulty_vote_value)
 		)
 	end
 
@@ -264,7 +268,6 @@ function Public.chronojump(choice)
 	objective.lab_cells = {}
 	objective.active_surface_index = game.create_surface("chronosphere" .. objective.chronojumps, Chrono.get_map_gen_settings()).index
 	local surface = game.surfaces[objective.active_surface_index]
-	--log("seed of new surface: " .. surface.map_gen_settings.seed)
 	local planet = objective.planet
 	if choice then
 		Planets.determine_planet(choice)
@@ -279,6 +282,7 @@ function Public.chronojump(choice)
 	game.delete_surface(oldsurface)
 	Chrono.post_jump()
 	Event_functions.flamer_nerfs()
+	Minimap.update_minimap()
 
 	--
     local pos = objective.locomotive.position or {x=0,y=0}
@@ -307,19 +311,16 @@ local tick_minute_functions = {
 local function initiate_jump_countdown()
 	local objective = Chrono_table.get_table()
 	local difficulty = Difficulty.get().difficulty_vote_value
-	local length = Balance.generate_jump_countdown_length(difficulty)
 
 	objective.jump_countdown_start_time = objective.passivetimer
-	objective.jump_countdown_length = length
-	game.print({"chronosphere.message_initiate_jump_countdown", length}, {r=0.98, g=0.66, b=0.22})
+	game.print({"chronosphere.message_jump180"}, {r=0.98, g=0.66, b=0.22})
 end
 
 local function check_if_overstayed()
 	local objective = Chrono_table.get_table()
-
-	  if objective.passivetimer * objective.passive_chronocharge_rate > (objective.chronochargesneeded * 0.75) and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
-		  objective.overstaycount = objective.overstaycount + 1
-	  end
+  if objective.passivetimer * objective.passive_chronocharge_rate > (objective.chronochargesneeded * 0.75) and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
+	  objective.overstaycount = objective.overstaycount + 1
+  end
 end
 
 function Public.add_chronocharge()
@@ -344,16 +345,16 @@ local function drain_accumulators()
 		local energy = acus[i].energy
 		if energy > 1010000 and objective.chronocharges < objective.chronochargesneeded then
 			acus[i].energy = acus[i].energy - 1000000
-	
+
 			objective.chronocharges = objective.chronocharges + 1
 
 			if objective.locomotive ~= nil and objective.locomotive.valid then
-		
+
 				local pos = objective.locomotive.position or {x=0,y=0}
 				local exterior_pollution = Balance.pollution_per_MJ_actively_charged(objective.chronojumps, difficulty, objective.upgrades[2])
 				game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)
 				game.pollution_statistics.on_flow("locomotive", exterior_pollution)
-			
+
 				if objective.chronocharges == objective.chronochargesneeded then
 					check_if_overstayed()
 					initiate_jump_countdown()
@@ -362,19 +363,6 @@ local function drain_accumulators()
 		end
 	end
 end
-
-function Public.attempt_to_jump()
-	local objective = Chrono_table.get_table()
-	local difficulty = Difficulty.get().difficulty_vote_value
-	
-	if 100 * math_random() <= Balance.misfire_percentage_chance(difficulty) then
-		game.print({"chronosphere.message_jump_misfire"}, {r=0.98, g=0.66, b=0.22})
-		objective.jump_countdown_length = objective.jump_countdown_length + 15
-	else
-		Public.chronojump(nil)
-	end
-end
-
 
 function Public.get_total_accu_charge()
 	local objective = Chrono_table.get_table()
@@ -404,7 +392,7 @@ local function tick() --only even ticks trigger
 		end
 		--surface.force_generate_chunk_requests()
 	end
-	
+
 	if tick % 12 == 0 and objective.planet[1].type.id == 18 then
 		Tick_functions.spawn_poison()
 	end
@@ -417,7 +405,7 @@ local function tick() --only even ticks trigger
 
 	if objective.chronocharges < objective.chronochargesneeded and objective.planet[1].type.id ~= 17 then
 		local chronotimer_ticks_between_increase = math_floor(60 / objective.passive_chronocharge_rate / 2) * 2 --make sure it's even because you can't do things on odd ticks
-		
+
 		if tick % chronotimer_ticks_between_increase == 0 then
 			objective.chronocharges = objective.chronocharges + 1
 		end
@@ -425,19 +413,19 @@ local function tick() --only even ticks trigger
 
 	if tick % 30 == 0 then
 		local difficulty = Difficulty.get().difficulty_vote_value
-		
+
 		if tick % 60 == 0 and objective.planet[1].type.id ~= 17 then
 			objective.passivetimer = objective.passivetimer + 1
 
 			if objective.planet[1].type.id == 19 then
 				Tick_functions.dangertimer()
 			end
-			
+
 			Tick_functions.realtime_events()
 
 			if objective.locomotive ~= nil and objective.locomotive.valid then
 				if objective.jump_countdown_start_time == -1 then
-					if objective.chronocharges == objective.chronochargesneeded then
+					if objective.chronocharges >= objective.chronochargesneeded then
 						check_if_overstayed()
 						initiate_jump_countdown()
 					end
@@ -447,8 +435,8 @@ local function tick() --only even ticks trigger
 					game.surfaces[objective.active_surface_index].pollute(pos, exterior_pollution)
 					game.pollution_statistics.on_flow("locomotive", exterior_pollution)
 				else
-					if objective.passivetimer == objective.jump_countdown_start_time + objective.jump_countdown_length then
-						Public.attempt_to_jump()
+					if objective.passivetimer == objective.jump_countdown_start_time + 180 then
+						Public.chronojump(nil)
 					else
 						local pos = objective.locomotive.position or {x=0,y=0}
 						local exterior_pollution = Balance.countdown_pollution_rate(objective.chronojumps, Difficulty.get().difficulty_vote_value)
@@ -463,7 +451,7 @@ local function tick() --only even ticks trigger
 		if tick % 60 == 0 then
 			drain_accumulators()
 		end
-		
+
 		if tick % 120 == 0 then
 			Tick_functions.move_items()
 			Tick_functions.output_items()
@@ -485,11 +473,11 @@ local function tick() --only even ticks trigger
 				Tick_functions.offline_players()
 			end
 		end
-		
+
 		if tick % 1800 == 900 and objective.jump_countdown_start_time ~= -1 then
 			Ai.perform_main_attack()
 		end
-		
+
 		local key = tick % 3600
 		if tick_minute_functions[key] then tick_minute_functions[key]() end
 		if objective.game_reset_tick then
@@ -501,12 +489,25 @@ local function tick() --only even ticks trigger
 		end
 		Locomotive.fish_tag()
 	end
-	for _, player in pairs(game.connected_players) do Gui.update_gui(player) end
+	for _, player in pairs(game.connected_players) do
+		Minimap.toggle_button(player)
+		Gui.update_gui(player)
+	end
 end
 
 local function on_init()
 	local objective = Chrono_table.get_table()
 	local T = Map.Pop_info()
+	local difficulty_tooltips = {
+		[1] = {"chronosphere.difficulty1"},
+		[2] = {"chronosphere.difficulty2"},
+		[3] = {"chronosphere.difficulty3"},
+		[4] = {"chronosphere.difficulty4"},
+		[5] = {"chronosphere.difficulty5"},
+		[6] = {"chronosphere.difficulty6"},
+		[7] = {"chronosphere.difficulty7"}
+	}
+	Difficulty.set_tooltip(difficulty_tooltips)
 	T.localised_category = "chronosphere"
 	T.main_caption_color = {r = 150, g = 150, b = 0}
 	T.sub_caption_color = {r = 0, g = 150, b = 0}
@@ -516,13 +517,14 @@ local function on_init()
 
 	objective.config.offline_loot = true
 	objective.config.jumpfailure = true
+	objective.config.overstay_penalty = true
 	game.create_force("scrapyard")
 	local mgs = game.surfaces["nauvis"].map_gen_settings
 	mgs.width = 16
 	mgs.height = 16
 	game.surfaces["nauvis"].map_gen_settings = mgs
 	game.surfaces["nauvis"].clear()
-	
+
     for k, v in pairs(Balance.player_ammo_damage_modifiers()) do
         game.forces['player'].set_ammo_damage_modifier(k, v)
     end
@@ -532,7 +534,6 @@ local function on_init()
     end
 
 	reset_map()
-	--if game.surfaces["nauvis"] then game.delete_surface(game.surfaces["nauvis"]) end
 end
 
 -- local function on_load()
@@ -583,6 +584,9 @@ local function on_player_mined_entity(event)
 		elseif
 			objective.planet[1].type.id == 11 then event.buffer.clear() -- rocky planet
 		end
+	elseif entity.name == "mineable-wreckage" then
+		Event_functions.scrap_loot(event)
+		event.buffer.clear()
 	end
 end
 
@@ -642,6 +646,7 @@ local function on_player_driving_changed_state(event)
 	local player = game.players[event.player_index]
 	local vehicle = event.entity
 	Locomotive.enter_cargo_wagon(player, vehicle)
+	Minimap.minimap(player, true)
 end
 
 -- function deny_building(event)
@@ -695,13 +700,13 @@ end
 
 local function on_research_finished(event)
 	local difficulty = Difficulty.get().difficulty_vote_value
-	
+
 	Event_functions.flamer_nerfs()
 	Event_functions.mining_buffs(event)
 
 	local research = event.research
 	local p_force = research.force
-	
+
     for _, e in ipairs(research.effects) do
 		local t = e.type
         if t == 'ammo-damage' then
@@ -716,7 +721,7 @@ local function on_research_finished(event)
 		elseif t == 'gun-speed' then
 			local category = e.ammo_category
 			local factor = Balance.player_gun_speed_modifiers()[category] or 0
-	
+
 			if factor then
 				local current_m = p_force.get_gun_speed_modifier(category)
 				local m = e.modifier
@@ -724,12 +729,10 @@ local function on_research_finished(event)
 			end
 		end
 	end
-	
+
 end
 
 local function on_entity_damaged(event)
-    local difficulty = Difficulty.get().difficulty_vote_value
-	
 	if not event.entity.valid then return end
 	protect_entity(event)
 	if not event.entity.valid then return end
@@ -738,21 +741,6 @@ local function on_entity_damaged(event)
 	if event.entity.force.name == "enemy" then
 		Event_functions.biter_immunities(event)
 	end
-
-	if not event.cause then return end
-	if not event.cause.valid then return end
-	if event.cause.name ~= "character" then return end
-	if event.damage_type.name ~= "physical" then return end
-
-	local player = event.cause
-	if player.shooting_state.state == defines.shooting.not_shooting then return end
-	local weapon = player.get_inventory(defines.inventory.character_guns)[player.selected_gun_index]
-	local ammo = player.get_inventory(defines.inventory.character_ammo)[player.selected_gun_index]
-  if not weapon.valid_for_read or not ammo.valid_for_read then return end
-	if weapon.name ~= "pistol" then return end
-	if ammo.name ~= "firearm-magazine" and ammo.name ~= "piercing-rounds-magazine" and ammo.name ~= "uranium-rounds-magazine" then return end
-  if not event.entity.valid then return end 
-	event.entity.damage(event.final_damage_amount * (Balance.pistol_damage_multiplier(difficulty) - 1), player.force, "impact", player)
 end
 
 

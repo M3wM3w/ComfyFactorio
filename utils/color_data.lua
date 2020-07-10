@@ -1,23 +1,15 @@
--- luacheck: ignore
 local Token = require 'utils.token'
 local Server = require 'utils.server'
 local Event = require 'utils.event'
+local Print = require('utils.print_override')
+local raw_print = Print.raw_print
 
 local color_data_set = 'colors'
 local set_data = Server.set_data
 local try_get_data = Server.try_get_data
-
+local error_offline = '[ERROR] Webpanel is offline.'
 
 local Public = {}
-
-if _DEBUG then
-printinfo =
-    Token.register(
-    function(data)
-        game.print(serpent.block(data))
-    end
-)
-end
 
 local color_table = {
     default = {},
@@ -42,12 +34,12 @@ local fetch =
         local key = data.key
         local value = data.value
         local player = game.players[key]
-        if not player then return end
+        if not player then
+            return
+        end
         if value then
             player.color = value.color[1]
             player.chat_color = value.chat[1]
-        --else
-        --    set_data(color_data_set, player.name, {color={player.color},chat={player.chat_color}})
         end
     end
 )
@@ -55,7 +47,13 @@ local fetch =
 --- Tries to get data from the webpanel and applies the value to the player.
 -- @param data_set player token
 function Public.fetch(key)
-    try_get_data(color_data_set, key, fetch)
+    local secs = Server.get_current_time()
+    if secs == nil then
+        raw_print(error_offline)
+        return
+    else
+        try_get_data(color_data_set, key, fetch)
+    end
 end
 
 Event.add(
@@ -65,9 +63,8 @@ Event.add(
         if not player then
             return
         end
-        if game.is_multiplayer() then
-            Public.fetch(player.name)
-        end
+
+        Public.fetch(player.name)
     end
 )
 
@@ -91,9 +88,9 @@ Event.add(
         if param then
             for word in param:gmatch('%S+') do
                 if color_table[word] then
-                    set_data(color_data_set, player.name, {color={color},chat={chat}})
-                    player.print("Your color was globally saved!", {r=0.22, g=0.99, b=0.99})
-                return true
+                    set_data(color_data_set, player.name, {color = {color}, chat = {chat}})
+                    player.print('Your color was globally saved!', {r = 0.22, g = 0.99, b = 0.99})
+                    return true
                 end
             end
         end

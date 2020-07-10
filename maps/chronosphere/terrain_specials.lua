@@ -75,7 +75,7 @@ function Public_terrain.fish_market(surface, left_top)
     alignment = "center",
     scale_with_zoom = false
   }
-  local fishchest = surface.create_entity({name = "steel-chest", force = "player", position = {x = left_top.x + 11, y = left_top.y + 16}})
+  local fishchest = surface.create_entity({name = "blue-chest", force = "player", position = {x = left_top.x + 11, y = left_top.y + 16}})
   fishchest.destructible = false
   fishchest.minable = false
   fishchest.operable = false
@@ -101,6 +101,15 @@ function Public_terrain.fish_market(surface, left_top)
   track.minable = false
 end
 
-
+function Public_terrain.defended_position(surface, left_top, entities)
+  local positions = {
+    {x = left_top.x + 9, y = left_top.y + 9},{x = left_top.x + 9, y = left_top.y + 16},{x = left_top.x + 9, y = left_top.y + 23},
+    {x = left_top.x + 16, y = left_top.y + 9},{x = left_top.x + 16, y = left_top.y + 23},
+    {x = left_top.x + 23, y = left_top.y + 9},{x = left_top.x + 23, y = left_top.y + 16},{x = left_top.x + 23, y = left_top.y + 23}
+  }
+  for i = 1, 8, 1 do
+    entities[#entities + 1] = {name = "gun-turret", position = positions[i], force = "scrapyard"}
+  end
+end
 
 return Public_terrain

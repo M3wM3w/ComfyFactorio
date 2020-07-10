@@ -60,6 +60,7 @@ local function distance(player)
     local rpg_extra = RPG.get_extra_table()
     local bonus = rpg_t[player.index].bonus
     local breached_wall = WPT.get('breached_wall')
+    local bonus_xp_on_join = WPT.get('bonus_xp_on_join')
 
     local distance_to_center = floor(sqrt(player.position.x ^ 2 + player.position.y ^ 2))
     local location = distance_to_center
@@ -74,7 +75,7 @@ local function distance(player)
     if max_times then
         if breach_max_times then
             rpg_extra.breached_walls = rpg_extra.breached_walls + 1
-            rpg_extra.reward_new_players = 150 * rpg_extra.breached_walls
+            rpg_extra.reward_new_players = bonus_xp_on_join * rpg_extra.breached_walls
             WPT.get().breached_wall = breached_wall + 1
             raise_event(Balance.events.breached_wall, {})
 
@@ -100,7 +101,7 @@ local function distance(player)
             bonus = bonus
         }
         Task.set_timeout_in_ticks(1, zone_complete, data)
-        RPG.gain_xp(player, 150 * bonus)
+        RPG.gain_xp(player, bonus_xp_on_join * bonus)
         return
     end
 end

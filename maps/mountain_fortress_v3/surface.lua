@@ -1,6 +1,5 @@
 require 'util'
 local Global = require 'utils.global'
-local Event = require 'utils.event'
 local surface_name = 'mountain_fortress_v3'
 local level_width = require 'maps.mountain_fortress_v3.terrain'.level_width
 local Reset = require 'maps.mountain_fortress_v3.soft_reset'
@@ -20,16 +19,6 @@ Global.register(
 )
 
 local starting_items = {['pistol'] = 1, ['firearm-magazine'] = 16, ['rail'] = 16, ['wood'] = 16, ['explosives'] = 32}
-
-local function on_init()
-    local mgs = game.surfaces['nauvis'].map_gen_settings
-    mgs.width = 16
-    mgs.height = 16
-    game.surfaces['nauvis'].map_gen_settings = mgs
-    game.surfaces['nauvis'].clear()
-
-    Public.create_surface()
-end
 
 function Public.create_surface()
     local map_gen_settings = {
@@ -91,7 +80,5 @@ function Public.get(key)
         return this
     end
 end
-
-Event.on_init(on_init)
 
 return Public

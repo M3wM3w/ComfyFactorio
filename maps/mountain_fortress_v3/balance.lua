@@ -1,6 +1,8 @@
 local Event = require 'utils.event'
 local Difficulty = require 'modules.difficulty_vote'
+
 local Public = {}
+
 Public.events = {breached_wall = Event.generate_event_name('breached_wall')}
 
 function Public.init_enemy_weapon_damage()
@@ -35,8 +37,6 @@ function Public.init_enemy_weapon_damage()
 end
 
 local function enemy_weapon_damage()
-    local Diff = Difficulty.get()
-
     local e = game.forces.enemy
 
     local data = {
@@ -58,7 +58,7 @@ local function enemy_weapon_damage()
     }
 
     for k, v in pairs(data) do
-        local new = Diff.difficulty_vote_value * v
+        local new = Difficulty.get().difficulty_vote_value * v
 
         local e_old = e.get_ammo_damage_modifier(k)
 

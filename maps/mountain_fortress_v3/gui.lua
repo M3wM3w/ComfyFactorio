@@ -2,7 +2,6 @@ local Event = require 'utils.event'
 local RPG = require 'maps.mountain_fortress_v3.rpg'
 local WPT = require 'maps.mountain_fortress_v3.table'
 local Gui = require 'utils.gui'
-local floor = math.floor
 local format_number = require 'util'.format_number
 
 local Public = {}
@@ -101,6 +100,15 @@ local function create_main_frame(player)
     line.style.right_padding = 4
 
     label = frame.add({type = 'label', caption = ' ', name = 'train_upgrades'})
+    label.style.font_color = {r = 0.88, g = 0.88, b = 0.88}
+    label.style.font = 'default-bold'
+    label.style.right_padding = 4
+
+    line = frame.add({type = 'line', direction = 'vertical'})
+    line.style.left_padding = 4
+    line.style.right_padding = 4
+
+    label = frame.add({type = 'label', caption = ' ', name = 'chest_upgrades'})
     label.style.font_color = {r = 0.88, g = 0.88, b = 0.88}
     label.style.font = 'default-bold'
     label.style.right_padding = 4
@@ -265,9 +273,9 @@ function Public.update_gui(player)
         gui.global_pool.caption = 'XP: 0'
         gui.global_pool.tooltip = 'Dig, handcraft or run to increase the pool!'
     elseif rpg_extra.global_pool >= 0 then
-        gui.global_pool.caption = 'XP: ' .. format_number(floor(rpg_extra.global_pool), true)
+        gui.global_pool.caption = 'XP: ' .. format_number(math.floor(rpg_extra.global_pool), true)
         gui.global_pool.tooltip =
-            'Amount of XP that is stored inside the global xp pool.\nRaw Value: ' .. floor(rpg_extra.global_pool)
+            'Amount of XP that is stored inside the global xp pool.\nRaw Value: ' .. math.floor(rpg_extra.global_pool)
     end
 
     gui.scrap_mined.caption = ' [img=entity.tree-01][img=entity.rock-huge]: ' .. format_number(this.mined_scrap, true)
@@ -289,6 +297,9 @@ function Public.update_gui(player)
 
     gui.train_upgrades.caption = ' [img=entity.locomotive]: ' .. format_number(this.train_upgrades, true)
     gui.train_upgrades.tooltip = 'Amount of train upgrades.'
+
+    gui.chest_upgrades.caption = ' [img=entity.steel-chest]: ' .. format_number(this.chest_limit_outside_upgrades, true)
+    gui.chest_upgrades.tooltip = 'Amount of chests that can be placed near train.'
 end
 
 Event.add(defines.events.on_player_joined_game, on_player_joined_game)
