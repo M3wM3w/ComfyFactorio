@@ -388,6 +388,9 @@ function Public.add_new_force(force_name)
 	force.recipes["artillery-wagon"].enabled = false
 	force.recipes["artillery-targeting-remote"].enabled = false
 	force.recipes["artillery-shell"].enabled = false
+	-- balance initial combat
+	force.set_ammo_damage_modifier("landmine", -0.75)
+	force.set_ammo_damage_modifier("grenade", -0.5)
 end
 
 local function kill_force(force_name)
@@ -447,7 +450,8 @@ local function setup_player_force()
 	for _, recipe_name in pairs(player_force_enabled_recipes) do
 		recipes[recipe_name].enabled = true
 	end
-	force.set_ammo_damage_modifier("landmine", -0.6)
+	force.set_ammo_damage_modifier("landmine", -0.75)
+	force.set_ammo_damage_modifier("grenade", -0.5)
 end
 
 local function setup_rogue_force()
@@ -475,7 +479,8 @@ local function setup_rogue_force()
 	for _, recipe_name in pairs(player_force_enabled_recipes) do
 		recipes[recipe_name].enabled = true
 	end
-	force.set_ammo_damage_modifier("landmine", -0.6)
+	force.set_ammo_damage_modifier("landmine", -0.75)
+	force.set_ammo_damage_modifier("grenade", -0.5)
 end
 
 local function setup_enemy_force()

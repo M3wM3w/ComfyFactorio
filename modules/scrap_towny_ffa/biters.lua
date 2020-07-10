@@ -38,7 +38,7 @@ local function get_commmands(target, group)
 				type = defines.command.attack_area,
 				destination = {x = position.x, y = position.y},
 				radius = 16,
-				distraction = defines.distraction.by_anything
+				distraction = defines.distraction.by_damage
 			}
 		end
 	end
@@ -47,7 +47,7 @@ local function get_commmands(target, group)
 		type = defines.command.attack_area,
 		destination = target.position,
 		radius = 12,
-		distraction = defines.distraction.by_anything,
+		distraction = defines.distraction.by_enemy,
 	}
 	commands[#commands + 1] = {
 		type = defines.command.attack,
@@ -114,7 +114,10 @@ end
 function Public.swarm(town_center, radius)
 	local r = radius or 32
 	local tc = town_center or roll_market()
-	if not tc or r > 510 then return end
+	if not tc or r > 512 then return end
+
+	-- skip if town evolution < 0.25
+	if town_center.get_biter_evolution < 0.25 then return end
 
 	-- skip if we have to many swarms already
 	local count = table_size(global.towny.swarms)
