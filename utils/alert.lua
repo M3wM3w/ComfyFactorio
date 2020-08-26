@@ -5,6 +5,7 @@ local Token = require 'utils.token'
 local Color = require 'utils.color_presets'
 
 local AlertLog = require 'modules.alert_log'
+local AlertLog_suspend = false -- used to bypass issue when you Global alert is also put into your personal alert log
 
 local pairs = pairs
 local next = next
@@ -304,7 +305,7 @@ end
 ---@param duration number
 ---@param message string
 function Public.alert_force(force, duration, message)
-    local players = force.connected_players
+    local players = game.forces[force].connected_players
     for i = 1, #players do
         local player = players[i]
         Public.alert_player(player, duration, message)
@@ -317,11 +318,13 @@ end
 ---@param color string
 function Public.alert_all_players(duration, message, color, sprite, volume)
     local players = game.connected_players
+    AlertLog_suspend = true
     for i = 1, #players do
         local player = players[i]
         Public.alert_player(player, duration, message, color, sprite, volume)
     end
     AlertLog.Push_log_entry(message)
+    AlertLog_suspend = false
 end
 
 commands.add_command(
