@@ -4,6 +4,8 @@ local Gui = require 'utils.gui'
 local Token = require 'utils.token'
 local Color = require 'utils.color_presets'
 
+local AlertLog = require 'modules.alert_log'
+
 local pairs = pairs
 local next = next
 
@@ -246,6 +248,7 @@ function Public.alert_all_players_location(player, message, color, duration)
             label_style.font_color = color or Color.comfy
         end
     )
+    AlertLog.Push_log_entry(message)
 end
 
 ---Message to a specific player
@@ -270,6 +273,7 @@ function Public.alert_player(player, duration, message, color, sprite, volume)
         nil,
         volume
     )
+    AlertLog.Push_personal_log_entry(player.index, message)
 end
 
 ---Message to a specific player as warning
@@ -292,6 +296,7 @@ function Public.alert_player_warning(player, duration, message, color)
             label.style.font_color = color or Color.comfy
         end
     )
+    AlertLog.Push_personal_log_entry(player.index, message)
 end
 
 ---Message to all players of a given force
@@ -316,6 +321,7 @@ function Public.alert_all_players(duration, message, color, sprite, volume)
         local player = players[i]
         Public.alert_player(player, duration, message, color, sprite, volume)
     end
+    AlertLog.Push_log_entry(message)
 end
 
 commands.add_command(
