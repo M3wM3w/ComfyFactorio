@@ -11,7 +11,7 @@ local difficulties = {
 	[6] = {name = "Nightmare", str = "250%", value = 2.5, color = {r=0.35, g=0.00, b=0.00}, print_color = {r=0.7, g=0.0, b=0.00}},
 	[7] = {name = "Insane", str = "400%", value = 4, color = {r=0.45, g=0.00, b=0.00}, print_color = {r=0.9, g=0.0, b=0.00}}
 }
-`b
+
 local timeout = 18000
 
 local function difficulty_gui()
