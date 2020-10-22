@@ -3,15 +3,15 @@ local event = require 'utils.event'
 local Server = require 'utils.server'
 
 local difficulties = {
-	[1] = {name = "Peaceful", str = "40%", value = 0.25, color = {r=0.00, g=0.45, b=0.00}, print_color = {r=0.00, g=0.9, b=0.00}},
-	[2] = {name = "Piece of cake", str = "60%", value = 0.5, color = {r=0.00, g=0.35, b=0.00}, print_color = {r=0.00, g=0.7, b=0.00}},
-	[3] = {name = "Easy", str = "80%", value = 0.75, color = {r=0.00, g=0.25, b=0.00}, print_color = {r=0.00, g=0.5, b=0.00}},
+	[1] = {name = "Peaceful", str = "40%", value = 0.4, color = {r=0.00, g=0.45, b=0.00}, print_color = {r=0.00, g=0.9, b=0.00}},
+	[2] = {name = "Piece of cake", str = "60%", value = 0.6, color = {r=0.00, g=0.35, b=0.00}, print_color = {r=0.00, g=0.7, b=0.00}},
+	[3] = {name = "Easy", str = "80%", value = 0.8, color = {r=0.00, g=0.25, b=0.00}, print_color = {r=0.00, g=0.5, b=0.00}},
 	[4] = {name = "Normal", str = "100%", value = 1, color = {r=0.00, g=0.00, b=0.25}, print_color = {r=0.0, g=0.0, b=0.7}},
 	[5] = {name = "Hard", str = "150%", value = 1.5, color = {r=0.25, g=0.00, b=0.00}, print_color = {r=0.5, g=0.0, b=0.00}},
 	[6] = {name = "Nightmare", str = "250%", value = 2.5, color = {r=0.35, g=0.00, b=0.00}, print_color = {r=0.7, g=0.0, b=0.00}},
-	[7] = {name = "Insane", str = "400%", value = 5, color = {r=0.45, g=0.00, b=0.00}, print_color = {r=0.9, g=0.0, b=0.00}}
+	[7] = {name = "Insane", str = "400%", value = 4, color = {r=0.45, g=0.00, b=0.00}, print_color = {r=0.9, g=0.0, b=0.00}}
 }
-
+`b
 local timeout = 18000
 
 local function difficulty_gui()
