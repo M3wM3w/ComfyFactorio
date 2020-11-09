@@ -109,12 +109,12 @@ function Public.source_surface()
 	map_gen_settings.terrain_segmentation = math.random(30, 40) * 0.1
 	map_gen_settings.cliff_settings = {cliff_elevation_interval = 0, cliff_elevation_0 = 0}
 	map_gen_settings.autoplace_controls = {
-		["coal"] = {frequency = 2.5, size = 0.65, richness = 0.5},
-		["stone"] = {frequency = 2.5, size = 0.65, richness = 0.5},
-		["copper-ore"] = {frequency = 3.5, size = 0.65, richness = 0.5},
-		["iron-ore"] = {frequency = 3.5, size = 0.65, richness = 0.5},
+		["coal"] = {frequency = 2, size = 0.35, richness = 0.5},
+		["stone"] = {frequency = 1.5, size = 0.4, richness = 0.5},
+		["copper-ore"] = {frequency = 2, size = 0.24, richness = 0.6},
+		["iron-ore"] = {frequency = 7, size = 0.7, richness = 0.27},
 		["uranium-ore"] = {frequency = 2, size = 1, richness = 1},
-		["crude-oil"] = {frequency = 3, size = 1, richness = 0.75},
+		["crude-oil"] = {frequency = 5, size = 1, richness = 0.4},
 		["trees"] = {frequency = math.random(4, 32) * 0.1, size = math.random(4, 16) * 0.1, richness = math.random(1, 10) * 0.1},
 		["enemy-base"] = {frequency = 0, size = 0, richness = 0}
 	}
@@ -263,6 +263,14 @@ function Public.forces()
 		global.bb_evolution[force.name] = 0
 		global.bb_threat_income[force.name] = 0
 		global.bb_threat[force.name] = 0
+		game.forces["south"].set_ammo_damage_modifier('flamethrower', -.95)
+		game.forces["north"].set_ammo_damage_modifier('flamethrower', -.95)
+		game.forces["south"].set_ammo_damage_modifier('grenade', -.6)
+		game.forces["north"].set_ammo_damage_modifier('grenade', -.6)
+		game.forces["south"].set_ammo_damage_modifier('landmine', -.90)
+		game.forces["north"].set_ammo_damage_modifier('landmine', -.90)
+		game.forces["south"].set_ammo_damage_modifier('bullet', .2)
+		game.forces["north"].set_ammo_damage_modifier('bullet', .2)
 	end
 end
 
