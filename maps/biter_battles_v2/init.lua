@@ -263,6 +263,16 @@ function Public.forces()
 		global.bb_evolution[force.name] = 0
 		global.bb_threat_income[force.name] = 0
 		global.bb_threat[force.name] = 0
+		game.forces["south"].set_ammo_damage_modifier('flamethrower', -.9)
+		game.forces["north"].set_ammo_damage_modifier('flamethrower', -.9)
+		game.forces["south"].set_ammo_damage_modifier('grenade', -.6)
+		game.forces["north"].set_ammo_damage_modifier('grenade', -.6)
+		game.forces["south"].set_ammo_damage_modifier('landmine', -.9)
+		game.forces["north"].set_ammo_damage_modifier('landmine', -.9)
+		game.forces["south"].set_ammo_damage_modifier('bullet', .2)
+		game.forces["north"].set_ammo_damage_modifier('bullet', .2)
+		game.forces["south"].set_turret_attack_modifier("gun-turret", -.6)
+		game.forces["north"].set_turret_attack_modifier("gun-turret", -.6)
 	end
 end
 
