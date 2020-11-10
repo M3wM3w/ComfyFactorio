@@ -8,22 +8,22 @@ local string_find = string.find
 
 local balance_functions = {
 	["flamethrower"] = function(force_name)
-		global.combat_balance[force_name].flamethrower_damage = -0.6
+		global.combat_balance[force_name].flamethrower_damage = -0.9
 		game.forces[force_name].set_turret_attack_modifier("flamethrower-turret", global.combat_balance[force_name].flamethrower_damage)
 		game.forces[force_name].set_ammo_damage_modifier("flamethrower", global.combat_balance[force_name].flamethrower_damage)
 	end,
 	["refined-flammables"] = function(force_name)
-		global.combat_balance[force_name].flamethrower_damage = global.combat_balance[force_name].flamethrower_damage + 0.06
-		game.forces[force_name].set_turret_attack_modifier("flamethrower-turret", global.combat_balance[force_name].flamethrower_damage)								
+		global.combat_balance[force_name].flamethrower_damage = global.combat_balance[force_name].flamethrower_damage + 0.02
+		game.forces[force_name].set_turret_attack_modifier("flamethrower-turret", global.combat_balance[force_name].flamethrower_damage)			
 		game.forces[force_name].set_ammo_damage_modifier("flamethrower", global.combat_balance[force_name].flamethrower_damage)
 	end,
 	["land-mine"] = function(force_name)
-		if not global.combat_balance[force_name].land_mine then global.combat_balance[force_name].land_mine = -0.75 end
+		if not global.combat_balance[force_name].land_mine then global.combat_balance[force_name].land_mine = -0.85 end
 		game.forces[force_name].set_ammo_damage_modifier("landmine", global.combat_balance[force_name].land_mine)
 	end,
 	["stronger-explosives"] = function(force_name)
-		if not global.combat_balance[force_name].land_mine then global.combat_balance[force_name].land_mine = -0.75 end
-		global.combat_balance[force_name].land_mine = global.combat_balance[force_name].land_mine + 0.05								
+		if not global.combat_balance[force_name].land_mine then global.combat_balance[force_name].land_mine = -0.85 end
+		global.combat_balance[force_name].land_mine = global.combat_balance[force_name].land_mine + 0.01								
 		game.forces[force_name].set_ammo_damage_modifier("landmine", global.combat_balance[force_name].land_mine)
 	end,
 	["military"] = function(force_name)
