@@ -12,24 +12,50 @@ local bp = {
         {entity_number = 10, name = "stone-wall", position = {x = -4, y = -2}},
         {entity_number = 11, name = "stone-wall", position = {x = -3, y = -2}},
         {entity_number = 12, name = "stone-wall", position = {x = -3, y = -3}},
-        {
-            entity_number = 13,
-            name = "laser-turret",
-            position = {x = -1.5, y = -2.5}
-        }, {
-            entity_number = 14,
-            name = "character",
-            position = {x = 1, y = -1},
-            direction = 2
-        },
         {entity_number = 15, name = "steel-chest", position = {x = 1, y = -3}},
         {entity_number = 16, name = "stone-wall", position = {x = 0, y = -2}},
         {entity_number = 17, name = "stone-wall", position = {x = 0, y = -3}},
         {entity_number = 18, name = "steel-chest", position = {x = 2, y = -3}},
         {entity_number = 19, name = "gate", position = {x = 4, y = -3}},
-        {entity_number = 20, ame = "stone-wall", position = {x = 4, y = -2}},
+        {entity_number = 20, name = "stone-wall", position = {x = 4, y = -2}},
         {entity_number = 21, name = "stone-wall", position = {x = -5, y = 0}},
         {entity_number = 22, name = "stone-wall", position = {x = -5, y = -1}},
+        {entity_number = 28, name = "stone-wall", position = {x = 4, y = -1}},
+        {entity_number = 29, name = "stone-wall", position = {x = 4, y = 0}},
+        {entity_number = 30, name = "stone-wall", position = {x = -5, y = 1}},
+        {entity_number = 31, name = "stone-wall", position = {x = -3, y = 2}},
+        {entity_number = 32, name = "stone-wall", position = {x = -3, y = 1}},
+        {entity_number = 33, name = "stone-wall", position = {x = -4, y = 1}},
+        {entity_number = 35, name = "steel-chest", position = {x = 0, y = 2}},
+        {entity_number = 36, name = "steel-chest", position = {x = 0, y = 1}},
+        {entity_number = 37, name = "stone-wall", position = {x = 4, y = 1}},
+        {entity_number = 38, name = "stone-wall", position = {x = 4, y = 2}},
+        {entity_number = 39, name = "stone-wall", position = {x = -3, y = 3}},
+        {entity_number = 40, name = "stone-wall", position = {x = -1, y = 3}},
+        {entity_number = 41, name = "stone-wall", position = {x = -2, y = 3}},
+        {entity_number = 42, name = "stone-wall", position = {x = 1, y = 3}},
+        {entity_number = 43, name = "stone-wall", position = {x = 0, y = 3}},
+        {entity_number = 44, name = "stone-wall", position = {x = 3, y = 3}},
+        {entity_number = 45, name = "stone-wall", position = {x = 2, y = 3}},
+        {entity_number = 46, name = "stone-wall", position = {x = 4, y = 3}},
+        {entity_number = 26, name = "small-lamp", position = {x = 0, y = 0}},
+        {
+            entity_number = 34,
+            name = "laser-turret",
+            position = {x = -1.5, y = 1.5}
+        },
+        {
+            entity_number = 13,
+            name = "laser-turret",
+            position = {x = -1.5, y = -2.5}
+        }, 
+        {
+            entity_number = 14,
+            name = "character",
+            position = {x = 1, y = -1},
+            direction = 2,
+            force = "enemy"
+        },
         {
             entity_number = 23,
             name = "laser-turret",
@@ -44,36 +70,13 @@ local bp = {
             entity_number = 25,
             name = "medium-electric-pole",
             position = {x = 0, y = -1}
-        }, {entity_number = 26, name = "small-lamp", position = {x = 0, y = 0}},
+        }, 
         {
             entity_number = 27,
             name = "market",
             position = {x = 2, y = 0},
             direction = 2
-        },
-        {entity_number = 28, name = "stone-wall", position = {x = 4, y = -1}},
-        {entity_number = 29, name = "stone-wall", position = {x = 4, y = 0}},
-        {entity_number = 30, name = "stone-wall", position = {x = -5, y = 1}},
-        {entity_number = 31, name = "stone-wall", position = {x = -3, y = 2}},
-        {entity_number = 32, name = "stone-wall", position = {x = -3, y = 1}},
-        {entity_number = 33, name = "stone-wall", position = {x = -4, y = 1}},
-        {
-            entity_number = 34,
-            name = "laser-turret",
-            position = {x = -1.5, y = 1.5}
-        },
-        {entity_number = 35, name = "steel-chest", position = {x = 0, y = 2}},
-        {entity_number = 36, name = "steel-chest", position = {x = 0, y = 1}},
-        {entity_number = 37, name = "stone-wall", position = {x = 4, y = 1}},
-        {entity_number = 38, name = "stone-wall", position = {x = 4, y = 2}},
-        {entity_number = 39, name = "stone-wall", position = {x = -3, y = 3}},
-        {entity_number = 40, name = "stone-wall", position = {x = -1, y = 3}},
-        {entity_number = 41, name = "stone-wall", position = {x = -2, y = 3}},
-        {entity_number = 42, name = "stone-wall", position = {x = 1, y = 3}},
-        {entity_number = 43, name = "stone-wall", position = {x = 0, y = 3}},
-        {entity_number = 44, name = "stone-wall", position = {x = 3, y = 3}},
-        {entity_number = 45, name = "stone-wall", position = {x = 2, y = 3}},
-        {entity_number = 46, name = "stone-wall", position = {x = 4, y = 3}}
+        }
     },
     tiles = {
         {position = {x = -4, y = -1}, name = "hazard-concrete-left"},
