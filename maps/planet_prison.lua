@@ -12,6 +12,13 @@ local _afk = require("planet_prison.mod.afk")
 local _claims = require("planet_prison.mod.claims")
 global.this._config = require("planet_prison.config")
 
+local Map = require 'modules.map_info'
+
+local T = Map.Pop_info()
+    T.localised_category = 'planet_prison_v2'
+    T.main_caption_color = {r = 150, g = 150, b = 0}
+    T.sub_caption_color = {r = 0, g = 150, b = 0}
+
 global.this.maps = {
    {
       name = "flooded-metropolia",
@@ -443,13 +450,6 @@ local function draw_common_gui(player)
 
    local button = {
       type = "button",
-      name = "manual_toggle",
-      caption = "Manual"
-   }
-   player.gui.left.add(button)
-
-   button = {
-      type = "button",
       name = "chat_toggle",
       caption = chat_type,
    }
@@ -563,21 +563,6 @@ local function on_gui_click(e)
       end
    elseif elem.name == "merchant_find" then
       print_merchant_position(p)
-   elseif elem.name == "manual_toggle" then
-      local children = p.gui.center.children
-      if #children >= 1 then
-         p.gui.center.clear()
-         return
-      end
-
-      local text_box = {
-         type = "text-box",
-         text = global.this._config.manual
-      }
-      text_box = p.gui.center.add(text_box)
-      text_box.style.minimal_width = 512
-      text_box.read_only = true
-      text_box.word_wrap = true
    elseif elem.name == "annihilate" then
       if global.this.events.annihilation == true then
          return
