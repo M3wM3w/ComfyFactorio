@@ -391,10 +391,10 @@ public.merchant_offer = {
         price = {{type = "item", name = "coin", amount = 170}},
         offer = {type = "unlock-recipe", recipe = "stack-filter-inserter"}
     }, 
-   --  {
-   --      price = {{type = "item", name = "coin", amount = 65000}},
-   --      offer = {type = "give-item", item = "satellite"}
-   --  }
+    {
+        price = {{type = "item", name = "coin", amount = 65000}},
+        offer = {type = "give-item", item = "satellite"}
+    }
 }
 
 return public
