@@ -38,41 +38,40 @@ local bp = {
         {entity_number = 44, name = "stone-wall", position = {x = 3, y = 3}},
         {entity_number = 45, name = "stone-wall", position = {x = 2, y = 3}},
         {entity_number = 46, name = "stone-wall", position = {x = 4, y = 3}},
-        {entity_number = 26, name = "small-lamp", position = {x = 0, y = 0}},
+        {entity_number = 47, name = "small-lamp", position = {x = 0, y = 0}},
         {
-            entity_number = 34,
+            entity_number = 48,
             name = "laser-turret",
             position = {x = -1.5, y = 1.5}
         },
         {
-            entity_number = 13,
+            entity_number = 49,
             name = "laser-turret",
             position = {x = -1.5, y = -2.5}
-        }, 
+        },
         {
-            entity_number = 14,
+            entity_number = 50,
+            name = "laser-turret",
+            position = {x = -3.5, y = -0.5}
+        }, {
+            entity_number = 51,
+            name = "electric-energy-interface",
+            position = {x = -1.5, y = -0.5},
+            direction = 4
+        },
+        {
+            entity_number = 52,
+            name = "medium-electric-pole",
+            position = {x = 0, y = -1}
+        }, {
+            entity_number = 53,
             name = "character",
             position = {x = 1, y = -1},
             direction = 2,
             force = "enemy"
         },
         {
-            entity_number = 23,
-            name = "laser-turret",
-            position = {x = -3.5, y = -0.5}
-        }, {
-            entity_number = 24,
-            name = "electric-energy-interface",
-            position = {x = -1.5, y = -0.5},
-            direction = 4
-        },
-        {
-            entity_number = 25,
-            name = "medium-electric-pole",
-            position = {x = 0, y = -1}
-        }, 
-        {
-            entity_number = 27,
+            entity_number = 54,
             name = "market",
             position = {x = 2, y = 0},
             direction = 2
