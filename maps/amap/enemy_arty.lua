@@ -173,7 +173,7 @@ local artillery_target_callback =
         local x, y = pos.x, pos.y
         local dx, dy = tx - x, ty - y
         local d = dx * dx + dy * dy
-      --  if d >= 1024 and d <= 441398 then -- 704 in depth~
+        if d >= 1024 and d <= 441398 then -- 704 in depth~
             if entity.name == 'character' then
                 entity.surface.create_entity {
                     name = 'artillery-projectile',
@@ -192,7 +192,7 @@ local artillery_target_callback =
                 }
             end
         end
-  --  end
+    end
 )
 
 local function do_artillery_turrets_targets()
