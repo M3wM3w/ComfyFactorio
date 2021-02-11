@@ -176,6 +176,9 @@ game.forces.enemy.set_ammo_damage_modifier("rocket", damage_increase)
 
   local table = atry_talbe.get()
   local radius=math.floor(wave_number*0.15)*k
+if radius >= 350 then
+  radius = 350
+end
 table.radius=350+radius
 local pace=wave_number*0.0002*k+1
 if pace >= 2 then
