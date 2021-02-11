@@ -93,7 +93,7 @@ local function on_chunk_generated(event)
         if arty_count.count >= arty_count.max then
           return
         else
-        local roll = math.random(1, 2024)
+        local roll = math.random(1, 5024)
         if roll == 1 then
           local arty = surface.create_entity{name = "artillery-turret", position = position, force='enemy'}
         --  arty.insert{name='artillery-shell', count = '5'}
