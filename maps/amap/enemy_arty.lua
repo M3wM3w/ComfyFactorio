@@ -32,7 +32,7 @@ Global.register(
 )
 
 function Public.reset_table()
-  arty_count.max = 200
+  arty_count.max = 50
   arty_count.all = {}
   arty_count.count = 0
   arty_count.pace = 1
@@ -74,6 +74,9 @@ local function add_bullet ()
 end
 local function on_chunk_generated(event)
    local surface = event.surface
+   local this = WPT.get()
+   if	not(surface.index == game.surfaces[this.active_surface_index].index) then return end
+	
    local left_top_x = event.area.left_top.x
    local left_top_y = event.area.left_top.y
 
