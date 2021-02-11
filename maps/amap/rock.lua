@@ -199,7 +199,10 @@ local function on_market_item_purchased(event)
   if offer_index == 3 then
     local wave_number = WD.get('wave_number')
     local times = math.floor(wave_number/50)+this.cap
-    if this.biter_health >= times then
+  if times >= 30 then
+      times = 30
+    end  
+if this.biter_health >= times then
       player.print({'amap.cap_upgrad'})
       local pirce_biter_dam=this.biter_health*1000 +7000
       if pirce_biter_dam >= 50000 then
