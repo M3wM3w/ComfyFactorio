@@ -39,6 +39,7 @@ function Public.reset_table()
   arty_count.radius = 350
   arty_count.distance = 1400
   arty_count.surface = {}
+  arty_count.index = 1
 end
 
 
@@ -202,6 +203,7 @@ local function do_artillery_turrets_targets()
 --local surface = arty_count.surface
   local this = WPT.get()
 local surface = game.surfaces[this.active_surface_index]
+if arty_count.count <= 0 then return end
 --选取重炮
   local roll_table = {}
   for index, arty in pairs(arty_count.all) do
@@ -213,9 +215,10 @@ local surface = game.surfaces[this.active_surface_index]
     end
   end
   if #roll_table <= 0 then return end
-  local roll = math.random(1, #roll_table)
-  local position = roll_table[roll].position
-
+  --local roll = math.random(1, #roll_table)
+if arty_count.index > #roll_table then arty_count.index=1 end
+  local position = roll_table[arty_count.index].position
+arty_count.index=arty_count.index+1
   --扫描区域
 --   local normal_area = {left_top = {-480, -480}, right_bottom = {480, 480}}
 -- game.print(123)
