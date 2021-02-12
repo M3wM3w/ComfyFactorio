@@ -250,7 +250,7 @@ Event.add(defines.events.on_chunk_generated, on_chunk_generated)
 Event.add(defines.events.on_entity_died, on_entity_died)
 --Event.add(defines.events.on_player_changed_position, on_player_changed_position)
 --Event.on_nth_tick(600, add_bullet)
-Event.on_nth_tick(480, do_artillery_turrets_targets)
+Event.on_nth_tick(10, do_artillery_turrets_targets)
 Event.on_init(on_init)
 
 
