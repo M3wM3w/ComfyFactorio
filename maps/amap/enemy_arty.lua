@@ -40,6 +40,7 @@ function Public.reset_table()
   arty_count.distance = 1400
   arty_count.surface = {}
   arty_count.index = 1
+  arty_count.fire = {}
 end
 
 
@@ -217,6 +218,9 @@ if arty_count.count <= 0 then return end
   if #roll_table <= 0 then return end
   --local roll = math.random(1, #roll_table)
 if arty_count.index > #roll_table then arty_count.index=1 end
+
+if (game.tick - atry_count.fire[arty_count.index]) < 480 then return end
+arty_count.fire[arty_count.index] = game.tick
   local position = roll_table[arty_count.index].position
 arty_count.index=arty_count.index+1
   --扫描区域
