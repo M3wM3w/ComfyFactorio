@@ -217,7 +217,10 @@ if arty_count.count <= 0 then return end
   end
   if #roll_table <= 0 then return end
   --local roll = math.random(1, #roll_table)
-if arty_count.index > #roll_table then arty_count.index=1 end
+--if arty_count.index > #roll_table then arty_count.index=1 end
+if arty_count.index and roll_table and arty_count.index > #roll_table then
+  arty_count.index = 1
+end
 
 local now =game.tick
 
