@@ -11,23 +11,21 @@ local function check_win()
       local countfish = inv.get_item_count("raw-fish")
       local enemies = game.surfaces[objective.active_surface_index].count_entities_filtered{force = "enemy"}
       if countfish > 0 then
-        inv.remove({name = "raw-fish", count = countfish})
-        objective.mainscore = objective.mainscore + countfish
+        local removed_fish = inv.remove({name = "raw-fish", count = countfish})
+        objective.mainscore = objective.mainscore + removed_fish
         if enemies > 0 then
-          game.print("Comfylatron: You delivered fish, but there is still " .. enemies .. " enemies left. Kill them all so fish are safe!", {r=0.98, g=0.66, b=0.22})
+          game.print({"chronosphere.message_not_won_yet", enemies}, {r=0.98, g=0.66, b=0.22})
         else
           if not objective.game_reset_tick then
             objective.game_reset_tick = game.tick + 18000
             objective.game_won = true
-            objective.game_lost = true
             objective.chronocharges = 200000000 - 300
-			game.play_sound{path="utility/game_won", volume_modifier=0.85}
-            local message = {"chronosphere.message_game_won1"}
-						local message2 = "Number of delivered fish: " .. objective.mainscore
-            game.print(message, {r=0.98, g=0.66, b=0.22})
-						game.print(message2, {r=0.98, g=0.66, b=0.22})
-            Server.to_discord_embed(message)
-						Server.to_discord_embed(message2)
+			      game.play_sound{path="utility/game_won", volume_modifier=0.85}
+            game.print({"chronosphere.message_game_won1"}, {r=0.98, g=0.66, b=0.22})
+            game.print({"chronosphere.message_game_won3"}, {r=0, g=0.98, b=0})
+            Server.to_discord_embed({"chronosphere.message_game_won1"}, true)
+          else
+            game.print({"chronosphere.message_fish_added", objective.mainscore}, {r=0.02, g=0.86, b=0.02})
           end
         end
       end
@@ -80,13 +78,12 @@ local function upgrade_out()
 	local objective = Chrono_table.get_table()
 	if not game.surfaces["cargo_wagon"] then return end
 	local positions = {{-16,-62},{15,-62},{-16,66},{15,66}}
-	local out = {}
 	for i = 1, 4, 1 do
     local e = game.surfaces["cargo_wagon"].create_entity({name = "blue-chest", position = positions[i], force = "player"})
 		e.destructible = false
 		e.minable = false
 		objective.outchests[i] = e
-		out[i] = rendering.draw_text{
+    rendering.draw_text{
 			text = "Output",
 			surface = e.surface,
 			target = e,
@@ -98,7 +95,18 @@ local function upgrade_out()
 			scale_with_zoom = false
 		}
 	end
-	return out
+end
+
+local function upgrade_out_signals()
+  local objective = Chrono_table.get_table()
+	if not game.surfaces["cargo_wagon"] then return end
+	local positions = {{-14,-62},{13,-62},{-14,66},{13,66}}
+  for i = 1, 4, 1 do
+    local e = game.surfaces["cargo_wagon"].create_entity({name = "constant-combinator", position = positions[i], force = "player"})
+		e.destructible = false
+		e.minable = false
+		objective.outcombinators[i] = e
+	end
 end
 
 local function upgrade_storage()
@@ -124,9 +132,10 @@ local function upgrade_storage()
     end
   end
 	local surface = game.surfaces["cargo_wagon"]
+  local tiles = {}
 	for i = 1, #chests, 1 do
     if objective.upgrades[9] == 1 then
-      surface.set_tiles({{name = "tutorial-grid", position = chests[i].entity.position}})
+      tiles[#tiles + 1] = {name = "tutorial-grid", position = chests[i].entity.position}
     end
 		local old = nil
     local oldpos = {x = chests[i].entity.position.x + 0.5, y = chests[i].entity.position.y + 0.5}
@@ -142,6 +151,9 @@ local function upgrade_storage()
 		e.destructible = false
 		e.minable = false
 	end
+  if #tiles > 0 then
+    surface.set_tiles(tiles)
+  end
 end
 
 local function fusion_buy()
@@ -155,9 +167,42 @@ end
 local function mk2_buy()
   local objective = Chrono_table.get_table()
   if objective.upgradechest[12] and objective.upgradechest[12].valid then
-	local inv = objective.upgradechest[12].get_inventory(defines.inventory.chest)
+    local inv = objective.upgradechest[12].get_inventory(defines.inventory.chest)
     inv.insert({name = "power-armor-mk2", count = 1})
   end
+end
+
+local function refund_spidertrons()
+  local objective = Chrono_table.get_table()
+  if objective.upgradechest[16] and objective.upgradechest[16].valid then
+    local inv = objective.upgradechest[16].get_inventory(defines.inventory.chest)
+    inv.insert({name = "spidertron", count = 2})
+  end
+end
+
+local function upgrade_labspeed()
+  local objective = Chrono_table.get_table()
+  game.forces.player.laboratory_speed_modifier = game.forces.player.laboratory_speed_modifier + 0.5
+  if objective.upgrades[18] > 2 then
+    game.forces.player.laboratory_productivity_bonus = game.forces.player.laboratory_productivity_bonus + 0.1
+  end
+end
+
+local function upgrade_craftingspeed()
+  game.forces.player.manual_crafting_speed_modifier = game.forces.player.manual_crafting_speed_modifier + 0.25
+end
+
+local function upgrade_discharge()
+  game.forces.player.set_ammo_damage_modifier("electric", game.forces.player.get_ammo_damage_modifier("electric") + 0.20)
+end
+
+local function upgrade_spidertron()
+  game.forces.player.technologies["spidertron"].researched = true
+end
+
+local function upgrade_nuclear_artillery_add_ammo(amount)
+  local objective = Chrono_table.get_table()
+  objective.upgrades[24] = objective.upgrades[24] + amount
 end
 
 local function process_upgrade(index)
@@ -173,7 +218,11 @@ local function process_upgrade(index)
 	elseif index == 7 then
 		upgrade_water()
 	elseif index == 8 then
-		upgrade_out()
+    if objective.upgrades[8] == 1 then
+      upgrade_out()
+    elseif objective.upgrades[8] == 2 then
+      upgrade_out_signals()
+    end
 	elseif index == 9 then
 		upgrade_storage()
 	elseif index == 11 then
@@ -188,7 +237,23 @@ local function process_upgrade(index)
 		if objective.upgrades[15] == 10 then
 			game.print({"chronosphere.message_quest6"}, {r=0.98, g=0.66, b=0.22})
 		end
-	end
+  elseif index == 16 then
+    refund_spidertrons()
+	elseif index == 18 then
+    upgrade_labspeed()
+  elseif index == 19 then
+    upgrade_craftingspeed()
+  elseif index == 20 then
+    upgrade_discharge()
+  elseif index == 21 then
+    if objective.upgrades[21] == 2 then
+      upgrade_spidertron()
+    end
+  elseif index == 23 then
+    upgrade_nuclear_artillery_add_ammo(10)
+  elseif index == 24 then
+    upgrade_nuclear_artillery_add_ammo(9)
+  end
 end
 
 local function check_single_upgrade(index)
@@ -207,6 +272,9 @@ local function check_single_upgrade(index)
 			for _, item in pairs(upgrades[index].cost) do
 				if inv.get_item_count(item.name) < item.count then return end
 			end
+      for _, token in pairs(upgrades[index].virtual_cost) do
+				if objective.research_tokens[token.type] < token.count then return end
+			end
 		else
 			return
 		end
@@ -215,6 +283,9 @@ local function check_single_upgrade(index)
 			if item.count > 0 then
 				inv.remove({name = item.name, count = item.count})
 			end
+		end
+    for _, token in pairs(upgrades[index].virtual_cost) do
+			objective.research_tokens[token.type] = objective.research_tokens[token.type] - token.count
 		end
 		objective.upgrades[index] = objective.upgrades[index] + 1
 		game.print(upgrades[index].message, {r=0.98, g=0.66, b=0.22})
@@ -234,7 +305,7 @@ function Public.check_upgrades()
   if not objective.upgradechest then return end
 	if objective.game_lost == true then return end
 	check_all_upgrades()
-  if objective.planet[1].type.id == 17 then
+  if objective.world.id == 7 then
     if objective.fishchest then
       check_win()
     end
@@ -249,8 +320,8 @@ function Public.trigger_poison()
     objective.poisontimeout = 120
     local objs = {objective.locomotive, objective.locomotive_cargo[1], objective.locomotive_cargo[2], objective.locomotive_cargo[3]}
     local surface = objective.surface
-	game.print({"chronosphere.message_poison_defense"}, {r=0.98, g=0.66, b=0.22})
-	Server.to_discord_embed("Triggering poison defense. Let's kill everything!")
+    game.print({"chronosphere.message_poison_defense"}, {r=0.98, g=0.66, b=0.22})
+    Server.to_discord_embed({"chronosphere.message_poison_defense"}, true)
     for i = 1, 4, 1 do
       surface.create_entity({name = "poison-capsule", position = objs[i].position, force = "player", target = objs[i], speed = 1 })
     end

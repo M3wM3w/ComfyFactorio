@@ -208,6 +208,7 @@ require 'maps.amap.main'
 --require 'maps.cube'
 --require 'maps.mountain_race.main'
 --require 'maps.native_war.main'
+--require 'maps.scrap_towny_ffa.main'
 ---------------------------------------------------------------
 
 ---------------- MORE MODULES HERE ----------------
@@ -228,6 +229,7 @@ require 'maps.amap.main'
 --require 'terrain_layouts.scrap_02'
 --require 'terrain_layouts.watery_world'
 --require 'terrain_layouts.tree_01'
+--require 'terrain_layouts.scrap_towny_ffa'
 ---------------------------------------------------------------
 
 if _DUMP_ENV then

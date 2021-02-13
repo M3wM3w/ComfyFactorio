@@ -1,8 +1,21 @@
 local Chrono_table = require 'maps.chronosphere.table'
+local Factories = require 'maps.chronosphere.production'
 
-local Public_terrain = {}
+local Public = {}
 
-function Public_terrain.danger_event(surface, left_top)
+function Public.production_factory(surface, position)
+  local objective = Chrono_table.get_table()
+  local production = Chrono_table.get_production_table()
+  local factory = Factories.roll_random_assembler()
+  local entity = surface.create_entity({name = factory.entity, force = "neutral", position = position})
+  entity.destructible = false
+  entity.minable = false
+  entity.operable = false
+  entity.active = false
+  Factories.register_random_assembler(entity, factory.id, factory.tier)
+end
+
+function Public.danger_event(surface, left_top)
   local objective = Chrono_table.get_table()
   local silo = surface.create_entity({name = "rocket-silo", force = "enemy", position = {x = left_top.x + 16, y = left_top.y + 16}})
   local pole = surface.create_entity({name = "medium-electric-pole", position = {x = left_top.x + 12, y = left_top.y + 11}, force = "scrapyard", create_build_effect_smoke = false})
@@ -58,7 +71,7 @@ function Public_terrain.danger_event(surface, left_top)
   objective.dangers[#objective.dangers + 1] = {silo = silo, speaker = speaker, combinator = combinator, solar = solar,acu = acu, pole = pole, destroyed = false, text = silo_text, timer = countdown_text}
 end
 
-function Public_terrain.fish_market(surface, left_top)
+function Public.fish_market(surface, left_top)
   local objective = Chrono_table.get_table()
   local market = surface.create_entity({name = "market", force = "player", position = {x = left_top.x + 16, y = left_top.y + 16}})
   market.destructible = false
@@ -101,7 +114,7 @@ function Public_terrain.fish_market(surface, left_top)
   track.minable = false
 end
 
-function Public_terrain.defended_position(surface, left_top, entities)
+function Public.defended_position(surface, left_top, entities)
   local positions = {
     {x = left_top.x + 9, y = left_top.y + 9},{x = left_top.x + 9, y = left_top.y + 16},{x = left_top.x + 9, y = left_top.y + 23},
     {x = left_top.x + 16, y = left_top.y + 9},{x = left_top.x + 16, y = left_top.y + 23},
@@ -112,4 +125,4 @@ function Public_terrain.defended_position(surface, left_top, entities)
   end
 end
 
-return Public_terrain
+return Public

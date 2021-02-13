@@ -4,7 +4,7 @@ local Public = {}
 
 local this = {
     prevent_spam = {}, -- the default table where all player indexes will be stored
-    default_tick = 15, -- this defines the default tick to check weather or not a user is spamming a button.
+    default_tick = 10, -- this defines the default tick to check weather or not a user is spamming a button.
     _DEBUG = false
 }
 

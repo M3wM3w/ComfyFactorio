@@ -11,7 +11,7 @@ local math_ceil = math.ceil
 local Public = {}
 
 
-local function treasure_chest_loot(difficulty, planet)
+local function treasure_chest_loot(difficulty, world)
 
 	local function loot_data_sensible(loot_data_item)
 		return {weight = loot_data_item[1], d_min = loot_data_item[2], d_max = loot_data_item[3], scaling = loot_data_item[4], name = loot_data_item[5], min_count = loot_data_item[6], max_count = loot_data_item[7]}
@@ -28,8 +28,8 @@ local function treasure_chest_loot(difficulty, planet)
 		{4, 0, 1, false, "stone-wall", 24, 100},
 		{4, 0, 1, false, "gate", 14, 32},
 		{1, 0, 1, false, "radar", 1, 2},
-		{1, 0, 1, false, "explosives", 10, 50},
-		{6, 0, 1, false, "small-lamp", 8, 32},
+		{2, 0, 1, false, "explosives", 10, 50},
+		{3, 0, 1, false, "small-lamp", 8, 32},
 		{2, 0, 1, false, "electric-mining-drill", 2, 4},
 		{3, 0, 1, false, "long-handed-inserter", 4, 16},
 		{0.5, 0, 1, false, "filter-inserter", 2, 12},
@@ -43,6 +43,9 @@ local function treasure_chest_loot(difficulty, planet)
 		{1, 0.15, 1, false, "pump", 1, 2},
 		{2, 0.15, 1, false, "pumpjack", 1, 3},
 		{0.02, 0.15, 1, false, "oil-refinery", 1, 2},
+		{3, 0, 1, false, "effectivity-module", 1, 4},
+		{3, 0, 1, false, "speed-module", 1, 4},
+		{3, 0, 1, false, "productivity-module", 1, 4},
 
 		--shotgun meta:
 		{10, -0.2, 0.4, true, "shotgun-shell", 12, 24},
@@ -69,13 +72,13 @@ local function treasure_chest_loot(difficulty, planet)
 		{8, -0.5, 0.5, true, "automation-science-pack", 4, 32},
 		{8, -0.6, 0.6, true, "logistic-science-pack", 4, 32},
 		{6, -0.1, 1, true, "military-science-pack", 8, 32},
-		{6, 0.2, 1.4, true, "chemical-science-pack", 16, 64},
-		{6, 0.3, 1.5, true, "production-science-pack", 16, 64},
-		{4, 0.4, 1.5, true, "utility-science-pack", 16, 64},
-		{10, 0.5, 1.5, true, "space-science-pack", 16, 64},
+		{6, 0.2, 1.4, true, "chemical-science-pack", 16, 32},
+		{6, 0.3, 1.5, true, "production-science-pack", 16, 32},
+		{4, 0.4, 1.5, true, "utility-science-pack", 16, 32},
+		{10, 0.5, 1.5, true, "space-science-pack", 16, 32},
 
 		--early-game:
-		{3, -0.1, 0.2, false, "railgun-dart", 2, 4},
+		--{3, -0.1, 0.2, false, "railgun-dart", 2, 4},
 		{3, -0.1, 0.1, true, "wooden-chest", 8, 40},
 		{5, -0.1, 0.1, true, "burner-inserter", 8, 20},
 		{1, -0.2, 0.2, true, "offshore-pump", 1, 3},
@@ -96,7 +99,7 @@ local function treasure_chest_loot(difficulty, planet)
 		{5, -0.8, 0.8, true, "transport-belt", 15, 120},
 
 		--mid-game:
-		{6, 0.2, 0.5, false, "railgun-dart", 4, 8},
+		--{6, 0.2, 0.5, false, "railgun-dart", 4, 8},
 		{5, -0.2, 0.7, true, "pipe", 30, 50},
 		{1, -0.2, 0.7, true, "pipe-to-ground", 4, 8},
 		{5, -0.2, 0.7, true, "iron-gear-wheel", 40, 160},
@@ -120,7 +123,7 @@ local function treasure_chest_loot(difficulty, planet)
 		{3, 0.2, 1, true, "chemical-plant", 1, 3},
 
 		--late-game:
-		{9, 0.5, 0.8, false, "railgun-dart", 8, 16},
+		--{9, 0.5, 0.8, false, "railgun-dart", 8, 16},
 		{3, 0, 1.2, true, "rocket-launcher", 1, 1},
 		{5, 0, 1.2, true, "rocket", 16, 32},
 		{3, 0, 1.2, true, "land-mine", 16, 32},
@@ -148,8 +151,9 @@ local function treasure_chest_loot(difficulty, planet)
 		{2, 0.6, 1.4, true, "roboport", 1, 1},
 
 		-- super late-game:
-		{9, 0.8, 1.2, false, "railgun-dart", 12, 20},
+		--{9, 0.8, 1.2, false, "railgun-dart", 12, 20},
 		{1, 0.9, 1.1, true, "power-armor-mk2", 1, 1},
+		{1, 0.8, 1.2, true, "fusion-reactor-equipment", 1, 1},
 
 		--{2, 0, 1, , "computer", 1, 1},
 		--{1, 0.2, 1, , "railgun", 1, 1},
@@ -157,7 +161,7 @@ local function treasure_chest_loot(difficulty, planet)
 	}
 	local specialised_loot_raw = {}
 
-	if planet.type.id == 3 then --stonewrld
+	if world.id == 1 and world.variant.id == 3 then --stonewrld
 		specialised_loot_raw = {
 		{20, 0, 1, false, "stone-brick", 10, 300},
 		{25, 0, 1, false, "stone-wall", 20, 100},
@@ -165,26 +169,26 @@ local function treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 5 then --uraniumwrld
+	if world.id == 1 and world.variant.id == 5 then --uraniumwrld
 		specialised_loot_raw = {
-			{3, 0, 0.8, true, "steam-turbine", 1, 2},
-			{3, 0, 0.8, true, "heat-exchanger", 2, 4},
-			{3, 0, 0.8, true, "heat-pipe", 4, 8},
+			{3, 0.2, 1.6, true, "steam-turbine", 1, 2},
+			{3, 0.2, 1.6, true, "heat-exchanger", 2, 4},
+			{3, 0.2, 1.6, true, "heat-pipe", 4, 8},
 			{2, 0, 2, true, "uranium-rounds-magazine", 6, 48},
 			{2, 0, 1, true, "uranium-cannon-shell", 12, 32},
 			{4, 0.4, 1.6, true, "explosive-uranium-cannon-shell", 12, 32},
-			{10, 0, 1, false, "uranium-238", 8, 32},
-			{0.1, 0, 1, false, "uranium-235", 2, 12},
-			{2, 0.2, 1, false, "nuclear-reactor", 1, 1},
+			{8, 0, 1, false, "uranium-238", 8, 32},
+			{0.5, 0, 2, true, "uranium-235", 2, 12},
+			{2, 0.2, 1.6, true, "nuclear-reactor", 1, 1},
 			{2, 0.2, 1, false, "centrifuge", 1, 1},
-			{1, 0.25, 1, false, "nuclear-fuel", 1, 1},
-			{1, 0.25, 1, false, "fusion-reactor-equipment", 1, 1},
-			{1, 0.5, 1, false, "atomic-bomb", 1, 1},
+			{1, 0.25, 1.75, true, "nuclear-fuel", 1, 1},
+			{1, 0.5, 1.5, true, "fusion-reactor-equipment", 1, 1},
+			{1, 0.5, 1.5, true, "atomic-bomb", 1, 1},
 		}
 	end
 
 	--[[
-	if planet.type.id == 7 then --biterwrld
+	if world.id == 7 then --biterwrld
 		specialised_loot_raw = {
 			{4, 0, 1, false, "effectivity-module", 1, 4},
 			{4, 0, 1, false, "productivity-module", 1, 4},
@@ -201,10 +205,12 @@ local function treasure_chest_loot(difficulty, planet)
 	end
 	]]
 
-	if planet.type.id == 14 then --ancient battlefield
+	if world.id == 2 then --ancient battlefield
 		specialised_loot_raw = {
-			{5, -0.7, 0.7, true, "light-armor", 1, 1},
-			{5, -0.3, 0.9, true, "heavy-armor", 1, 1},
+			{4, -0.9, 0.5, true, "light-armor", 1, 1},
+			{4, -0.5, 0.7, true, "heavy-armor", 1, 1},
+			{4, 0.25, 0.75, true, "modular-armor", 1, 1},
+			{4, 0.5, 1, true, "power-armor", 1, 1},
 			{5, 0.4, 0.7, true, "cannon-shell", 16, 32},
 			{8, -0.7, 0.7, true, "firearm-magazine", 32, 128},
 			{4, -0.2, 1.2, true, "piercing-rounds-magazine", 32, 128},
@@ -215,7 +221,7 @@ local function treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 14 then --lavawrld
+	if world.id == 1 and world.variant.id == 11 then --lavawrld
 		specialised_loot_raw = {
 			{6, -1, 3, true, "flamethrower-turret", 1, 1},
 			{7, -1, 2, true, "flamethrower", 1, 1},
@@ -223,7 +229,7 @@ local function treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 16 then --mazewrld
+	if world.id == 5 then --mazewrld
 		specialised_loot_raw = {
 			{2, 0, 1, false, "programmable-speaker", 2, 4},
 			{6, 0, 1, false, "arithmetic-combinator", 4, 8},
@@ -233,22 +239,22 @@ local function treasure_chest_loot(difficulty, planet)
 			{9, 0, 1, false, "green-wire", 10, 29},
 			{9, 0, 1, false, "red-wire", 10, 29},
 
-			{11, 0.2, 0.6, false, "modular-armor", 1, 1},
-			{7, 0.4, 1, false, "power-armor", 1, 1},
-			{3, 0.8, 2, false, "power-armor-mk2", 1, 1},
+			{11, 0.2, 0.6, true, "modular-armor", 1, 1},
+			{7, 0.4, 1.2, true, "power-armor", 1, 1},
+			{3, 0.8, 2, true, "power-armor-mk2", 1, 1},
 
-			{4, 0.5, 1, false, "exoskeleton-equipment", 1, 1},
+			{4, 0.4, 1.2, true, "exoskeleton-equipment", 1, 1},
 			{4, 0.2, 1, false, "belt-immunity-equipment", 1, 1},
 			{4, 0.3, 1, true, "energy-shield-equipment", 1, 2},
 			{4, 0.2, 1, false, "night-vision-equipment", 1, 1},
-			{4, 0.6, 1, false, "discharge-defense-equipment", 1, 1},
+			{4, 0.6, 1.4, true, "discharge-defense-equipment", 1, 1},
 			{4, 0.4, 1, false, "personal-roboport-equipment", 1, 2},
-			{4, 0.6, 1, false, "personal-laser-defense-equipment", 1, 1},
-			{8, 0.2, 1, false, "solar-panel-equipment", 1, 2},
-			{8, 0.2, 1, false, "battery-equipment", 1, 1},
+			{4, 0.6, 1.4, true, "personal-laser-defense-equipment", 1, 1},
+			{8, 0.2, 1, true, "solar-panel-equipment", 1, 2},
+			{8, 0.2, 1, true, "battery-equipment", 1, 1},
 
-			{1, 0.6, 1, false, "energy-shield-mk2-equipment", 1, 1},
-			{1, 0.6, 1, false, "battery-mk2-equipment", 1, 1},
+			{1, 0.6, 1.4, true, "energy-shield-mk2-equipment", 1, 1},
+			{1, 0.6, 1.4, true, "battery-mk2-equipment", 1, 1},
 
 			{3, 0, 1, true, "copper-cable", 20, 400},
 			{3, -0.3, 0.6, true, "electronic-circuit", 50, 100},
@@ -257,7 +263,7 @@ local function treasure_chest_loot(difficulty, planet)
 		}
 	end
 
-	if planet.type.id == 18 then --swampwrld
+	if world.id == 8 then --swampwrld
 		specialised_loot_raw = {
 			{25, 0, 1, false, "poison-capsule", 4, 16},
 			{45, 0, 1, false, "sulfuric-acid-barrel", 4, 8},
@@ -277,8 +283,11 @@ end
 
 function Public.treasure_chest(surface, position, container_name)
 	local objective = Chrono_table.get_table()
+	if not container_name then
+		if math_random(1, 6) == 1 then container_name = "iron-chest" else container_name = "wooden-chest" end
+	end
 
-  	local jumps = 0
+  local jumps = 0
 	if objective.chronojumps then jumps = objective.chronojumps end
 	local difficulty = 1
 	if Difficulty.get().difficulty_vote_value then difficulty = Difficulty.get().difficulty_vote_value end
@@ -289,7 +298,7 @@ function Public.treasure_chest(surface, position, container_name)
 	local distance = (jumps / 40)
 	if distance > 1 then distance = 1 end
 
-	local loot_data = treasure_chest_loot(difficulty, objective.planet[1])
+	local loot_data = treasure_chest_loot(difficulty, objective.world)
 	local loot_types, loot_weights = {}, {}
 	for i = 1,#loot_data,1 do
 		table.insert(loot_types, {["name"] = loot_data[i].name, ["min_count"] = loot_data[i].min_count, ["max_count"] = loot_data[i].max_count})

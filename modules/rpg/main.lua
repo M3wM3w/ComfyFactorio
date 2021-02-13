@@ -3,6 +3,7 @@ local Event = require 'utils.event'
 local AntiGrief = require 'antigrief'
 local Color = require 'utils.color_presets'
 local SpamProtection = require 'utils.spam_protection'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 
 local WD = require 'modules.wave_defense.table'
 local Math2D = require 'math2d'
@@ -214,6 +215,9 @@ local function on_entity_died(event)
         end
     end
 
+    local biter_health_boost = BiterHealthBooster.get('biter_health_boost')
+    local biter_health_boost_units = BiterHealthBooster.get('biter_health_boost_units')
+
     if not event.cause then
         return
     end
@@ -232,8 +236,8 @@ local function on_entity_died(event)
             if rpg_extra.rpg_xp_yield[event.entity.name] then
                 local amount = rpg_extra.rpg_xp_yield[event.entity.name]
                 amount = amount / 5
-                if global.biter_health_boost then
-                    local health_pool = global.biter_health_boost_units[event.entity.unit_number]
+                if biter_health_boost then
+                    local health_pool = biter_health_boost_units[event.entity.unit_number]
                     if health_pool then
                         amount = amount * (1 / health_pool[2])
                     end
@@ -268,9 +272,9 @@ local function on_entity_died(event)
     end
 
     --Grant modified XP for health boosted units
-    if global.biter_health_boost then
+    if biter_health_boost then
         if enemy_types[event.entity.type] then
-            local health_pool = global.biter_health_boost_units[event.entity.unit_number]
+            local health_pool = biter_health_boost_units[event.entity.unit_number]
             if health_pool then
                 for _, player in pairs(players) do
                     if rpg_extra.rpg_xp_yield[event.entity.name] then
@@ -553,6 +557,14 @@ local function on_entity_damaged(event)
         return
     end
 
+    local item = p.cursor_stack
+
+    if item and item.valid_for_read then
+        if item.name == 'discharge-defense-remote' then
+            return
+        end
+    end
+
     Functions.reward_mana(cause.player, 2)
 
     --Grant the player life-on-hit.
@@ -612,9 +624,12 @@ local function on_entity_damaged(event)
         )
     end
 
+    local biter_health_boost = BiterHealthBooster.get('biter_health_boost')
+    local biter_health_boost_units = BiterHealthBooster.get('biter_health_boost_units')
+
     --Handle the custom health pool of the biter health booster, if it is used in the map.
-    if global.biter_health_boost then
-        local health_pool = global.biter_health_boost_units[entity.unit_number]
+    if biter_health_boost then
+        local health_pool = biter_health_boost_units[entity.unit_number]
         if health_pool then
             health_pool[1] = health_pool[1] + event.final_damage_amount
             health_pool[1] = health_pool[1] - damage
@@ -625,7 +640,10 @@ local function on_entity_damaged(event)
             if health_pool[1] <= 0 then
                 local entity_number = entity.unit_number
                 entity.die(entity.force.name, cause)
-                global.biter_health_boost_units[entity_number] = nil
+
+                if biter_health_boost_units[entity_number] then
+                    biter_health_boost_units[entity_number] = nil
+                end
             end
             return
         end

@@ -17,6 +17,7 @@ local draw_transfer_car_frame_name = Gui.uid_name()
 local main_toolbar_name = Gui.uid_name()
 local add_player_name = Gui.uid_name()
 local transfer_car_name = Gui.uid_name()
+local allow_anyone_to_enter_name = Gui.uid_name()
 local kick_player_name = Gui.uid_name()
 
 local raise_event = script.raise_event
@@ -35,7 +36,10 @@ local function create_player_table(player)
     local trust_system = ICT.get('trust_system')
     if not trust_system[player.index] then
         trust_system[player.index] = {
-            [player.name] = true
+            players = {
+                [player.name] = true
+            },
+            allow_anyone = 'right'
         }
     end
     return trust_system[player.index]
@@ -61,7 +65,7 @@ local function transfer_player_table(player, new_player)
     end
 
     if not trust_system[new_player.index] then
-        local Functions = require 'maps.mountain_fortress_v3.ic.functions'
+        local Functions = is_loaded('maps.mountain_fortress_v3.ic.functions')
 
         trust_system[new_player.index] = trust_system[player.index]
         local name = new_player.name
@@ -200,7 +204,7 @@ local function draw_players(data)
     local player = data.player
     local player_list = create_player_table(player)
 
-    for p, _ in pairs(player_list) do
+    for p, _ in pairs(player_list.players) do
         Gui.set_data(add_player_frame, p)
         local t_label =
             player_table.add(
@@ -270,8 +274,21 @@ local function draw_main_frame(player)
     inside_table_style.bottom_padding = 10
     inside_table_style.width = 350
 
+    local player_list = create_player_table(player)
+
     local add_player_frame = inside_table.add({type = 'button', caption = 'Add Player', name = add_player_name})
     local transfer_car_frame = inside_table.add({type = 'button', caption = 'Transfer Car', name = transfer_car_name})
+    local allow_anyone_to_enter =
+        inside_table.add(
+        {
+            type = 'switch',
+            name = allow_anyone_to_enter_name,
+            switch_state = player_list.allow_anyone,
+            allow_none_state = false,
+            left_label_caption = 'Allow everyone to enter: ON',
+            right_label_caption = 'OFF'
+        }
+    )
 
     local player_table =
         inside_table.add {
@@ -323,6 +340,7 @@ local function draw_main_frame(player)
         player_table = player_table,
         add_player_frame = add_player_frame,
         transfer_car_frame = transfer_car_frame,
+        allow_anyone_to_enter = allow_anyone_to_enter,
         player = player
     }
     draw_players(data)
@@ -430,6 +448,35 @@ Gui.on_click(
 )
 
 Gui.on_click(
+    allow_anyone_to_enter_name,
+    function(event)
+        local player = event.player
+        if not player or not player.valid or not player.character then
+            return
+        end
+
+        local player_list = create_player_table(player)
+
+        local screen = player.gui.screen
+        local frame = screen[main_frame_name]
+
+        if frame and frame.valid then
+            if player_list.allow_anyone == 'right' then
+                player_list.allow_anyone = 'left'
+                player.print('Everyone is allowed to enter your car!', Color.warning)
+            else
+                player_list.allow_anyone = 'right'
+                player.print('Everyone is disallowed to enter your car except your trusted list!', Color.warning)
+            end
+
+            if player.gui.screen[main_frame_name] then
+                toggle(player, true)
+            end
+        end
+    end
+)
+
+Gui.on_click(
     save_add_player_button_name,
     function(event)
         local player = event.player
@@ -456,10 +503,10 @@ Gui.on_click(
 
                 local name = player_to_add.name
 
-                if not player_list[name] then
+                if not player_list.players[name] then
                     player.print(name .. ' was added to your vehicle.', Color.info)
                     player_to_add.print(player.name .. ' added you to their vehicle. You may now enter it.', Color.info)
-                    increment(player_list, name)
+                    increment(player_list.players, name)
                 else
                     return player.print('Target player is already trusted.', Color.warning)
                 end
@@ -552,9 +599,9 @@ Gui.on_click(
             end
             local name = target.name
 
-            if player_list[name] then
+            if player_list.players[name] then
                 player.print(name .. ' was removed from your vehicle.', Color.info)
-                decrement(player_list, name)
+                decrement(player_list.players, name)
                 raise_event(
                     ICT.events.on_player_kicked_from_surface,
                     {

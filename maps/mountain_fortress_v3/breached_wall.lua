@@ -183,7 +183,6 @@ local function distance(player)
             WPT.set().placed_trains_in_zone.randomized = false
             WPT.set().placed_trains_in_zone.positions = {}
             raise_event(Balance.events.breached_wall, {})
-            --[[ global.biter_health_boost = calculate_hp(breached_wall) ]]
             if WPT.get('breached_wall') == WPT.get('spidertron_unlocked_at_wave') then
                 local main_market_items = WPT.get('main_market_items')
                 if not main_market_items['spidertron'] then
@@ -240,8 +239,6 @@ local function distance(player)
         end
 
         RPG_Settings.set_value_to_player(index, 'bonus', bonus + 1)
-
-        local b = RPG_Settings.get_value_from_player(index, 'bonus')
 
         Functions.gain_xp(player, bonus_xp_on_join * bonus)
         local message = ({'breached_wall.wall_breached', bonus})

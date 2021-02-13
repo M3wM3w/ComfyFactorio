@@ -15,6 +15,7 @@ function Public.debug_module()
     this.next_wave = 1000
     this.wave_interval = 500
     this.wave_enforced = true
+    this.debug = true
 end
 
 function Public.reset_wave_defense()
@@ -70,10 +71,12 @@ function Public.reset_wave_defense()
     this.enable_threat_log = true
     this.disable_threat_below_zero = false
     this.check_collapse_position = true
-    this.modified_boss_health = true
     this.resolve_pathing = true
     this.increase_damage_per_wave = false
+    this.increase_boss_health_per_wave = true
+    this.increase_health_per_wave = false
     this.fill_tiles_so_biter_can_path = true
+    this.modified_unit_health = 1.02
 end
 
 function Public.get(key)
@@ -150,6 +153,13 @@ function Public.remove_entities(boolean)
     return this.remove_entities
 end
 
+function Public.increase_health_per_wave(boolean)
+    if (boolean or boolean == false) then
+        this.increase_health_per_wave = boolean
+    end
+    return this.increase_health_per_wave
+end
+
 function Public.enable_threat_log(boolean)
     if (boolean or boolean == false) then
         this.enable_threat_log = boolean
@@ -171,11 +181,11 @@ function Public.enable_side_target(boolean)
     return this.enable_side_target
 end
 
-function Public.modified_boss_health(boolean)
+function Public.increase_boss_health_per_wave(boolean)
     if (boolean or boolean == false) then
-        this.modified_boss_health = boolean
+        this.increase_boss_health_per_wave = boolean
     end
-    return this.modified_boss_health
+    return this.increase_boss_health_per_wave
 end
 
 function Public.resolve_pathing(boolean)

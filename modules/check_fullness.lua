@@ -32,6 +32,9 @@ local function is_player_warned(player, reset)
 end
 
 local function compute_fullness(player)
+    if not player.mining_state.mining then
+        return false
+    end
     local warn_player = is_player_warned(player)
     local free_slots = player.get_main_inventory().count_empty_stacks()
     if free_slots == 0 or free_slots == 1 then

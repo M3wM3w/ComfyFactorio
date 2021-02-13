@@ -1,7 +1,7 @@
 local Event = require 'utils.event'
 local Global = require 'utils.global'
 local BiterRolls = require 'modules.wave_defense.biter_rolls'
-local BiterHealthBooster = require 'modules.biter_health_booster'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 local WD = require 'modules.wave_defense.table'
 local WPT = require 'maps.mountain_fortress_v3.table'
 local Diff = require 'modules.difficulty_vote_by_amount'
@@ -121,7 +121,7 @@ local function spawn_biters(data)
         max_biters.amount = max_biters.amount + 1
     end
 
-    if random(1, 32) == 1 then
+    if random(1, 45) == 1 then
         local sum = trigger_health()
         max_biters.amount = max_biters.amount + 1
         BiterHealthBooster.add_boss_unit(unit, sum, 0.38)

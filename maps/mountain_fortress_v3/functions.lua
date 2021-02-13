@@ -1281,6 +1281,8 @@ function Public.disable_tech()
     game.forces.player.technologies['landfill'].enabled = false
     game.forces.player.technologies['spidertron'].enabled = false
     game.forces.player.technologies['spidertron'].researched = false
+    game.forces.player.technologies['atomic-bomb'].enabled = false
+    game.forces.player.technologies['atomic-bomb'].researched = false
     game.forces.player.technologies['optics'].researched = true
     game.forces.player.technologies['railway'].researched = true
     game.forces.player.technologies['land-mine'].enabled = false

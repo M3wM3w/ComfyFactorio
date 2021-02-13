@@ -29,6 +29,46 @@ local functions = {
       game.players[event.player_index].print("You are not an admin!")
     end
 	end,
+	["comfy_panel_lock_difficulties"] = function(event)
+	local objective = Chrono_table.get_table()
+		if game.players[event.player_index].admin then
+			if event.element.switch_state == "left" then
+				objective.config.lock_difficulties = true
+				Chrono.set_difficulty_settings()
+				for _, player in pairs(game.connected_players) do
+					if player.gui.screen["difficulty_poll"] then player.gui.screen["difficulty_poll"].destroy() end
+				end
+			else
+				objective.config.lock_difficulties = false
+				Chrono.set_difficulty_settings()
+				for _, player in pairs(game.connected_players) do
+					if player.gui.screen["difficulty_poll"] then player.gui.screen["difficulty_poll"].destroy() end
+				end
+			end
+		else
+			game.players[event.player_index].print("You are not an admin!")
+		end
+	end,
+	["comfy_panel_lock_hard_difficulties"] = function(event)
+	local objective = Chrono_table.get_table()
+		if game.players[event.player_index].admin then
+			if event.element.switch_state == "left" then
+				objective.config.lock_hard_difficulties = true
+				Chrono.set_difficulty_settings()
+				for _, player in pairs(game.connected_players) do
+					if player.gui.screen["difficulty_poll"] then player.gui.screen["difficulty_poll"].destroy() end
+				end
+			else
+				objective.config.lock_hard_difficulties = false
+				Chrono.set_difficulty_settings()
+				for _, player in pairs(game.connected_players) do
+					if player.gui.screen["difficulty_poll"] then player.gui.screen["difficulty_poll"].destroy() end
+				end
+			end
+		else
+			game.players[event.player_index].print("You are not an admin!")
+		end
+	end,
 	["comfy_panel_overstay_penalty"] = function(event)
 	local objective = Chrono_table.get_table()
 		if game.players[event.player_index].admin then
@@ -111,29 +151,41 @@ local build_config_gui = (function (_, frame)
 
 	switch_state = "right"
 	if objective.config.offline_loot then switch_state = "left" end
-	add_switch(frame, switch_state, "comfy_panel_offline_accidents", "Offline Accidents", "Disables or enables dropping of inventory when player goes offline.\nTimer is 15 minutes.")
+	add_switch(frame, switch_state, "comfy_panel_offline_accidents", {"chronosphere.config_tab_offline"}, {"chronosphere.config_tab_offline_text"})
 
 	line_elements[#line_elements + 1] = frame.add({type = "line"})
 
 	switch_state = "right"
 	if objective.config.jumpfailure then switch_state = "left" end
-	add_switch(frame, switch_state, "comfy_panel_danger_events", "Dangerous Events", "Disables or enables dangerous event maps\n(they require at least 2-4 capable players to survive)")
+	add_switch(frame, switch_state, "comfy_panel_danger_events", {"chronosphere.config_tab_dangers"}, {"chronosphere.config_tab_dangers_text"})
+
+	line_elements[#line_elements + 1] = frame.add({type = "line"})
+
+	switch_state = "right"
+	if objective.config.lock_difficulties then switch_state = "left" end
+	add_switch(frame, switch_state, "comfy_panel_lock_difficulties", {"chronosphere.config_tab_difficulties_easy"}, {"chronosphere.config_tab_difficulties_easy_text"})
+
+	line_elements[#line_elements + 1] = frame.add({type = "line"})
+
+	switch_state = "right"
+	if objective.config.lock_hard_difficulties then switch_state = "left" end
+	add_switch(frame, switch_state, "comfy_panel_lock_hard_difficulties", {"chronosphere.config_tab_difficulties_hard"}, {"chronosphere.config_tab_difficulties_hard_text"})
 
 	line_elements[#line_elements + 1] = frame.add({type = "line"})
 
 	switch_state = "right"
 	if objective.config.overstay_penalty then switch_state = "left" end
-	add_switch(frame, switch_state, "comfy_panel_overstay_penalty", "Overstay Penalty", "Disables or enables penalty for staying too long on maps.\nThat is additional evolution growth and permanent biter bonuses.")
+	add_switch(frame, switch_state, "comfy_panel_overstay_penalty", {"chronosphere.config_tab_overstay"}, {"chronosphere.config_tab_overstay_text"})
 
 	line_elements[#line_elements + 1] = frame.add({type = "line"})
 
 	switch_state = "right"
 	if objective.game_lost then switch_state = "left" end
-	add_switch(frame, switch_state, "comfy_panel_game_lost", "Reset Run", "Marks game as lost and starts countdown for map reset (Use with caution!)")
+	add_switch(frame, switch_state, "comfy_panel_game_lost", {"chronosphere.config_tab_reset"}, {"chronosphere.config_tab_reset_text"})
 
 	switch_state = "right"
 	if objective.game_lost then switch_state = "left" end
-	add_switch(frame, switch_state, "comfy_panel_game_lost_confirm", "Confirm Reset Run", "But really you want to reset?\n(Previous button triggered autosave)")
+	add_switch(frame, switch_state, "comfy_panel_game_lost_confirm", {"chronosphere.config_tab_reset_confirm"}, {"chronosphere.config_tab_reset_confirm_text"})
 	frame["comfy_panel_game_lost_confirm_table"].visible = false
 
 	line_elements[#line_elements + 1] = frame.add({type = "line"})

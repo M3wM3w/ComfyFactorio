@@ -395,27 +395,27 @@ local function talks(nearby_characters)
 		local arg2 = symbols[math_random(1, #symbols)]
 		local randomphrase = texts["convo_starters"][math_random(1, #texts["convo_starters"])]
 		str = str .. string.format(randomphrase, arg1, arg2)
-		if math_random(1,40) == 1 and objective.planet[1].type.id ~= 10 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
+		if math_random(1,40) == 1 and objective.world.id ~= 2 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
 			local time_until_overstay = (objective.chronochargesneeded * 0.75 / objective.passive_chronocharge_rate - objective.passivetimer)
 			local time_until_evo = (objective.chronochargesneeded * 0.5 / objective.passive_chronocharge_rate - objective.passivetimer)
 			if time_until_evo < 0 and time_until_overstay > 0 then
 				str = str .. "It's important to charge so that you don't overstay!"
 			end
-		elseif objective.planet[1].type.id == 10 and math_random(1,30) == 1 then
+		elseif objective.world.id == 2 and math_random(1,30) == 1 then
 			str = str .. "Sounds dangerous out there!"
-		elseif objective.planet[1].type.id == 17 and math_random(1,6) == 1 then
+		elseif objective.world.id == 7 and math_random(1,6) == 1 then
 			str = str .. "We made it!"
-		elseif objective.planet[1].type.id == 18 and math_random(1,40) == 1 then
+		elseif objective.world.id == 18 and math_random(1,40) == 1 then
 			str = str .. "Was that you?"
-		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
+		elseif objective.world.id == 2 and math_random(1,10) == 1 then
 			str = str .. "Better get moving!"
-		elseif objective.planet[1].type.id == 19 and math_random(1,10) == 1 then
+		elseif objective.world.id == 2 and math_random(1,10) == 1 then
 			str = str .. "Nuke day today!"
-		elseif objective.planet[1].type.id == 15 and math_random(1,20) == 1 then
+		elseif objective.world.id == 15 and math_random(1,20) == 1 then
 			str = str .. "A new day, a new Chronotrain!"
 		elseif objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) + 3 and objective.overstaycount > ((objective.chronojumps-Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value))/3) and math_random(1,30) == 1 then
 			str = str .. "You're so relaxed!"
-		elseif objective.planet.ore_richness == 1 and math_random(1,100) == 1 then
+		elseif objective.world.ores.factor == 2.5 and math_random(1,100) == 1 then
 			str = str .. "You know what else is very rich?"
 		elseif objective.poisontimeout >= 90 and math_random(1,4) == 1 then
 			str = str .. "Tehe, I just let out some gas!"

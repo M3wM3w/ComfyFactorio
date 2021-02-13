@@ -1,12 +1,16 @@
 local Event = require 'utils.event'
 local RPG_Settings = require 'modules.rpg.table'
 local WPT = require 'maps.mountain_fortress_v3.table'
+local IC_Gui = require 'maps.mountain_fortress_v3.ic.gui'
+local IC_Minimap = require 'maps.mountain_fortress_v3.ic.minimap'
 local Gui = require 'utils.gui'
 local SpamProtection = require 'utils.spam_protection'
 
 local format_number = require 'util'.format_number
 
 local Public = {}
+Public.events = {reset_map = Event.generate_event_name('reset_map')}
+
 local main_button_name = Gui.uid_name()
 local main_frame_name = Gui.uid_name()
 local floor = math.floor
@@ -334,6 +338,50 @@ local function on_player_changed_surface(event)
     end
 end
 
+local function enable_guis(event)
+    local player = game.players[event.player_index]
+    if not validate_player(player) then
+        return
+    end
+
+    local rpg_button = RPG_Settings.draw_main_frame_name
+    local info = player.gui.top[main_button_name]
+    local wd = player.gui.top['wave_defense']
+    local rpg_b = player.gui.top[rpg_button]
+    local diff = player.gui.top['difficulty_gui']
+    local charging = player.gui.top['charging_station']
+
+    IC_Gui.remove_toolbar(player)
+    IC_Minimap.toggle_button(player)
+
+    if info then
+        info.tooltip = ({'gui.info_tooltip'})
+        info.sprite = 'item/dummy-steel-axe'
+    end
+
+    local minimap = player.gui.left.icw_main_frame
+    if minimap and minimap.visible then
+        minimap.visible = false
+    end
+    if rpg_b and not rpg_b.visible then
+        rpg_b.visible = true
+    end
+    if diff and not diff.visible then
+        diff.visible = true
+    end
+    if wd and not wd.visible then
+        wd.visible = true
+    end
+    if charging and not charging.visible then
+        charging.visible = true
+    end
+    if info then
+        info.tooltip = ({'gui.info_tooltip'})
+        info.sprite = 'item/dummy-steel-axe'
+        info.visible = true
+    end
+end
+
 function Public.update_gui(player)
     if not validate_player(player) then
         return
@@ -394,5 +442,6 @@ end
 Event.add(defines.events.on_player_joined_game, on_player_joined_game)
 Event.add(defines.events.on_player_changed_surface, on_player_changed_surface)
 Event.add(defines.events.on_gui_click, on_gui_click)
+Event.add(Public.events.reset_map, enable_guis)
 
 return Public

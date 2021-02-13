@@ -33,6 +33,8 @@ local Alert = require 'utils.alert'
 local AntiGrief = require 'antigrief'
 local Commands = require 'commands.misc'
 local Modifiers = require 'player_modifiers'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
+
 require 'maps.mountain_fortress_v3.rocks_yield_ore_veins'
 
 require 'maps.mountain_fortress_v3.generate'
@@ -48,6 +50,7 @@ require 'modules.wave_defense.main'
 require 'modules.charging_station'
 
 local Public = {}
+local raise_event = script.raise_event
 local floor = math.floor
 local remove = table.remove
 
@@ -148,6 +151,8 @@ function Public.reset_map()
     game.forces.player.set_spawn_position({-27, 25}, surface)
     game.forces.player.manual_mining_speed_modifier = 0
 
+    BiterHealthBooster.set_active_surface(tostring(surface.name))
+
     Balance.init_enemy_weapon_damage()
 
     AntiGrief.log_tree_harvest(true)
@@ -172,6 +177,7 @@ function Public.reset_map()
             player.gui.left['mvps'].destroy()
         end
         ICMinimap.kill_minimap(player)
+        raise_event(Gui_mf.events.reset_map, {player_index = player.index})
     end
 
     Difficulty.reset_difficulty_poll({difficulty_poll_closing_timeout = game.tick + 36000})
@@ -206,7 +212,9 @@ function Public.reset_map()
     WD.enable_threat_log(true)
     WD.check_collapse_position(true)
     WD.set_disable_threat_below_zero(true)
+    WD.increase_boss_health_per_wave(true)
     WD.increase_damage_per_wave(false)
+    WD.increase_health_per_wave(true)
 
     Functions.set_difficulty()
     Functions.disable_creative()
@@ -224,6 +232,7 @@ function Public.reset_map()
     HS.get_scores()
 
     this.chunk_load_tick = game.tick + 1200
+    this.market_announce = game.tick + 1200
     this.game_lost = false
 end
 

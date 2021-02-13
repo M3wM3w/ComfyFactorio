@@ -157,7 +157,6 @@ local function send_poll_result_to_discord(poll)
 end
 
 local function redraw_poll_viewer_content(data)
-    local trusted = session.get_trusted_table()
     local poll_viewer_content = data.poll_viewer_content
     local remaining_time_label = data.remaining_time_label
     local poll_index = data.poll_index

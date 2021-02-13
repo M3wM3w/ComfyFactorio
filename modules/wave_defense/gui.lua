@@ -1,4 +1,5 @@
 local WD = require 'modules.wave_defense.table'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 
 local function create_gui(player)
     local frame = player.gui.top.add({type = 'frame', name = 'wave_defense'})
@@ -68,8 +69,9 @@ local function update_gui(player)
     end
     local gui = player.gui.top.wave_defense
     local biter_health_boost = 1
-    if global.biter_health_boost then
-        biter_health_boost = global.biter_health_boost
+    local biter_health_boosts = BiterHealthBooster.get('biter_health_boost')
+    if biter_health_boost then
+        biter_health_boost = biter_health_boosts
     end
 
     local wave_number = WD.get('wave_number')

@@ -6,6 +6,7 @@ local math_abs = math.abs
 local math_max = math.max
 local math_min = math.min
 local Upgrades = require "maps.chronosphere.upgrade_list"
+local Production = require 'maps.chronosphere.production_list'
 local Balance = require "maps.chronosphere.balance"
 local Difficulty = require 'modules.difficulty_vote'
 local Minimap = require "maps.chronosphere.minimap"
@@ -39,9 +40,11 @@ local function create_gui(player)
 	label.style.font_color = {r = 255, g = 200, b = 200}
 
 	local progressbar = frame.add({ type = "progressbar", name = "progressbar", value = 0})
+	progressbar.style = 'achievement_progressbar'
 	progressbar.style.minimal_width = 96
 	progressbar.style.maximal_width = 96
-	progressbar.style.top_padding = 10
+	progressbar.style.top_padding = 1
+
 
   label = frame.add({ type = "label", caption = " ", name = "timer"})
 	label.style.font = "default-bold"
@@ -71,7 +74,7 @@ local function create_gui(player)
 	-- line.style.left_padding = 4
 	-- line.style.right_padding = 8
 
-	button = frame.add({type = "button", caption = " ", name = "planet_button"})
+	button = frame.add({type = "button", caption = " ", name = "world_button"})
 	button.style.font = "default-bold"
 	button.style.font_color = { r=0.99, g=0.99, b=0.99}
 	button.style.minimal_width = 75
@@ -82,12 +85,63 @@ local function create_gui(player)
 	button.style.minimal_width = 75
 end
 
+local function switch_upgrades(player, button)
+	local playertable = Chrono_table.get_player_table()
+	if not button then button = 1 end
+	playertable.active_upgrades_gui[player.index] = button
+	local upgrades = Upgrades.upgrades()
+	if not player.gui.screen["gui_upgrades"] then return end
+	local frame = player.gui.screen["gui_upgrades"]
+	local t2 = frame["production_table"]
+	if button == 4 then
+		t2.visible = true
+		for i = 1, #upgrades, 1 do
+			frame["upgrades_table" .. i].visible = false
+		end
+	else
+		t2.visible = false
+		for i = 1, #upgrades, 1 do
+			local t = frame["upgrades_table" .. i]
+			if button == 1 then
+				if upgrades[i].type =="train" and upgrades[i].enabled then
+					t.visible = true
+				else
+					t.visible = false
+				end
+			elseif button == 2 then
+				if upgrades[i].type =="player" and upgrades[i].enabled then
+					t.visible = true
+				else
+					t.visible = false
+				end
+			elseif button == 3 then
+				if upgrades[i].type =="quest" and upgrades[i].enabled then
+					t.visible = true
+				else
+					t.visible = false
+				end
+			end
+		end
+	end
+end
+
+local function calculate_xp(key)
+	local production_table = Chrono_table.get_production_table()
+	local level = math.floor((production_table.experience[key] / 1000)^(1 / 2))
+	return (production_table.experience[key] / 1000)^(1 / 2) - level
+end
+
 local function update_upgrades_gui(player)
 	local objective = Chrono_table.get_table()
+	local playertable = Chrono_table.get_player_table()
+	local production_table = Chrono_table.get_production_table()
 	if not player.gui.screen["gui_upgrades"] then return end
 	local upgrades = Upgrades.upgrades()
 	local frame = player.gui.screen["gui_upgrades"]
-	local switch = frame["quest_switch"].switch_state
+	local tokens = frame["tokens"]
+	for token, value in pairs(objective.research_tokens) do
+		tokens["token_" .. token].number = value
+	end
 
 	for i = 1, #upgrades, 1 do
 		local t = frame["upgrades_table" .. i]
@@ -98,6 +152,9 @@ local function update_upgrades_gui(player)
 		if objective.upgrades[i] == upgrades[i].max_level then
 			t["maxed" .. i].visible = true
 			t["jump_req" .. i].visible = false
+			for index,_ in pairs(upgrades[i].virtual_cost) do
+				t[index .. "-v" .. i].visible = false
+			end
 			for index,_ in pairs(upgrades[i].cost) do
 				t[index .. "-" .. i].visible = false
 			end
@@ -105,95 +162,88 @@ local function update_upgrades_gui(player)
 			t["maxed" .. i].visible = false
 			t["jump_req" .. i].visible = true
 			t["jump_req" .. i].number = upgrades[i].jump_limit
+			for index,item in pairs(upgrades[i].virtual_cost) do
+				t[index .. "-v" .. i].visible = true
+				t[index .. "-v" .. i].number = item.count
+			end
 			for index,item in pairs(upgrades[i].cost) do
 				t[index .. "-" .. i].visible = true
 				t[index .. "-" .. i].number = item.count
 			end
 		end
-		if upgrades[i].quest then
-			if switch == "left" then
-				t.visible = false
-			else
-				t.visible = true
-			end
-		else
-			if switch == "right" then
-				t.visible = false
-			else
-				t.visible = true
-			end
-		end
 	end
+	local t2 = frame["production_table"]
+	for key, product in pairs(Production) do
+		t2["product" .. key].number = math.floor((production_table.experience[key] / 1000)^(1 / 2))
+		t2["product_bar" .. key].value = calculate_xp(key)
+		t2["product_bar" .. key].tooltip = math.floor(calculate_xp(key) * 1000) / 10 .. "%"
+	end
+	switch_upgrades(player, playertable.active_upgrades_gui[player.index])
 end
 
-local function planet_gui(player)
+local function world_gui(player)
 	local objective = Chrono_table.get_table()
-	if player.gui.screen["gui_planet"] then player.gui.screen["gui_planet"].destroy() return end
-	local planet = objective.planet[1]
+	if player.gui.screen["gui_world"] then player.gui.screen["gui_world"].destroy() return end
+	local world = objective.world
 	local evolution = game.forces["enemy"].evolution_factor
-	local frame = player.gui.screen.add{type = "frame", name = "gui_planet", caption = {"chronosphere.gui_planet_button"}, direction = "vertical"}
+	local frame = player.gui.screen.add{type = "frame", name = "gui_world", caption = {"chronosphere.gui_world_button"}, direction = "vertical"}
   frame.location = {x = 650, y = 45}
   frame.style.minimal_height = 300
   frame.style.maximal_height = 500
   frame.style.minimal_width = 200
   frame.style.maximal_width = 400
 	local l = {}
-	l[1] = frame.add({type = "label", name = "planet_name", caption = {"chronosphere.gui_planet_0", planet.type.name}})
-	l[2] = frame.add({type = "label", caption = {"chronosphere.gui_planet_1"}})
-	local table0 = frame.add({type = "table", name = "planet_ores", column_count = 3})
-	table0.add({type = "sprite-button", name = "iron-ore", sprite = "item/iron-ore", enabled = false, number = planet.type.iron})
-	table0.add({type = "sprite-button", name = "copper-ore", sprite = "item/copper-ore", enabled = false, number = planet.type.copper})
-	table0.add({type = "sprite-button", name = "coal", sprite = "item/coal", enabled = false, number = planet.type.coal})
-	table0.add({type = "sprite-button", name = "stone", sprite = "item/stone", enabled = false, number = planet.type.stone})
-	table0.add({type = "sprite-button", name = "uranium-ore", sprite = "item/uranium-ore", enabled = false, number = planet.type.uranium})
-	table0.add({type = "sprite-button", name = "oil", sprite = "fluid/crude-oil", enabled = false, number = planet.type.oil})
-	l[3] = frame.add({type = "label", name = "richness", caption = {"chronosphere.gui_planet_2", planet.ore_richness.name}})
-	frame.add({type = "label", name = "planet_time", caption = {"chronosphere.gui_planet_5", planet.day_speed.name}})
+	l[1] = frame.add({type = "label", name = "world_name", caption = {"chronosphere.gui_world_0", world.variant.name}})
+	l[2] = frame.add({type = "label", caption = {"chronosphere.gui_world_1"}})
+	local table0 = frame.add({type = "table", name = "world_ores", column_count = 3})
+	table0.add({type = "sprite-button", name = "iron-ore", sprite = "item/iron-ore", enabled = false, number = world.variant.fe})
+	table0.add({type = "sprite-button", name = "copper-ore", sprite = "item/copper-ore", enabled = false, number = world.variant.cu})
+	table0.add({type = "sprite-button", name = "coal", sprite = "item/coal", enabled = false, number = world.variant.c})
+	table0.add({type = "sprite-button", name = "stone", sprite = "item/stone", enabled = false, number = world.variant.s})
+	table0.add({type = "sprite-button", name = "uranium-ore", sprite = "item/uranium-ore", enabled = false, number = world.variant.u})
+	table0.add({type = "sprite-button", name = "oil", sprite = "fluid/crude-oil", enabled = false, number = world.variant.o})
+	l[3] = frame.add({type = "label", name = "richness", caption = {"chronosphere.gui_world_2", world.ores.name}})
+	frame.add({type = "label", name = "world_time", caption = {"chronosphere.gui_world_5", world.dayspeed.name}})
 	frame.add({type = "line"})
-	frame.add({type = "label", name = "planet_biters", caption = {"chronosphere.gui_planet_3", math_floor(evolution * 1000) / 10}})
-	frame.add({type = "label", name = "planet_biters2", caption = {"chronosphere.gui_planet_4"}})
-	frame.add({type = "label", name = "planet_biters3", caption = {"chronosphere.gui_planet_4_1", objective.overstaycount * 2.5, objective.overstaycount * 10}})
+	frame.add({type = "label", name = "world_biters", caption = {"chronosphere.gui_world_3", math_floor(evolution * 100, 1)}})
+	frame.add({type = "label", name = "world_biters2", caption = {"chronosphere.gui_world_4"}})
+	frame.add({type = "label", name = "world_biters3", caption = {"chronosphere.gui_world_4_1", objective.overstaycount * 2.5, objective.overstaycount * 10}})
 	frame.add({type = "line"})
-	frame.add({type = "label", name = "overstay_time", caption = {"chronosphere.gui_planet_7", "",""}})
+	frame.add({type = "label", name = "overstay_time", caption = {"chronosphere.gui_world_7", "",""}})
 
 	frame.add({type = "line"})
 
-	local close = frame.add({type = "button", name = "close_planet", caption = "Close"})
+	local close = frame.add({type = "button", name = "close_world", caption = "Close"})
 	close.style.horizontal_align = "center"
-	-- for i = 1, 3, 1 do
-	-- 	l[i].style.font = "default-game"
-	-- end
-
-	return l
 end
 
-local function update_planet_gui(player)
+local function update_world_gui(player)
 	local objective = Chrono_table.get_table()
 	local difficulty = Difficulty.get().difficulty_vote_value
 
-	if not player.gui.screen["gui_planet"] then return end
-	local planet = objective.planet[1]
+	if not player.gui.screen["gui_world"] then return end
+	local world = objective.world
 	local evolution = game.forces["enemy"].evolution_factor
 	local evo_color = {
     r = math_floor(255 * 1 * math_max(0, math_min(1, 1.2 - evolution * 2))),
     g = math_floor(255 * 1 * math_max(math_abs(0.5 - evolution * 1.5), 1 - evolution * 4)),
     b = math_floor(255 * 4 * math_max(0, 0.25 - math_abs(0.5 - evolution)))
   }
-	local frame = player.gui.screen["gui_planet"]
+	local frame = player.gui.screen["gui_world"]
 
-	frame["planet_name"].caption = {"chronosphere.gui_planet_0", planet.type.name}
-	frame["planet_ores"]["iron-ore"].number = planet.type.iron
-	frame["planet_ores"]["copper-ore"].number = planet.type.copper
-	frame["planet_ores"]["coal"].number = planet.type.coal
-	frame["planet_ores"]["stone"].number = planet.type.stone
-	frame["planet_ores"]["uranium-ore"].number = planet.type.uranium
-	frame["planet_ores"]["oil"].number = planet.type.oil
-	frame["richness"].caption = {"chronosphere.gui_planet_2", planet.ore_richness.name}
-	frame["planet_biters"].caption = {"chronosphere.gui_planet_3", math_floor(evolution * 1000) / 10}
-	frame["planet_biters"].style.font_color = evo_color
+	frame["world_name"].caption = {"chronosphere.gui_world_0", world.variant.name}
+	frame["world_ores"]["iron-ore"].number = world.variant.fe
+	frame["world_ores"]["copper-ore"].number = world.variant.cu
+	frame["world_ores"]["coal"].number = world.variant.c
+	frame["world_ores"]["stone"].number = world.variant.s
+	frame["world_ores"]["uranium-ore"].number = world.variant.u
+	frame["world_ores"]["oil"].number = world.variant.o
+	frame["richness"].caption = {"chronosphere.gui_world_2", world.ores.name}
+	frame["world_biters"].caption = {"chronosphere.gui_world_3", math_floor(evolution * 100, 1)}
+	frame["world_biters"].style.font_color = evo_color
 
-	frame["planet_biters3"].caption = {"chronosphere.gui_planet_4_1", objective.overstaycount * 2.5, objective.overstaycount * 10}
-	frame["planet_time"].caption = {"chronosphere.gui_planet_5", planet.day_speed.name}
+	frame["world_biters3"].caption = {"chronosphere.gui_world_4_1", objective.overstaycount * 2.5, objective.overstaycount * 10}
+	frame["world_time"].caption = {"chronosphere.gui_world_5", world.dayspeed.name}
 
 	if objective.jump_countdown_start_time == -1 then
 		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(difficulty) then
@@ -201,10 +251,10 @@ local function update_planet_gui(player)
 			if time_until_overstay < 0 then
 				frame["overstay_time"].caption = {"chronosphere.gui_overstayed"}
 			else
-				frame["overstay_time"].caption = {"chronosphere.gui_planet_6", math_floor(time_until_overstay / 60), math_floor(time_until_overstay % 60)}
+				frame["overstay_time"].caption = {"chronosphere.gui_world_6", math_floor(time_until_overstay / 60), math_floor(time_until_overstay % 60)}
 			end
 		else
-			frame["overstay_time"].caption = {"chronosphere.gui_planet_7",Balance.jumps_until_overstay_is_on(difficulty)}
+			frame["overstay_time"].caption = {"chronosphere.gui_world_7",Balance.jumps_until_overstay_is_on(difficulty)}
 		end
 	else
 		if objective.chronojumps >= Balance.jumps_until_overstay_is_on(difficulty) then
@@ -215,7 +265,7 @@ local function update_planet_gui(player)
 				frame["overstay_time"].caption = {"chronosphere.gui_not_overstayed"}
 			end
 		else
-			frame["overstay_time"].caption = {"chronosphere.gui_planet_7",Balance.jumps_until_overstay_is_on(difficulty)}
+			frame["overstay_time"].caption = {"chronosphere.gui_world_7",Balance.jumps_until_overstay_is_on(difficulty)}
 		end
 	end
 
@@ -239,7 +289,7 @@ function Public_gui.update_gui(player)
   local difficulty = Difficulty.get().difficulty_vote_value
 
   local tick = game.tick
-	update_planet_gui(player)
+	update_world_gui(player)
 	update_upgrades_gui(player)
 	if not player.gui.top.chronosphere then create_gui(player) end
 	local gui = player.gui.top.chronosphere
@@ -273,22 +323,15 @@ function Public_gui.update_gui(player)
 	]]
 
 	if objective.jump_countdown_start_time == -1 then
-		--if tick % 60 == 58 then -- charge history updates
-			--local history = objective.accumulator_energy_history
-			--objective.accumulator_energy_history = {}
-			local powerobserved,storedbattery,seconds_ETA = 0,0,0
-			--if #history == 2 and history[1] and history[2] then
-			--	powerobserved = (history[2] - history[1]) / 54 * 60
-			--	storedbattery = history[2]
-			--end
 
+			local powerobserved,storedbattery,seconds_ETA = 0,0,0
 			seconds_ETA = ETA_seconds_until_full(powerobserved, storedbattery)
 
 			gui.timer.caption = {"chronosphere.gui_3"}
 			gui.timer_value.caption = math_floor(seconds_ETA / 60) .. "m" .. seconds_ETA % 60 .. "s"
 			gui.timer_value.style.font_color = {r = 0, g = 0.98, b = 0}
 
-				if objective.planet[1].type.id == 19 and objective.passivetimer > 31 then
+				if objective.world.id == 2 and objective.world.variant.id == 2 and objective.passivetimer > 31 then
 					local nukecase = objective.dangertimer
 					gui.timer2.caption = {"chronosphere.gui_3_2"}
 					gui.timer_value2.caption = math_floor(nukecase / 60) .. "m" .. nukecase % 60 .. "s"
@@ -314,17 +357,14 @@ function Public_gui.update_gui(player)
 				gui.timer_value.style.font_color = {r = 0.98, g = 0, b = 0}
 			end
 
-			local first_part = "Biters permanently evolve in: " .. math_floor(time_until_overstay/60) .. "m" .. math_floor(time_until_overstay) % 60 .. "s"
+			local evo_timer = {math_floor(time_until_overstay/60), math_floor(time_until_overstay) % 60, math_floor(time_until_evo/60), math_floor(time_until_evo) % 60}
 			if time_until_overstay < 0 then
-				first_part = "Biters permanently evolve in: " .. math_floor(time_until_overstay/60) .. "m" .. 59 - (math_floor(time_until_overstay) % 60) .. "s"
+				evo_timer[2] = 59 - evo_timer[2]
 			end
-
-			local second_part = "Evolution ramps up on this planet in: " .. math_floor(time_until_evo/60) .. "m" .. math_floor(time_until_evo) % 60 .. "s"
 			if time_until_evo < 0 then
-				second_part = "Evolution ramps up on this planet in: " .. math_floor(time_until_evo/60) .. "m" .. 59 - (math_floor(time_until_evo) % 60) .. "s"
+				evo_timer[4] = 59 - evo_timer[4]
 			end
-
-			gui.timer_value.tooltip = first_part .. "\n" .. second_part
+			gui.timer_value.tooltip = {"chronosphere.gui_biters_evolve", evo_timer[1], evo_timer[2], evo_timer[3], evo_timer[4]}
 		else
 			gui.timer_value.tooltip = ""
 		end
@@ -337,13 +377,16 @@ function Public_gui.update_gui(player)
 		gui.timer_value2.caption = ""
 	end
 
-	gui.planet_button.caption = {"chronosphere.gui_planet_button"}
+	gui.world_button.caption = {"chronosphere.gui_world_button"}
 	gui.upgrades_button.caption = {"chronosphere.gui_upgrades_button"}
 end
 
 local function upgrades_gui(player)
 	if player.gui.screen["gui_upgrades"] then player.gui.screen["gui_upgrades"].destroy() return end
 	local objective = Chrono_table.get_table()
+	local playertable = Chrono_table.get_player_table()
+	local production_table = Chrono_table.get_production_table()
+	local v_costs = {}
 	local costs = {}
 	local upgrades = Upgrades.upgrades()
 	local frame = player.gui.screen.add{type = "frame", name = "gui_upgrades", caption = "ChronoTrain Upgrades", direction = "vertical"}
@@ -354,7 +397,17 @@ local function upgrades_gui(player)
   frame.style.maximal_width = 630
   frame.add({type = "label", caption = {"chronosphere.gui_upgrades_1"}})
 	frame.add({type = "label", caption = {"chronosphere.gui_upgrades_2"}})
-	frame.add({type = "switch", name = "quest_switch", switch_state = "left", allow_none_state = false, left_label_caption = {"chronosphere.gui_upgrades_switch_left"}, right_label_caption = {"chronosphere.gui_upgrades_switch_right"}})
+	frame.add({type = "label", caption = {"chronosphere.gui_upgrades_3"}})
+	local switches = frame.add({type = "table", name = "upgrades_switch", column_count = 4})
+	switches.add({type = "button", caption = {"chronosphere.gui_upgrades_switch1"}, name = "upgrade_switch1", tooltip = {"chronosphere.gui_upgrades_switch_tt1"}})
+	switches.add({type = "button", caption = {"chronosphere.gui_upgrades_switch2"}, name = "upgrade_switch2", tooltip = {"chronosphere.gui_upgrades_switch_tt2"}})
+	switches.add({type = "button", caption = {"chronosphere.gui_upgrades_switch3"}, name = "upgrade_switch3", tooltip = {"chronosphere.gui_upgrades_switch_tt3"}})
+	switches.add({type = "button", caption = {"chronosphere.gui_upgrades_switch4"}, name = "upgrade_switch4", tooltip = {"chronosphere.gui_upgrades_switch_tt4"}})
+	local tokens = frame.add({type = "table", name = "tokens", column_count = 6})
+	tokens.add({type = "label", caption = {"chronosphere.gui_tokens"}})
+	for token, value in pairs(objective.research_tokens) do
+		tokens.add({type = "sprite-button", name = "token_" .. token, enabled = Upgrades.tokens[token].enabled, sprite = Upgrades.tokens[token].sprite, number = value, tooltip = Upgrades.tokens[token].tooltip })
+	end
 
 	for i = 1, #upgrades, 1 do
 		local upg_table = frame.add({type = "table", name = "upgrades_table" .. i, column_count = 10})
@@ -364,6 +417,9 @@ local function upgrades_gui(player)
 
 		local maxed = upg_table.add({type = "sprite-button", name = "maxed" .. i, enabled = false, sprite = "virtual-signal/signal-check", tooltip = "Upgrade maxed!", visible = false})
 		local jumps = upg_table.add({type = "sprite-button", name = "jump_req" .. i, enabled = false, sprite = "virtual-signal/signal-J", number = upgrades[i].jump_limit, tooltip = {"chronosphere.gui_upgrades_jumps"}, visible = true})
+		for index,item in pairs(upgrades[i].virtual_cost) do
+			v_costs[index] = upg_table.add({type = "sprite-button", name = index .. "-v" .. i, number = item.count, sprite = item.sprite, enabled = false, tooltip = {item.tt .. "." .. item.name}, visible = true})
+		end
 
 		for index,item in pairs(upgrades[i].cost) do
 			costs[index] = upg_table.add({type = "sprite-button", name = index .. "-" .. i, number = item.count, sprite = item.sprite, enabled = false, tooltip = {item.tt .. "." .. item.name}, visible = true})
@@ -371,6 +427,9 @@ local function upgrades_gui(player)
 		if objective.upgrades[i] == upgrades[i].max_level then
 			maxed.visible = true
 			jumps.visible = false
+			for index,_ in pairs(upgrades[i].virtual_cost) do
+				v_costs[index].visible = false
+			end
 			for index,_ in pairs(upgrades[i].cost) do
 				costs[index].visible = false
 			end
@@ -380,13 +439,23 @@ local function upgrades_gui(player)
 			for index,_ in pairs(upgrades[i].cost) do
 				costs[index].visible = true
 			end
+			for index,_ in pairs(upgrades[i].virtual_cost) do
+				v_costs[index].visible = true
+			end
 		end
-		if upgrades[i].quest then upg_table.visible = false end
+		--if upgrades[i].type == "quest" then upg_table.visible = false end
 	end
+	local prod_table = frame.add({type = "table", name = "production_table", column_count = 4})
+	for key, product in pairs(Production) do
+		local recipe = Production[key].recipe_override or Production[key].name
+		prod_table.add({type = "sprite-button", name = "product" .. key, enabled = false, sprite = "recipe/" .. recipe, number = math.floor((production_table.experience[key] / 1000)^(1 / 2))})
+		local xp_bar = prod_table.add({type = "progressbar", name = "product_bar" .. key, value = calculate_xp(key)})
+		xp_bar.style = 'achievement_progressbar'
+	end
+	switch_upgrades(player, playertable.active_upgrades_gui[player.index])
 	frame.add({type = "line", direction = "horizontal"})
   local close = frame.add({type = "button", name = "close_upgrades", caption = "Close"})
 	close.style.horizontally_stretchable = true
-  return costs
 end
 
 function Public_gui.on_gui_click(event)
@@ -397,8 +466,8 @@ function Public_gui.on_gui_click(event)
 	if event.element.name == "upgrades_button" then
 		upgrades_gui(player)
 		return
-	elseif event.element.name == "planet_button" then
-		planet_gui(player)
+	elseif event.element.name == "world_button" then
+		world_gui(player)
 		return
 	elseif event.element.name == "minimap_button" then
 		Minimap.minimap(player, false)
@@ -411,7 +480,12 @@ function Public_gui.on_gui_click(event)
 	if event.element.type ~= "button" and event.element.type ~= "sprite-button" then return end
 	local name = event.element.name
 	if name == "close_upgrades" then upgrades_gui(player) return end
-  if name == "close_planet" then planet_gui(player) return end
+  if name == "close_world" then world_gui(player) return end
+	if name == "upgrade_switch1" then switch_upgrades(player, 1) return end
+	if name == "upgrade_switch2" then switch_upgrades(player, 2) return end
+	if name == "upgrade_switch3" then switch_upgrades(player, 3) return end
+	if name == "upgrade_switch4" then switch_upgrades(player, 4) return end
+	if name == "token_ammo" then Upgrades.add_ammo_tokens(player) return end
 end
 
 return Public_gui

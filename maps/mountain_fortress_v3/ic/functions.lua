@@ -27,7 +27,10 @@ end
 local function get_trusted_system(this, player)
     if not this.trust_system[player.index] then
         this.trust_system[player.index] = {
-            [player.name] = true
+            players = {
+                [player.name] = true
+            },
+            allow_anyone = 'right'
         }
     end
 
@@ -644,7 +647,7 @@ function Public.validate_owner(ic, player, entity)
             local p = game.players[car.owner]
             local list = get_trusted_system(ic, p)
             if p and p.valid and p.connected then
-                if list[player.name] then
+                if list.players[player.name] then
                     return
                 end
             end
@@ -879,10 +882,12 @@ function Public.use_door_with_entity(ic, player, door)
 
     local owner = game.players[car.owner]
     local list = get_trusted_system(ic, owner)
-    if owner and owner.valid and player.connected then
-        if not list[player.name] and not player.admin then
-            player.driving = false
-            return player.print('You have not been approved by ' .. owner.name .. ' to enter their vehicle.', Color.warning)
+    if owner and owner.valid and owner.index ~= player.index and player.connected then
+        if list.allow_anyone == 'right' then
+            if not list.players[player.name] and not player.admin then
+                player.driving = false
+                return player.print('You have not been approved by ' .. owner.name .. ' to enter their vehicle.', Color.warning)
+            end
         end
     end
 

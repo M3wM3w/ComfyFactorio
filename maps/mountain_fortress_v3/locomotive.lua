@@ -347,8 +347,8 @@ local function property_boost(data)
                 }
                 rpg[player.index].xp_since_last_floaty_text = 0
                 rpg[player.index].last_floaty_text = game.tick + visuals_delay
-                if player.gui.left[rpg_main_frame] then
-                    local f = player.gui.left[rpg_main_frame]
+                if player.gui.screen[rpg_main_frame] then
+                    local f = player.gui.screen[rpg_main_frame]
                     local d = Gui.get_data(f)
                     if d.exp_gui and d.exp_gui.valid then
                         d.exp_gui.caption = floor(rpg[player.index].xp)
@@ -1650,8 +1650,8 @@ local function place_market()
 end
 
 local function on_research_finished()
-    local game_lost = WPT.get('game_lost')
-    if game_lost then
+    local market_announce = WPT.get('market_announce')
+    if market_announce > game.tick then
         return
     end
 
@@ -1749,15 +1749,39 @@ local function on_player_driving_changed_state(event)
     if not player or not player.valid then
         return
     end
+    local entity = event.entity
+    if not entity or not entity.valid then
+        return
+    end
+
     local trusted = Session.get_trusted_table()
+    if #trusted == 0 then
+        return
+    end
+
     local locomotive = WPT.get('locomotive')
     if not locomotive or not locomotive.valid then
         return
     end
-    if not trusted[player.name] then
-        if player.character and player.character.valid and player.character.driving then
-            player.character.driving = false
+
+    if entity.unit_number == locomotive.unit_number then
+        if not trusted[player.name] then
+            if player.character and player.character.valid and player.character.driving then
+                player.character.driving = false
+            end
         end
+    end
+end
+
+local function on_player_left_game(event)
+    local player = game.players[event.player_index]
+    if not player or not player.valid then
+        return
+    end
+
+    local trusted = Session.get_trusted_table()
+    if trusted[player.name] then
+        trusted[player.name] = nil
     end
 end
 
@@ -2405,5 +2429,6 @@ Event.add(defines.events.on_robot_mined_entity, on_player_and_robot_mined_entity
 Event.add(defines.events.on_console_chat, on_console_chat)
 Event.add(defines.events.on_player_changed_surface, on_player_changed_surface)
 Event.add(defines.events.on_player_driving_changed_state, on_player_driving_changed_state)
+Event.add(defines.events.on_player_left_game, on_player_left_game)
 
 return Public

@@ -285,8 +285,12 @@ local function protect_entities(event)
         return
     end
 
-    if entity.type == 'simple-entity' and dmg >= 300 then
-        entity.health = entity.health + dmg
+    local check_heavy_damage = WPT.get('check_heavy_damage')
+
+    if check_heavy_damage then
+        if entity.type == 'simple-entity' and dmg >= 500 then
+            entity.health = entity.health + dmg
+        end
     end
 
     if entity.force.index ~= 1 then

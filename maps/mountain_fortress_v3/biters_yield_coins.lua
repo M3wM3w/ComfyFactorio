@@ -1,5 +1,6 @@
 local Event = require 'utils.event'
 local RPG_Settings = require 'modules.rpg.table'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 local insert = table.insert
 local floor = math.floor
 local random = math.random
@@ -34,20 +35,22 @@ local function get_coin_count(entity)
     if not coin_count then
         return
     end
-    if not global.biter_health_boost_units then
+    local biter_health_boost_units = BiterHealthBooster.get('biter_health_boost_units')
+
+    if not biter_health_boost_units then
         return coin_count
     end
     local unit_number = entity.unit_number
     if not unit_number then
         return coin_count
     end
-    if not global.biter_health_boost_units[unit_number] then
+    if not biter_health_boost_units[unit_number] then
         return coin_count
     end
-    if not global.biter_health_boost_units[unit_number][3] then
+    if not biter_health_boost_units[unit_number][3] then
         return coin_count
     end
-    local m = 1 / global.biter_health_boost_units[unit_number][2]
+    local m = 1 / biter_health_boost_units[unit_number][2]
     coin_count = floor(coin_count * m)
     if coin_count < 1 then
         return 1

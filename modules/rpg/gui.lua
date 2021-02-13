@@ -359,7 +359,8 @@ local function draw_main_frame(player, location)
         melee_damage_tooltip = ({
             'rpg_gui.one_punch_chance',
             Functions.get_life_on_hit(player),
-            Functions.get_one_punch_chance(player)
+            Functions.get_one_punch_chance(player),
+            Functions.get_extra_following_robots(player)
         })
     else
         melee_damage_tooltip = ({'rpg_gui.one_punch_disabled'})

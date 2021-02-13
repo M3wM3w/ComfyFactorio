@@ -2,13 +2,15 @@ local Chrono_table = require 'maps.chronosphere.table'
 local Balance = require 'maps.chronosphere.balance'
 local Score = require "comfy_panel.score"
 local Difficulty = require 'modules.difficulty_vote'
-local Public_chrono = {}
+local Upgrades = require 'maps.chronosphere.upgrade_list'
+local List = require 'maps.chronosphere.production_list'
+local Public = {}
 
 local Server = require 'utils.server'
 local math_random = math.random
 local math_max = math.max
 
-function Public_chrono.get_map_gen_settings()
+function Public.get_map_gen_settings()
 	local seed = math_random(1, 1000000)
 	local map_gen_settings = {
 		["seed"] = seed,
@@ -27,9 +29,34 @@ function Public_chrono.get_map_gen_settings()
 	return map_gen_settings
 end
 
-function Public_chrono.restart_settings()
+function Public.reset_chests()
+	-- for i = 1001, 1024, 1 do
+	-- 	local inv = game.forces.player.get_linked_inventory("linked-chest", i)
+	-- 	if inv and inv.valid then inv.clear() end
+	-- end
+end
+
+function Public.reset_surfaces()
+	local objective = Chrono_table.get_table()
+	for _,player in pairs(game.players) do
+		if player.controller_type == defines.controllers.editor then player.toggle_map_editor() end
+	end
+
+	if game.surfaces["chronosphere"] then game.delete_surface(game.surfaces["chronosphere"]) end
+	if game.surfaces["cargo_wagon"] then game.delete_surface(game.surfaces["cargo_wagon"]) end
+	for i = 13, 16, 1 do
+		objective.upgrades[i] = 0
+	end
+	objective.computermessage = 0
+	objective.chronojumps = 0
+end
+
+function Public.restart_settings()
 	local get_score = Score.get_table()
 	local objective = Chrono_table.get_table()
+	local playertable = Chrono_table.get_player_table()
+	local bitertable = Chrono_table.get_biter_table()
+	local production = Chrono_table.get_production_table()
 	Difficulty.reset_difficulty_poll()
 	Difficulty.set_poll_closing_timeout(game.tick + 35 * 60 * 60)
   objective.max_health = Balance.Chronotrain_max_HP
@@ -43,27 +70,40 @@ function Public_chrono.restart_settings()
 	objective.overstaycount = 0
 	objective.jump_countdown_start_time = -1
 	objective.mainscore = 0
-	objective.active_biters = {}
-	objective.unit_groups = {}
-	objective.biter_raffle = {}
+	bitertable.active_biters = {}
+	bitertable.unit_groups = {}
+	bitertable.biter_raffle = {}
 	objective.dangertimer = 1200
 	objective.dangers = {}
 	objective.looted_nukes = 0
-	objective.offline_players = {}
+	playertable.offline_players = {}
 	objective.nextsurface = nil
-	for i = 1, 16, 1 do
+	for i = 1, Upgrades.upgrade_count(), 1 do
 		objective.upgrades[i] = 0
 	end
 	objective.upgrades[10] = 2 --poison
 	objective.outchests = {}
+	objective.outcombinators = {}
 	objective.upgradechest = {}
 	objective.fishchest = {}
 	objective.accumulators = {}
 	objective.comfychests = {}
 	objective.comfychests2 = {}
 	objective.locomotive_cargo = {}
+	objective.laser_battery = {}
+	objective.last_artillery_event = 0
+	objective.poison_mastery_unlocked = 0
+	for token, _ in pairs(objective.research_tokens) do
+		objective.research_tokens[token] = 0
+	end
+	production.assemblers = {}
+	production.train_assemblers = {}
+	production.experience = {}
+	for key, _ in pairs(List) do
+		production.experience[key] = 0
+	end
 	for _, player in pairs(game.connected_players) do
-		objective.flame_boots[player.index] = {fuel = 1, steps = {}}
+		playertable.flame_boots[player.index] = {fuel = 1, steps = {}}
 	end
 	global.friendly_fire_history = {}
 	global.landfill_history = {}
@@ -74,12 +114,12 @@ function Public_chrono.restart_settings()
 	game.map_settings.enemy_evolution.destroy_factor = 0.005
 	game.map_settings.enemy_evolution.pollution_factor = 0
 	game.map_settings.enemy_evolution.time_factor = 7e-05
-	game.map_settings.enemy_expansion.enabled = true
-	game.map_settings.enemy_expansion.max_expansion_cooldown = 3600
-	game.map_settings.enemy_expansion.min_expansion_cooldown = 3600
-	game.map_settings.enemy_expansion.settler_group_max_size = 8
-	game.map_settings.enemy_expansion.settler_group_min_size = 16
-  game.map_settings.enemy_expansion.max_expansion_distance = 9
+	game.map_settings.enemy_expansion.enabled = false
+	-- game.map_settings.enemy_expansion.max_expansion_cooldown = 3600
+	-- game.map_settings.enemy_expansion.min_expansion_cooldown = 3600
+	-- game.map_settings.enemy_expansion.settler_group_max_size = 30
+	-- game.map_settings.enemy_expansion.settler_group_min_size = 10
+  -- game.map_settings.enemy_expansion.max_expansion_distance = 9
 	game.map_settings.pollution.enabled = true
 	game.map_settings.pollution.expected_max_per_chunk = 400
 	game.map_settings.pollution.min_to_show_per_chunk = 40
@@ -94,10 +134,16 @@ function Public_chrono.restart_settings()
 	game.map_settings.unit_group.min_group_gathering_time = 1800
 	game.map_settings.unit_group.max_group_gathering_time = 18000
 	game.map_settings.unit_group.max_wait_time_for_late_members = 600
+	game.map_settings.path_finder.general_entity_collision_penalty = 1
+	game.map_settings.path_finder.general_entity_subsequent_collision_penalty = 1
+	game.map_settings.path_finder.short_cache_size = 20
+	game.map_settings.path_finder.long_cache_size = 100
+	game.map_settings.unit_group.max_gathering_unit_groups = 10
 	game.forces.neutral.character_inventory_slots_bonus = 500
 	game.forces.enemy.evolution_factor = 0.0001
 	game.forces.scrapyard.set_friend('enemy', true)
 	game.forces.enemy.set_friend('scrapyard', true)
+	game.forces.enemy.set_ammo_damage_modifier("rocket", -0.5)
 	game.forces.player.technologies["land-mine"].enabled = false
 	game.forces.player.technologies["landfill"].enabled = false
 	game.forces.player.technologies["cliff-explosives"].enabled = false
@@ -105,9 +151,42 @@ function Public_chrono.restart_settings()
 	game.forces.player.technologies["power-armor-mk2"].enabled = false
 	game.forces.player.technologies["railway"].researched = true
 	game.forces.player.recipes["pistol"].enabled = false
+	game.forces.player.ghost_time_to_live = 5 * 60 * 60
 end
 
-function Public_chrono.objective_died()
+function Public.set_difficulty_settings()
+	local objective = Chrono_table.get_table()
+	local difficulty_tooltips = {
+		[1] = {"chronosphere.difficulty1"},
+		[2] = {"chronosphere.difficulty2"},
+		[3] = {"chronosphere.difficulty3"},
+		[4] = {"chronosphere.difficulty4"},
+		[5] = {"chronosphere.difficulty5"},
+		[6] = {"chronosphere.difficulty6"},
+		[7] = {"chronosphere.difficulty7"}
+	}
+	local difficulty_names = {
+		[1] = {name = {"chronosphere.difficulty1name"}, value = 0.25, color = {r = 0.00, g = 0.45, b = 0.00}, print_color = {r = 0.00, g = 0.8, b = 0.00}, enabled = true},
+		[2] = {name = {"chronosphere.difficulty2name"}, value = 0.50, color = {r = 0.00, g = 0.35, b = 0.00}, print_color = {r = 0.00, g = 0.6, b = 0.00}, enabled = true},
+		[3] = {name = {"chronosphere.difficulty3name"}, value = 0.75, color = {r = 0.00, g = 0.25, b = 0.00}, print_color = {r = 0.00, g = 0.4, b = 0.00}, enabled = true},
+		[4] = {name = {"chronosphere.difficulty4name"}, value = 1.00, color = {r = 0.00, g = 0.00, b = 0.25}, print_color = {r = 0.00, g = 0.0, b = 0.50}, enabled = true},
+		[5] = {name = {"chronosphere.difficulty5name"}, value = 1.50, color = {r = 0.25, g = 0.00, b = 0.00}, print_color = {r = 0.40, g = 0.0, b = 0.00}, enabled = true},
+		[6] = {name = {"chronosphere.difficulty6name"}, value = 3.00, color = {r = 0.35, g = 0.00, b = 0.00}, print_color = {r = 0.60, g = 0.0, b = 0.00}, enabled = true},
+		[7] = {name = {"chronosphere.difficulty7name"}, value = 5.00, color = {r = 0.45, g = 0.00, b = 0.00}, print_color = {r = 0.80, g = 0.0, b = 0.00}, enabled = true}
+	}
+	if objective.config.lock_difficulties then
+		difficulty_names[1].enabled = false
+		difficulty_names[2].enabled = false
+	end
+	if objective.config.lock_hard_difficulties then
+		difficulty_names[6].enabled = false
+		difficulty_names[7].enabled = false
+	end
+	Difficulty.set_tooltip(difficulty_tooltips)
+	Difficulty.set_difficulties(difficulty_names)
+end
+
+function Public.objective_died()
 	local objective = Chrono_table.get_table()
 	if objective.game_lost == true then return end
 	objective.health = 0
@@ -137,32 +216,35 @@ local function check_nuke_silos()
 	local objective = Chrono_table.get_table()
 	if objective.dangers and #objective.dangers > 1 then
 		for i = 1, #objective.dangers, 1 do
-		if objective.dangers[i].destroyed == true then
-			objective.looted_nukes = objective.looted_nukes + Balance.nukes_looted_per_silo(Difficulty.get().difficulty_vote_value)
-		end
+			if objective.dangers[i].destroyed == true then
+				objective.looted_nukes = objective.looted_nukes + Balance.nukes_looted_per_silo(Difficulty.get().difficulty_vote_value)
+			end
 		end
 	end
+	objective.dangers = {}
 end
 
-function Public_chrono.process_jump()
+function Public.process_jump()
 	local objective = Chrono_table.get_table()
-
+	local bitertable = Chrono_table.get_biter_table()
 	objective.chronojumps = objective.chronojumps + 1
 	objective.passivetimer = 0
 	objective.chronochargesneeded = Balance.MJ_needed_for_full_charge(Difficulty.get().difficulty_vote_value, objective.chronojumps)
 	objective.passive_chronocharge_rate = Balance.MJ_needed_for_full_charge(Difficulty.get().difficulty_vote_value, objective.chronojumps) / Balance.passive_planet_jumptime(objective.chronojumps)
-	objective.active_biters = {}
-	objective.unit_groups = {}
-	objective.biter_raffle = {}
+	bitertable.active_biters = {}
+	bitertable.unit_groups = {}
+	bitertable.biter_raffle = {}
+	bitertable.free_biters = 0
 	objective.chronocharges = 0
 	objective.jump_countdown_start_time = -1
   objective.dangertimer = 1200
-	local message = "Comfylatron: Wheeee! Time jump underway! This is Jump number " .. objective.chronojumps
 	game.print({"chronosphere.message_jump", objective.chronojumps}, {r=0.98, g=0.66, b=0.22})
-	Server.to_discord_embed(message)
+	Server.to_discord_embed({"chronosphere.message_jump", objective.chronojumps}, true)
 
 	if objective.chronojumps == Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
 		game.print({"chronosphere.message_evolve"}, {r=0.98, g=0.36, b=0.22})
+	elseif objective.chronojumps == 7 then
+		game.print({"chronosphere.message_quest_research"}, {r=0.98, g=0.36, b=0.22})
 	elseif objective.chronojumps >= 15 and objective.computermessage == 0 then
 		game.print({"chronosphere.message_quest1"}, {r=0.98, g=0.36, b=0.22})
     objective.computermessage = 1
@@ -179,12 +261,12 @@ function Public_chrono.process_jump()
 	if (objective.passivetimer - 180) * objective.passive_chronocharge_rate > objective.chronochargesneeded * 0.75 and objective.chronojumps >= Balance.jumps_until_overstay_is_on(Difficulty.get().difficulty_vote_value) then
     game.print({"chronosphere.message_overstay"}, {r=0.98, g=0.36, b=0.22})
   end
-  if objective.planet[1].type.id == 19 then
+  if objective.world.id == 2 and objective.world.variant.id == 2 then
 		check_nuke_silos()
 	end
 end
 
-function Public_chrono.get_wagons(start)
+function Public.get_wagons(start)
 	local objective = Chrono_table.get_table()
 	local wagons = {}
 	wagons[1] = {inventory = {}, bar = 0, filters = {}}
@@ -192,9 +274,10 @@ function Public_chrono.get_wagons(start)
 	wagons[3] = {inventory = {}, bar = 0, filters = {}}
 	if start then
 		wagons[1].inventory[1] = {name = "raw-fish", count = 100}
-		for i = 31, 38, 1 do
+		for i = 21, 37, 1 do
 			wagons[1].filters[i] = "atomic-bomb"
 		end
+		wagons[1].filters[38] = "space-science-pack"
 		wagons[1].filters[39] = "coin"
 		wagons[1].filters[40] = "coin"
 		for i = 2, 3, 1 do
@@ -227,29 +310,30 @@ function Public_chrono.get_wagons(start)
 	return wagons
 end
 
-function Public_chrono.post_jump()
+function Public.post_jump()
 	local objective = Chrono_table.get_table()
+	local playertable = Chrono_table.get_player_table()
 	local difficulty = Difficulty.get().difficulty_vote_value
 
-  	game.forces.enemy.reset_evolution()
-	if objective.chronojumps + objective.overstaycount <= 40 and objective.planet[1].type.id ~= 17 then
+  game.forces.enemy.reset_evolution()
+	if objective.chronojumps + objective.overstaycount <= 40 and objective.world.id ~= 7 then
 		game.forces.enemy.evolution_factor = 0 + 0.025 * (objective.chronojumps + objective.overstaycount)
 	else
 		game.forces.enemy.evolution_factor = 1
 	end
-	if objective.planet[1].type.id == 17 then
-		objective.comfychests[1].insert({name = "space-science-pack", count = 1000})
+	if objective.world.id == 7 then
+		objective.locomotive_cargo[1].insert({name = "space-science-pack", count = 1000})
 		if objective.looted_nukes > 0 then
-      	objective.comfychests[1].insert({name = "atomic-bomb", count = objective.looted_nukes})
+      	objective.locomotive_cargo[1].insert({name = "atomic-bomb", count = objective.looted_nukes})
       	game.print({"chronosphere.message_fishmarket3"}, {r=0.98, g=0.66, b=0.22})
     	end
 		objective.chronochargesneeded = 200000000
-  	elseif objective.planet[1].type.id == 19 then
+	elseif objective.world.id == 2 and objective.world.variant.id == 2 then
 		objective.chronocharges = objective.chronochargesneeded - 1500
 		objective.passive_chronocharge_rate = 1
 	end
 	for _, player in pairs(game.connected_players) do
-		objective.flame_boots[player.index] = {fuel = 1, steps = {}}
+		playertable.flame_boots[player.index] = {fuel = 1, steps = {}}
 	end
 
 	game.map_settings.enemy_evolution.time_factor = 7e-05 + 3e-06 * (objective.chronojumps + objective.overstaycount)
@@ -269,4 +353,60 @@ function Public_chrono.post_jump()
 	end
 end
 
-return Public_chrono
+function Public.message_on_arrival()
+	local objective = Chrono_table.get_table()
+	local world = objective.world
+	game.print({"chronosphere.map_jump", world.variant.name, world.ores.name, world.dayspeed.name}, {r=0.98, g=0.66, b=0.22})
+	Server.to_discord_embed({"chronosphere.map_jump", world.variant.name, world.ores.name, world.dayspeed.name}, true)
+	if world.id == 4 then
+		game.print({"chronosphere.message_choppy"}, {r=0.98, g=0.66, b=0.22})
+	elseif world.id == 1 and world.variant.id == 11 then
+		game.print({"chronosphere.message_lava"}, {r=0.98, g=0.66, b=0.22})
+	elseif world.id == 7 then
+		game.print({"chronosphere.message_fishmarket1"}, {r=0.98, g=0.66, b=0.22})
+		game.print({"chronosphere.message_fishmarket2"}, {r=0.98, g=0.66, b=0.22})
+	end
+end
+
+function Public.setup_world(surface)
+	local objective = Chrono_table.get_table()
+	local world = objective.world
+	surface.min_brightness = 0
+	surface.brightness_visual_weights = {1, 1, 1}
+	objective.surface = surface
+	surface.daytime = world.daytime
+	local timer = world.dayspeed.timer
+	if timer == 0 then
+		surface.freeze_daytime = true
+		timer = timer + 1
+	else
+		surface.freeze_daytime = false
+	end
+	surface.ticks_per_day = timer * 250
+
+	local moisture = world.variant.moisture
+	if moisture ~= 0 then
+		local mgs = surface.map_gen_settings
+		mgs.property_expression_names["control-setting:moisture:bias"] = moisture
+		surface.map_gen_settings = mgs
+	end
+	if world.id == 1 and world.variant.id == 11 then --lava planet
+		local mgs = surface.map_gen_settings
+		mgs.water = 0
+		surface.map_gen_settings = mgs
+	end
+	if world.id == 4 then --choppy planet
+		local mgs = surface.map_gen_settings
+		mgs.water = 0.2
+		surface.map_gen_settings = mgs
+	end
+	if world.id == 7 then --fish market
+		local mgs = surface.map_gen_settings
+		mgs.width = 2176
+		surface.map_gen_settings = mgs
+		surface.request_to_generate_chunks({-960,-64}, 0.5)
+		surface.force_generate_chunk_requests()
+	end
+end
+
+return Public

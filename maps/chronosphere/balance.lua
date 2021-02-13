@@ -54,7 +54,7 @@ function Public.passive_planet_jumptime(jumps)
 end
 
 function Public.passive_pollution_rate(jumps, difficulty, filter_upgrades)
-    local baserate = 5 * jumps
+    local baserate = 1 * jumps
 
     local modifiedrate =
         baserate * Public.pollution_filter_upgrade_factor(filter_upgrades) * math_max(0, difficulty_sloped(difficulty, 5 / 4))
@@ -63,7 +63,7 @@ function Public.passive_pollution_rate(jumps, difficulty, filter_upgrades)
 end
 
 function Public.pollution_per_MJ_actively_charged(jumps, difficulty, filter_upgrades)
-    local baserate = 2 * (10 + jumps)
+    local baserate = 2 * (5 + jumps)
 
     local modifiedrate = baserate * Public.pollution_filter_upgrade_factor(filter_upgrades)
 
@@ -77,7 +77,7 @@ function Public.pollution_per_MJ_actively_charged(jumps, difficulty, filter_upgr
 end
 
 function Public.countdown_pollution_rate(jumps, difficulty)
-    local baserate = 40 * (10 + jumps) * math_max(0, difficulty_sloped(difficulty, 5 / 4))
+    local baserate = 40 * (5 + jumps) * math_max(0, difficulty_sloped(difficulty, 5 / 4))
 
     local modifiedrate = baserate -- thesixthroc: Constant, because part of drama of planet progression. Interpret this as hyperwarp portal pollution
 
@@ -142,45 +142,6 @@ function Public.jumps_until_overstay_is_on(difficulty) --both overstay penalties
     else
         return 5
     end
-end
-
-function Public.player_gun_speed_modifiers() -- modifiers are fractional
-    local data = {
-        ['artillery-shell'] = 0,
-        ['biological'] = 0,
-        ['bullet'] = 0,
-        ['cannon-shell'] = 0,
-        ['capsule'] = 0,
-        ['beam'] = 0,
-        ['laser'] = 0,
-        ['electric'] = 0,
-        ['flamethrower'] = 0, --these nerfs are elsewhere for finer control
-        ['grenade'] = -0.2,
-        ['landmine'] = 0,
-        ['melee'] = 0, -- doesn't do anything
-        ['rocket'] = 0,
-        ['shotgun-shell'] = 0
-    }
-    return data
-end
-function Public.player_ammo_damage_modifiers() -- bullet affects gun turrets, but flamethrower does not affect flamer turrets
-    local data = {
-        ['artillery-shell'] = 0,
-        ['biological'] = 0,
-        ['bullet'] = 0,
-        ['cannon-shell'] = 0,
-        ['capsule'] = 0,
-        ['beam'] = 0,
-        ['laser'] = 0,
-        ['electric'] = 0,
-        ['flamethrower'] = 0, --these nerfs are elsewhere for finer control
-        ['grenade'] = 0,
-        ['landmine'] = 0,
-        ['melee'] = 0, -- doesn't do anything
-        ['rocket'] = 0,
-        ['shotgun-shell'] = 0
-    }
-    return data
 end
 
 function Public.coin_reward_per_second_jumped_early(seconds, difficulty)
@@ -288,9 +249,7 @@ function Public.market_offers()
             price = {{'coin', 3000}, {'express-transport-belt', 10}, {'fast-loader', 1}},
             offer = {type = 'give-item', item = 'express-loader', count = 1}
         },
-        --{price = {{"coin", 5}, {"stone", 100}}, offer = {type = 'give-item', item = 'landfill', count = 1}},
         {price = {{'coin', 2}, {'steel-plate', 1}, {'explosives', 10}}, offer = {type = 'give-item', item = 'land-mine', count = 1}},
-        {price = {{'pistol', 1}}, offer = {type = 'give-item', item = 'iron-plate', count = 100}}
     }
 end
 function Public.initial_cargo_boxes()
@@ -358,7 +317,7 @@ function Public.scrap()
         ['battery'] = {amount = 3, chance = 10},
         ['explosives'] = {amount = 3, chance = 5},
         ['advanced-circuit'] = {amount = 5, chance = 3},
-        ['plastic-bar'] = {amount = 5, chance = 5},
+        ['plastic-bar'] = {amount = 5, chance = 6},
         ['processing-unit'] = {amount = 2, chance = 1},
         ['used-up-uranium-fuel-cell'] = {amount = 1, chance = 4},
         ['uranium-fuel-cell'] = {amount = 0.3, chance = 1},
