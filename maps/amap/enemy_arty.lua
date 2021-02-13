@@ -32,7 +32,7 @@ Global.register(
 )
 
 function Public.reset_table()
-  arty_count.max = 50
+  arty_count.max = 100
   arty_count.all = {}
   arty_count.count = 0
   arty_count.pace = 1
@@ -230,7 +230,7 @@ local now =game.tick
 if not arty_count.fire[arty_count.index] then 
 arty_count.fire[arty_count.index] = 0
 end
-if (now - arty_count.fire[arty_count.index]) < 240 then return end
+if (now - arty_count.fire[arty_count.index]) < 120 then return end
 arty_count.fire[arty_count.index] = now
   local position = roll_table[arty_count.index].position
 
