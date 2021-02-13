@@ -217,16 +217,23 @@ if arty_count.count <= 0 then return end
   end
   if #roll_table <= 0 then return end
   --local roll = math.random(1, #roll_table)
+if not arty_count.index then 
+arty_count.index = 1
+end
+
 --if arty_count.index > #roll_table then arty_count.index=1 end
 if arty_count.index and roll_table and arty_count.index > #roll_table then
   arty_count.index = 1
 end
 
 local now =game.tick
-arty_count.fire[arty_count.index]={}
+if not arty_count.fire[arty_count.index] then 
+arty_count.fire[arty_count.index] = 0
+end
 if (now - arty_count.fire[arty_count.index]) < 480 then return end
 arty_count.fire[arty_count.index] = now
   local position = roll_table[arty_count.index].position
+
 arty_count.index=arty_count.index+1
   --扫描区域
 --   local normal_area = {left_top = {-480, -480}, right_bottom = {480, 480}}
