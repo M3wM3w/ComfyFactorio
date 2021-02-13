@@ -223,7 +223,7 @@ if arty_count.index and roll_table and arty_count.index > #roll_table then
 end
 
 local now =game.tick
-
+arty_count.fire[arty_count.index]={}
 if (now - arty_count.fire[arty_count.index]) < 480 then return end
 arty_count.fire[arty_count.index] = now
   local position = roll_table[arty_count.index].position
