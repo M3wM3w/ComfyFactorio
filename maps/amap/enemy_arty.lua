@@ -224,7 +224,7 @@ end
 
 local now =game.tick
 
-if (now - atry_count.fire[arty_count.index]) < 480 then return end
+if (now - arty_count.fire[arty_count.index]) < 480 then return end
 arty_count.fire[arty_count.index] = now
   local position = roll_table[arty_count.index].position
 arty_count.index=arty_count.index+1
