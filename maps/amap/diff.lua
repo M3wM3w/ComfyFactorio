@@ -3,7 +3,7 @@ local Event = require 'utils.event'
 local WD = require 'modules.wave_defense.table'
 local WPT = require 'maps.amap.table'
 local Difficulty = require 'modules.difficulty_vote_by_amount'
---local atry_talbe = require "maps.amap.enemy_arty"
+local atry_talbe = require "maps.amap.enemy_arty"
 local function calc_players()
   local players = game.connected_players
   local check_afk_players = WPT.get('check_afk_players')
@@ -174,17 +174,17 @@ game.forces.enemy.set_ammo_damage_modifier("rocket", damage_increase)
   game.forces.enemy.set_ammo_damage_modifier("melee", damage_increase)
   game.forces.enemy.set_ammo_damage_modifier("biological", damage_increase)
 
-  --local table = atry_talbe.get()
-  --local radius=math.floor(wave_number*0.15)*k
---if radius >= 350 then
-  --radius = 350
---end
---table.radius=350+radius
---local pace=wave_number*0.0002*k+1
---if pace >= 2 then
- -- pace = 2
---end
---table.pace=pace
+  local table = atry_talbe.get()
+  local radius=math.floor(wave_number*0.15)*k
+if radius >= 350 then
+  radius = 350
+end
+table.radius=350+radius
+local pace=wave_number*0.0002*k+1
+if pace >= 2 then
+  pace = 2
+end
+table.pace=pace
 
 end
 Event.on_nth_tick(600, set_diff)
