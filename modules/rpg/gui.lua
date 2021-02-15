@@ -1,4 +1,4 @@
-local Tabs = require 'comfy_panel.main'
+local ComfyGui = require 'comfy_panel.main'
 local P = require 'player_modifiers'
 local Gui = require 'utils.gui'
 
@@ -513,9 +513,9 @@ function Public.toggle(player, recreate)
     end
     if main_frame then
         remove_main_frame(main_frame, screen)
-        Tabs.comfy_panel_restore_left_gui(player)
+        ComfyGui.comfy_panel_restore_left_gui(player)
     else
-        Tabs.comfy_panel_clear_left_gui(player)
+        ComfyGui.comfy_panel_clear_left_gui(player)
         draw_main_frame(player)
     end
 end
@@ -526,7 +526,7 @@ function Public.remove_frame(player)
 
     if main_frame then
         remove_main_frame(main_frame, screen)
-        Tabs.comfy_panel_restore_left_gui(player)
+        ComfyGui.comfy_panel_restore_left_gui(player)
     end
 end
 
@@ -814,5 +814,7 @@ Gui.on_click(
         end
     end
 )
+
+ComfyGui.screen_to_bypass(spell_gui_frame_name)
 
 return Public

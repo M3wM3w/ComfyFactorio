@@ -411,6 +411,9 @@ end
 
 local function remove_create_poll_frame(create_poll_frame, player_index)
     local data = Gui.get_data(create_poll_frame)
+    if not data then
+        return
+    end
 
     data.edit_mode = nil
     player_create_poll_data[player_index] = data
@@ -906,6 +909,10 @@ Gui.on_click(
         local button_data = Gui.get_data(event.element)
         local data = button_data.data
 
+        if not data then
+            return
+        end
+
         table.remove(data.answers, button_data.count)
         redraw_create_poll_content(data)
     end
@@ -915,7 +922,13 @@ Gui.on_click(
     create_poll_label_name,
     function(event)
         local textfield = Gui.get_data(event.element)
-        textfield.focus()
+        if not textfield then
+            return
+        end
+
+        if textfield and textfield.valid then
+            textfield.focus()
+        end
     end
 )
 
@@ -925,7 +938,13 @@ Gui.on_text_changed(
         local textfield = event.element
         local data = Gui.get_data(textfield)
 
-        data.question = textfield.text
+        if not data then
+            return
+        end
+
+        if textfield and textfield.valid then
+            data.question = textfield.text
+        end
     end
 )
 
@@ -935,7 +954,13 @@ Gui.on_text_changed(
         local textfield = event.element
         local data = Gui.get_data(textfield)
 
-        data.answers[data.count].text = textfield.text
+        if not data then
+            return
+        end
+
+        if textfield and textfield.valid then
+            data.answers[data.count].text = textfield.text
+        end
     end
 )
 
@@ -957,7 +982,9 @@ Gui.on_click(
     create_poll_close_name,
     function(event)
         local frame = Gui.get_data(event.element)
-        remove_create_poll_frame(frame, event.player_index)
+        if frame and frame.valid then
+            remove_create_poll_frame(frame, event.player_index)
+        end
     end
 )
 

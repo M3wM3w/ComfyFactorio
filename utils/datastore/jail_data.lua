@@ -282,6 +282,10 @@ local validate_args = function(data)
     local message = data.message
     local cmd = data.cmd
 
+    if not griefer then
+        return
+    end
+
     if not type(griefer) == 'string' then
         Utils.print_to(player, 'Invalid name.')
         return false

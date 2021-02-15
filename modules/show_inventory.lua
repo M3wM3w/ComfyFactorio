@@ -350,7 +350,7 @@ local function update_gui()
 
         if valid then
             if success then
-                if target then
+                if target and target.valid then
                     local main = target.get_main_inventory().get_contents()
                     local armor = target.get_inventory(defines.inventory.character_armor).get_contents()
                     local guns = target.get_inventory(defines.inventory.character_guns).get_contents()
@@ -392,7 +392,7 @@ commands.add_command(
             end
             local target_player = game.players[cmd.parameter]
 
-            if target_player == player then
+            if target_player == player and not player.admin then
                 return player.print('Cannot open self.', Color.warning)
             end
             local valid, opened = player_opened(player)

@@ -94,22 +94,12 @@ end
 local function on_tick()
     local icw = ICW.get()
     local tick = game.tick
-
-    if tick % 10 == 1 then
+    if tick % 10 == 0 then
         Functions.item_transfer(icw)
     end
     if tick % 240 == 0 then
         Functions.update_minimap(icw)
     end
-
-    if not icw.rebuild_tick then
-        return
-    end
-    if icw.rebuild_tick ~= tick then
-        return
-    end
-    Functions.reconstruct_all_trains(icw)
-    icw.rebuild_tick = nil
 end
 
 local function on_init()
@@ -141,7 +131,7 @@ end
 local on_player_or_robot_built_tile = Functions.on_player_or_robot_built_tile
 
 Event.on_init(on_init)
-Event.add(defines.events.on_tick, on_tick)
+Event.on_nth_tick(5, on_tick)
 Event.add(defines.events.on_player_driving_changed_state, on_player_driving_changed_state)
 Event.add(defines.events.on_player_changed_surface, on_player_changed_surface)
 Event.add(defines.events.on_entity_died, on_entity_died)

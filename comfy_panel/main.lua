@@ -11,12 +11,17 @@ draw_map_scores would be a function with the player and the frame as arguments
 ]]
 local Event = require 'utils.event'
 local Server = require 'utils.server'
-local CommandFrame = require 'commands.misc'
 local SpamProtection = require 'utils.spam_protection'
 
 comfy_panel_tabs = {}
 
 local Public = {}
+local screen_elements = {}
+
+function Public.screen_to_bypass(elem)
+    screen_elements[elem] = true
+    return screen_elements
+end
 
 function Public.get_tabs(data)
     return comfy_panel_tabs
@@ -36,7 +41,7 @@ end
 
 function Public.comfy_panel_clear_screen_gui(player)
     for _, child in pairs(player.gui.screen.children) do
-        if child.name ~= CommandFrame.bottom_guis_frame then
+        if not screen_elements[child.name] then
             child.visible = false
         end
     end
@@ -44,7 +49,7 @@ end
 
 function Public.comfy_panel_restore_screen_gui(player)
     for _, child in pairs(player.gui.screen.children) do
-        if child.name ~= 'ups_label' then
+        if not screen_elements[child.name] then
             child.visible = true
         end
     end

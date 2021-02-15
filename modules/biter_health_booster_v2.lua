@@ -109,7 +109,6 @@ function Public.add_unit(unit, health_multiplier)
         floor(unit.prototype.max_health * health_multiplier),
         round(1 / health_multiplier, 5)
     }
-    clean_table()
 end
 
 function Public.add_boss_unit(unit, health_multiplier, health_bar_size)
@@ -125,7 +124,6 @@ function Public.add_boss_unit(unit, health_multiplier, health_bar_size)
         round(1 / health_multiplier, 5),
         {max_health = health, healthbar_id = create_boss_healthbar(unit, health_bar_size), last_update = game.tick}
     }
-    clean_table()
 end
 
 local function on_entity_damaged(event)
@@ -242,6 +240,7 @@ end
 
 Event.on_init(on_init)
 Event.add(defines.events.on_entity_damaged, on_entity_damaged)
+Event.on_nth_tick(7200, clean_table)
 Event.add(defines.events.on_entity_died, on_entity_died)
 
 return Public

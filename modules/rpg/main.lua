@@ -1091,7 +1091,7 @@ local function on_player_used_capsule(event)
         player.character.surface.create_entity({name = 'water-splash', position = player.position})
         p(({'rpg_main.warped_ok'}), Color.info)
         rpg_t[player.index].mana = rpg_t[player.index].mana - object.mana_cost
-    elseif projectile_types[obj_name] then
+    elseif projectile_types[obj_name] then -- projectiles
         for i = 1, object.amount do
             local damage_area = {
                 left_top = {x = position.x - 2, y = position.y - 2},
@@ -1107,11 +1107,11 @@ local function on_player_used_capsule(event)
         p(({'rpg_main.object_spawned', obj_name}), Color.success)
         rpg_t[player.index].mana = rpg_t[player.index].mana - object.mana_cost
     else
-        if object.target then
+        if object.target then -- rockets and such
             surface.create_entity({name = obj_name, position = position, force = force, target = target_pos, speed = 1})
             p(({'rpg_main.object_spawned', obj_name}), Color.success)
             rpg_t[player.index].mana = rpg_t[player.index].mana - object.mana_cost
-        elseif object.obj_to_create == 'fish' then
+        elseif object.obj_to_create == 'fish' then -- spawn in some fish
             player.insert({name = 'raw-fish', count = object.amount})
             p(({'rpg_main.object_spawned', 'raw-fish'}), Color.success)
             rpg_t[player.index].mana = rpg_t[player.index].mana - object.mana_cost

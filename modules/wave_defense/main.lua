@@ -526,7 +526,7 @@ local function increase_biters_health()
         modified_unit_health = 30
     end
     debug_print('[HEALTHBOOSTER] > Normal Units Health Boosted: ' .. modified_unit_health)
-    WD.set('modified_unit_health', modified_unit_health + 0.02)
+    WD.set('modified_unit_health', modified_unit_health + 0.04)
 
     -- this sets boss units health
     if boosted_health == 1 then

@@ -4,6 +4,7 @@ local Server = require 'utils.server'
 local Color = require 'utils.color_presets'
 local Event = require 'utils.event'
 local Global = require 'utils.global'
+local ComfyGui = require 'comfy_panel.main'
 local Gui = require 'utils.gui'
 
 local this = {
@@ -669,5 +670,6 @@ Event.add(
 )
 
 Public.bottom_guis_frame = bottom_guis_frame
+ComfyGui.screen_to_bypass(bottom_guis_frame)
 
 return Public

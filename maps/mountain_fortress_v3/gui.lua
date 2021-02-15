@@ -259,6 +259,8 @@ local function on_player_changed_surface(event)
     local diff = player.gui.top['difficulty_gui']
     local charging = player.gui.top['charging_station']
     local frame = player.gui.top[main_frame_name]
+    local spell_gui_frame_name = RPG_Settings.spell_gui_frame_name
+    local spell_cast_buttons = player.gui.screen[spell_gui_frame_name]
 
     if info then
         info.tooltip = ({'gui.info_tooltip'})
@@ -287,6 +289,9 @@ local function on_player_changed_surface(event)
         if rpg_b and not rpg_b.visible then
             rpg_b.visible = true
         end
+        if spell_cast_buttons and not spell_cast_buttons.visible then
+            spell_cast_buttons.visible = true
+        end
         if diff and not diff.visible then
             diff.visible = true
         end
@@ -307,6 +312,9 @@ local function on_player_changed_surface(event)
         end
         if rpg_b then
             rpg_b.visible = false
+        end
+        if spell_cast_buttons and spell_cast_buttons.visible then
+            spell_cast_buttons.visible = false
         end
         if rpg_f then
             rpg_f.destroy()
@@ -366,6 +374,7 @@ local function enable_guis(event)
     if rpg_b and not rpg_b.visible then
         rpg_b.visible = true
     end
+
     if diff and not diff.visible then
         diff.visible = true
     end
