@@ -186,6 +186,8 @@ function Public.reset_map()
   WD.clear_corpses(false)
   WD.remove_entities(true)
   WD.enable_threat_log(true)
+  WD.increase_damage_per_wave(true)
+  WD.increase_health_per_wave(true)
   WD.set_disable_threat_below_zero(true)
   WD.set_biter_health_boost(1.4)
   --  WD.set().wave_interval = 3300
