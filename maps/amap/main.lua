@@ -26,6 +26,7 @@ local rock = require 'maps.amap.rock'
 local Loot = require'maps.amap.loot'
 local RPG = require 'modules.rpg.table'
 local Difficulty = require 'modules.difficulty_vote_by_amount'
+
 --local arty = require "maps.amap.enemy_arty"
 --require 'maps.amap.burden'
 require "modules.spawners_contain_biters"
@@ -43,6 +44,7 @@ require 'modules.shotgun_buff'
 require 'modules.no_deconstruction_of_neutral_entities'
 require 'modules.wave_defense.main'
 require 'modules.charging_station'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 
 local init_new_force = function()
   local new_force = game.forces.protectors
@@ -197,6 +199,7 @@ function Public.reset_map()
 
   Functions.disable_tech()
   game.forces.player.set_spawn_position({0, 0}, surface)
+BiterHealthBooster.set_active_surface(tostring(surface.name))
 
   Task.start_queue()
   Task.set_queue_speed(16)
