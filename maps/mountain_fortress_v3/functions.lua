@@ -777,7 +777,7 @@ local function calc_players()
         end
     end
     if total <= 0 then
-        total = 1
+        total = #players
     end
     return total
 end
@@ -846,6 +846,12 @@ function Public.render_direction(surface)
     local text = 'Welcome to Mountain Fortress v3!'
     if winter_mode then
         text = 'Welcome to Wintery Mountain Fortress v3!'
+    end
+
+    local modded = is_game_modded()
+
+    if modded then
+        text = 'Welcome to Modded Mountain Fortress v3!'
     end
     if counter then
         rendering.draw_text {
@@ -969,50 +975,70 @@ function Public.boost_difficulty()
 
     local force = game.forces.player
 
+    local unit_modifiers = WD.get('modified_unit_health')
+
     if name == "I'm too young to die" then
-        -- rpg_extra.difficulty = 1
         force.manual_mining_speed_modifier = force.manual_mining_speed_modifier + 0.5
         force.character_running_speed_modifier = 0.15
         force.manual_crafting_speed_modifier = 0.15
-        WPT.set().coin_amount = 1
+        WPT.set('coin_amount', 1)
         WPT.set('upgrades').flame_turret.limit = 12
         WPT.set('upgrades').landmine.limit = 50
-        WPT.set().locomotive_health = 10000
-        WPT.set().locomotive_max_health = 10000
-        WPT.set().bonus_xp_on_join = 500
-        WD.set().next_wave = game.tick + 3600 * 15
-        WPT.set().spidertron_unlocked_at_wave = 14
-        WPT.set().difficulty_set = true
+        if is_game_modded() then
+            WPT.set('locomotive_health', 20000)
+            WPT.set('locomotive_max_health', 20000)
+        else
+            WPT.set('locomotive_health', 10000)
+            WPT.set('locomotive_max_health', 10000)
+        end
+        WPT.set('bonus_xp_on_join', 500)
+        WD.set('next_wave', game.tick + 3600 * 15)
+        WPT.set('spidertron_unlocked_at_zone', 10)
         WD.set_biter_health_boost(1.50)
+        unit_modifiers.limit_value = 30
+        unit_modifiers.health_increase_per_boss_wave = 0.04
+        WPT.set('difficulty_set', true)
     elseif name == 'Hurt me plenty' then
-        -- rpg_extra.difficulty = 0.5
         force.manual_mining_speed_modifier = force.manual_mining_speed_modifier + 0.25
         force.character_running_speed_modifier = 0.1
         force.manual_crafting_speed_modifier = 0.1
-        WPT.set().coin_amount = 1
+        WPT.set('coin_amount', 2)
         WPT.set('upgrades').flame_turret.limit = 10
         WPT.set('upgrades').landmine.limit = 50
-        WPT.set().locomotive_health = 7000
-        WPT.set().locomotive_max_health = 7000
-        WPT.set().bonus_xp_on_join = 300
-        WD.set().next_wave = game.tick + 3600 * 10
-        WPT.set().spidertron_unlocked_at_wave = 16
-        WPT.set().difficulty_set = true
+        if is_game_modded() then
+            WPT.set('locomotive_health', 12000)
+            WPT.set('locomotive_max_health', 12000)
+        else
+            WPT.set('locomotive_health', 7000)
+            WPT.set('locomotive_max_health', 7000)
+        end
+        WPT.set('bonus_xp_on_join', 300)
+        WD.set('next_wave', game.tick + 3600 * 8)
+        WPT.set('spidertron_unlocked_at_zone', 8)
+        unit_modifiers.limit_value = 40
+        unit_modifiers.health_increase_per_boss_wave = 0.06
         WD.set_biter_health_boost(2)
+        WPT.set('difficulty_set', true)
     elseif name == 'Ultra-violence' then
-        -- rpg_extra.difficulty = 0
         force.character_running_speed_modifier = 0
         force.manual_crafting_speed_modifier = 0
-        WPT.set().coin_amount = 1
+        WPT.set('coin_amount', 4)
         WPT.set('upgrades').flame_turret.limit = 3
         WPT.set('upgrades').landmine.limit = 10
-        WPT.set().locomotive_health = 5000
-        WPT.set().locomotive_max_health = 5000
-        WPT.set().bonus_xp_on_join = 50
-        WD.set().next_wave = game.tick + 3600 * 5
-        WPT.set().spidertron_unlocked_at_wave = 18
-        WPT.set().difficulty_set = true
-        WD.set_biter_health_boost(3)
+        if is_game_modded() then
+            WPT.set('locomotive_health', 8000)
+            WPT.set('locomotive_max_health', 8000)
+        else
+            WPT.set('locomotive_health', 5000)
+            WPT.set('locomotive_max_health', 5000)
+        end
+        WPT.set('bonus_xp_on_join', 50)
+        WD.set('next_wave', game.tick + 3600 * 5)
+        WPT.set('spidertron_unlocked_at_zone', 6)
+        unit_modifiers.limit_value = 50
+        unit_modifiers.health_increase_per_boss_wave = 0.08
+        WD.set_biter_health_boost(4)
+        WPT.set('difficulty_set', true)
     end
 end
 
@@ -1137,6 +1163,11 @@ function Public.on_player_joined_game(event)
             player.insert({name = item, count = amount})
         end
         player_data.first_join = true
+    end
+
+    local top = player.gui.top
+    if top['mod_gui_top_frame'] then
+        top['mod_gui_top_frame'].destroy()
     end
 
     if player.surface.index ~= active_surface_index then
@@ -1265,8 +1296,7 @@ function Public.on_player_changed_position(event)
     end
 end
 
-local disable_recipes = function()
-    local force = game.forces.player
+local disable_recipes = function(force)
     force.recipes['cargo-wagon'].enabled = false
     force.recipes['fluid-wagon'].enabled = false
     force.recipes['car'].enabled = false
@@ -1275,18 +1305,28 @@ local disable_recipes = function()
     force.recipes['locomotive'].enabled = false
     force.recipes['pistol'].enabled = false
     force.recipes['spidertron-remote'].enabled = false
+    if is_mod_loaded('Krastorio2') then
+        force.recipes['kr-advanced-tank'].enabled = false
+    end
 end
 
 function Public.disable_tech()
-    game.forces.player.technologies['landfill'].enabled = false
-    game.forces.player.technologies['spidertron'].enabled = false
-    game.forces.player.technologies['spidertron'].researched = false
-    game.forces.player.technologies['atomic-bomb'].enabled = false
-    game.forces.player.technologies['atomic-bomb'].researched = false
-    game.forces.player.technologies['optics'].researched = true
-    game.forces.player.technologies['railway'].researched = true
-    game.forces.player.technologies['land-mine'].enabled = false
-    disable_recipes()
+    local force = game.forces.player
+    force.technologies['landfill'].enabled = false
+    force.technologies['spidertron'].enabled = false
+    force.technologies['spidertron'].researched = false
+    force.technologies['atomic-bomb'].enabled = false
+    force.technologies['atomic-bomb'].researched = false
+    force.technologies['optics'].researched = true
+    force.technologies['railway'].researched = true
+    force.technologies['land-mine'].enabled = false
+    if is_mod_loaded('Krastorio2') then
+        force.technologies['kr-nuclear-locomotive'].enabled = false
+        force.technologies['kr-nuclear-locomotive'].researched = false
+        force.technologies['kr-advanced-tank'].enabled = false
+        force.technologies['kr-advanced-tank'].researched = false
+    end
+    disable_recipes(force)
 end
 
 local disable_tech = Public.disable_tech
@@ -1321,9 +1361,16 @@ function Public.on_research_finished(event)
     end
 end
 
+-- if is_mod_loaded('Krastorio2') then
+-- Public.firearm_magazine_ammo = {name = 'rifle-magazine', count = 200}
+-- Public.piercing_rounds_magazine_ammo = {name = 'armor-piercing-rifle-magazine', count = 200}
+-- Public.uranium_rounds_magazine_ammo = {name = 'uranium-rifle-magazine', count = 200}
+-- else
 Public.firearm_magazine_ammo = {name = 'firearm-magazine', count = 200}
 Public.piercing_rounds_magazine_ammo = {name = 'piercing-rounds-magazine', count = 200}
 Public.uranium_rounds_magazine_ammo = {name = 'uranium-rounds-magazine', count = 200}
+-- end
+
 Public.light_oil_ammo = {name = 'light-oil', amount = 100}
 Public.artillery_shell_ammo = {name = 'artillery-shell', count = 15}
 Public.laser_turrent_power_source = {buffer_size = 2400000, power_production = 40000}

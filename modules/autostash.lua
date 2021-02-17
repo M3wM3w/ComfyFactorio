@@ -173,6 +173,17 @@ local function get_nearby_chests(player, a, furnace, wagon)
             containers[i] = e
         end
     end
+    if #containers <= 0 then
+        if is_mod_loaded('Krastorio2') then
+            for _, e in pairs(player.surface.find_entities_filtered({type = 'assembling-machine', area = area, force = 'player'})) do
+                if ((player.position.x - e.position.x) ^ 2 + (player.position.y - e.position.y) ^ 2) <= r_square then
+                    i = i + 1
+                    containers[i] = e
+                end
+            end
+        end
+    end
+
     sort_entities_by_distance(player.position, containers)
     for _, entity in pairs(containers) do
         size_of_chests = size_of_chests + 1
@@ -203,22 +214,31 @@ local function insert_item_into_chest(player_inventory, chests, filtered_chests,
     --Attempt to store into furnaces.
     if furnace then
         for _, chest in pairs(chests) do
-            local chest_inventory = chest.get_inventory(defines.inventory.furnace_source)
-            if chest_inventory and chest.type == 'furnace' then
-                if chest_inventory.can_insert({name = name, count = count}) then
-                    local inserted_count = chest_inventory.insert({name = name, count = count})
+            local chest_inventory
+            if chest.type == 'assembling-machine' then
+                chest_inventory = chest.get_inventory(defines.inventory.assembling_machine_input)
+            else
+                chest_inventory = chest.get_inventory(defines.inventory.furnace_source)
+            end
+            local amount = to_insert
+            if variator > 0 then
+                amount = amount + 1
+                variator = variator - 1
+            end
+            if amount <= 0 then
+                return
+            end
+            if chest_inventory and (chest.type == 'furnace' or chest.type == 'assembling-machine') then
+                if chest_inventory.can_insert({name = name, count = amount}) then
+                    local inserted_count = chest_inventory.insert({name = name, count = amount})
                     player_inventory.remove({name = name, count = inserted_count})
                     create_floaty_text(chest.surface, chest.position, name, inserted_count)
-                    count = count - inserted_count
-                    if count <= 0 then
-                        return
-                    end
                 end
             end
         end
 
         for _, chest in pairs(chests) do
-            if chest.type == 'furnace' then
+            if chest.type == 'furnace' or chest.type == 'assembling-machine' then
                 local amount = to_insert
                 if variator > 0 then
                     amount = amount + 1
@@ -259,6 +279,7 @@ local function insert_item_into_chest(player_inventory, chests, filtered_chests,
     for _, chest in pairs(chests) do
         if container[chest.type] then
             local chest_inventory = chest.get_inventory(defines.inventory.chest)
+
             if chest_inventory and chest_inventory.can_insert({name = name, count = count}) then
                 if chest_inventory.find_item_stack(name) then
                     local inserted_count = chest_inventory.insert({name = name, count = count})

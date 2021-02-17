@@ -48,6 +48,35 @@ function Public.create_surface()
             ['tile:deep-water:probability'] = -10000
         }
     }
+    local modded = is_game_modded()
+    if modded then
+        map_gen_settings.autoplace_controls = {}
+        if game.active_mods['Krastorio2'] then
+            map_gen_settings.autoplace_controls.imersite = {
+                frequency = 1,
+                richness = 1,
+                size = 1
+            }
+            map_gen_settings.autoplace_controls['mineral-water'] = {
+                frequency = 1,
+                richness = 1,
+                size = 1
+            }
+            map_gen_settings.autoplace_controls['rare-metals'] = {
+                frequency = 1,
+                richness = 1,
+                size = 1
+            }
+        end
+        if game.active_mods['Factorio-Tiberium'] then
+            map_gen_settings.autoplace_controls.tibGrowthNode = {
+                frequency = 1,
+                richness = 1,
+                size = 1
+            }
+        end
+    end
+
     local mine = {}
     mine['control-setting:moisture:bias'] = 0.33
     mine['control-setting:moisture:frequency:multiplier'] = 1

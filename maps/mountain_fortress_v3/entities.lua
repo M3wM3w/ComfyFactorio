@@ -177,10 +177,15 @@ local function check_health()
             if not (entity and entity.valid) then
                 return
             end
+            local cargo_health = 600
+            local modded = is_game_modded()
+            if modded then
+                cargo_health = 750
+            end
             if entity.type == 'locomotive' then
                 entity.health = 1000 * m
             else
-                entity.health = 600 * m
+                entity.health = cargo_health * m
             end
         end
     end
@@ -461,7 +466,7 @@ local function give_coin(player)
         if coin_override then
             player.insert({name = 'coin', count = coin_override})
         else
-            player.insert({name = 'coin', count = coin_amount})
+            player.insert({name = 'coin', count = random(1, coin_amount)})
         end
     end
 end
@@ -637,9 +642,60 @@ local mining_events = {
                 return
             end
 
+            local ent_to_create = {'biter-spawner', 'spitter-spawner'}
+
+            if is_mod_loaded('bobenemies') then
+                ent_to_create = {'bob-biter-spawner', 'bob-spitter-spawner'}
+            end
+
             local position = entity.position
             local surface = entity.surface
-            local e = surface.create_entity({name = 'biter-spawner', position = position, force = 'enemy'})
+            local e = surface.create_entity({name = ent_to_create[random(1, #ent_to_create)], position = position, force = 'enemy'})
+            if is_mod_loaded('Krastorio2') then
+                local tiles = {}
+                for y = 3 * -2, 3 * 2, 1 do
+                    for x = 3 * -2, 3 * 2, 1 do
+                        local p = {y = position.y + y, x = position.x + x}
+                        tiles[#tiles + 1] = {name = 'kr-creep', position = p}
+                    end
+                end
+                entity.surface.set_tiles(tiles, true)
+            end
+
+            e.destructible = false
+            Task.set_timeout_in_ticks(300, immunity_spawner, {entity = e})
+            Public.unstuck_player(index)
+        end,
+        512,
+        'Nest'
+    },
+    {
+        function(entity, index)
+            if Locomotive.is_around_train(entity) then
+                entity.destroy()
+                return
+            end
+
+            local ent_to_create = {'biter-spawner', 'spitter-spawner'}
+
+            if is_mod_loaded('bobenemies') then
+                ent_to_create = {'bob-biter-spawner', 'bob-spitter-spawner'}
+            end
+
+            local position = entity.position
+            local surface = entity.surface
+            local e = surface.create_entity({name = ent_to_create[random(1, #ent_to_create)], position = position, force = 'enemy'})
+            if is_mod_loaded('Krastorio2') then
+                local tiles = {}
+                for y = 3 * -2, 3 * 2, 1 do
+                    for x = 3 * -2, 3 * 2, 1 do
+                        local p = {y = position.y + y, x = position.x + x}
+                        tiles[#tiles + 1] = {name = 'kr-creep', position = p}
+                    end
+                end
+                entity.surface.set_tiles(tiles, true)
+            end
+
             e.destructible = false
             Task.set_timeout_in_ticks(300, immunity_spawner, {entity = e})
             Public.unstuck_player(index)

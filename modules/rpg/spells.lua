@@ -165,7 +165,7 @@ function Public.conjure_items()
         type = 'entity',
         mana_cost = 800,
         tick = 1420,
-        enabled = true,
+        enabled = false,
         sprite = 'entity/biter-spawner'
     }
     spells[#spells + 1] = {
@@ -176,7 +176,7 @@ function Public.conjure_items()
         type = 'entity',
         mana_cost = 800,
         tick = 1420,
-        enabled = true,
+        enabled = false,
         sprite = 'entity/spitter-spawner'
     }
     spells[#spells + 1] = {

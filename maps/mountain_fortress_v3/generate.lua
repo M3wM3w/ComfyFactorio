@@ -327,6 +327,9 @@ local function do_place_entities(data)
                 if entity and e.force then
                     entity.force = e.force
                 end
+                if entity and e.amount then
+                    entity.amount = e.amount
+                end
                 if entity and e.callback then
                     local c = e.callback.callback
                     if not c then
@@ -350,6 +353,9 @@ local function do_place_entities(data)
             end
             if entity and e.force then
                 entity.force = e.force
+            end
+            if entity and e.amount then
+                entity.amount = e.amount
             end
             if entity and e.callback then
                 local c = e.callback.callback

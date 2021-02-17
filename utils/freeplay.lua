@@ -18,17 +18,6 @@ Global.register(
     end
 )
 
-local function is_game_modded()
-    local i = 0
-    for k, _ in pairs(game.active_mods) do
-        i = i + 1
-        if i > 1 then
-            return true
-        end
-    end
-    return false
-end
-
 local function custom_surface()
     local i = 0
     for k, _ in pairs(game.surfaces) do
@@ -131,7 +120,9 @@ local on_cutscene_waypoint_reached = function(event)
     player.exit_cutscene()
 
     if custom_surface() then
-        player.teleport(game.surfaces[3].find_non_colliding_position('character', {64, 64}, 50, 0.5), game.surfaces[3].name)
+        if player.surface.name == 'nauvis' then
+            player.teleport(game.surfaces[3].find_non_colliding_position('character', {64, 64}, 50, 0.5), game.surfaces[3].name)
+        end
     end
 end
 
@@ -152,7 +143,9 @@ local skip_crash_site_cutscene = function(event)
         player.exit_cutscene()
     end
     if custom_surface() then
-        player.teleport(game.surfaces[3].find_non_colliding_position('character', {64, 64}, 50, 0.5), game.surfaces[3].name)
+        if player.surface.name == 'nauvis' then
+            player.teleport(game.surfaces[3].find_non_colliding_position('character', {64, 64}, 50, 0.5), game.surfaces[3].name)
+        end
     end
 end
 
@@ -220,7 +213,7 @@ Event.on_init(
         local game_has_mods = is_game_modded()
         if game_has_mods then
             this.modded = true
-            this.disable_crashsite = false
+            this.disable_crashsite = true
             this.created_items = created_items()
             this.respawn_items = respawn_items()
             this.crashed_ship_items = ship_items()

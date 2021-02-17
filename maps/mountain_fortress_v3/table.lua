@@ -189,7 +189,7 @@ function Public.reset_table()
         compare_next = 200,
         distance_from = 2
     }
-    this.spidertron_unlocked_at_wave = 11
+    this.spidertron_unlocked_at_zone = 11
     -- this.void_or_tile = 'lab-dark-2'
     this.void_or_tile = 'out-of-map'
     this.validate_spider = {}

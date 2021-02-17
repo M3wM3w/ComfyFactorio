@@ -139,8 +139,13 @@ local valid_scrap = {
     ['crash-site-spaceship-wreck-small-3'] = true,
     ['crash-site-spaceship-wreck-small-4'] = true,
     ['crash-site-spaceship-wreck-small-5'] = true,
-    ['crash-site-spaceship-wreck-small-6'] = true
+    ['crash-site-spaceship-wreck-small-6'] = true,
+    ['mineable-wreckages'] = true
 }
+
+if is_mod_loaded('MineableWreckage') then
+    valid_scrap['mineable-wreckages'] = true
+end
 
 local reward_wood = {
     ['dead-tree-desert'] = true,
@@ -164,6 +169,10 @@ local particles = {
     ['coal'] = 'coal-particle',
     ['stone'] = 'stone-particle'
 }
+
+if is_mod_loaded('Factorio-Tiberium') then
+    particles['tiberium-ore'] = 'blood-particle'
+end
 
 local function create_particles(surface, name, position, amount, cause_position)
     local d1 = (-100 + random(0, 200)) * 0.0004
@@ -204,6 +213,13 @@ local function mining_chances_ores()
         {name = 'stone', chance = 13},
         {name = 'uranium-ore', chance = 2}
     }
+    if is_mod_loaded('Factorio-Tiberium') then
+        data[#data + 1] = {name = 'tiberium-ore', chance = 5}
+    end
+    if is_mod_loaded('Krastorio2') then
+        data[#data + 1] = {name = 'raw-rare-metals', chance = 5}
+    end
+
     return data
 end
 

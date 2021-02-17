@@ -183,7 +183,7 @@ local function distance(player)
             WPT.set().placed_trains_in_zone.randomized = false
             WPT.set().placed_trains_in_zone.positions = {}
             raise_event(Balance.events.breached_wall, {})
-            if WPT.get('breached_wall') == WPT.get('spidertron_unlocked_at_wave') then
+            if WPT.get('breached_wall') == WPT.get('spidertron_unlocked_at_zone') then
                 local main_market_items = WPT.get('main_market_items')
                 if not main_market_items['spidertron'] then
                     local rng = random(70000, 120000)

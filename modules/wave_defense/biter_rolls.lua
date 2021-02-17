@@ -54,6 +54,27 @@ function Public.wave_defense_set_unit_raffle(level)
             ['behemoth-spitter'] = 0
         }
     )
+
+    local bobs_enemies = is_mod_loaded('bobenemies')
+
+    if bobs_enemies then
+        local biter_raffle = WD.get('biter_raffle')
+        biter_raffle['bob-big-electric-spitter'] = 0
+        biter_raffle['bob-huge-acid-spitter'] = 0
+        biter_raffle['bob-huge-explosive-spitter'] = 0
+        biter_raffle['bob-giant-fire-spitter'] = 0
+        biter_raffle['bob-giant-poison-spitter'] = 0
+        biter_raffle['bob-leviathan-spitter'] = 0
+
+        local spitter_raffle = WD.get('spitter_raffle')
+        spitter_raffle['bob-big-piercing-biter'] = 0
+        spitter_raffle['bob-behemoth-biter'] = 0
+        spitter_raffle['bob-titan-biter'] = 0
+        spitter_raffle['bob-giant-poison-biter'] = 0
+        spitter_raffle['bob-giant-fire-biter'] = 0
+        spitter_raffle['bob-huge-explosive-biter'] = 0
+    end
+
     local biter_raffle = WD.get('biter_raffle')
     local spitter_raffle = WD.get('spitter_raffle')
     if level > 500 then
@@ -61,10 +82,26 @@ function Public.wave_defense_set_unit_raffle(level)
         spitter_raffle['medium-spitter'] = 500 - (level - 500)
         biter_raffle['big-biter'] = (level - 500) * 2
         spitter_raffle['big-spitter'] = (level - 500) * 2
+        if bobs_enemies then
+            biter_raffle['bob-big-electric-spitter'] = 500 - (level - 500)
+            biter_raffle['bob-huge-acid-spitter'] = (level - 500) * 2
+            biter_raffle['bob-huge-explosive-spitter'] = (level - 500) * 2
+            spitter_raffle['bob-big-piercing-biter'] = 500 - (level - 500)
+            spitter_raffle['bob-behemoth-biter'] = (level - 500) * 2
+            spitter_raffle['bob-titan-biter'] = (level - 500) * 2
+        end
     end
     if level > 800 then
         biter_raffle['behemoth-biter'] = (level - 800) * 2.75
         spitter_raffle['behemoth-spitter'] = (level - 800) * 2.75
+        if bobs_enemies then
+            biter_raffle['bob-giant-fire-spitter'] = (level - 800) * 2.75
+            biter_raffle['bob-giant-poison-spitter'] = (level - 800) * 2.75
+            biter_raffle['bob-leviathan-spitter'] = (level - 800) * 2.75
+            spitter_raffle['bob-giant-poison-biter'] = (level - 800) * 2.75
+            spitter_raffle['bob-giant-fire-biter'] = (level - 800) * 2.75
+            spitter_raffle['bob-huge-explosive-biter'] = (level - 800) * 2.75
+        end
     end
     for k, _ in pairs(biter_raffle) do
         if biter_raffle[k] < 0 then

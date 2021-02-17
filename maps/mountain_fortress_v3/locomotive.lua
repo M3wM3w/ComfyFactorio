@@ -452,10 +452,15 @@ local function set_locomotive_health()
                 if not (entity and entity.valid) then
                     return
                 end
+                local cargo_health = 600
+                local modded = is_game_modded()
+                if modded then
+                    cargo_health = 750
+                end
                 if entity.type == 'locomotive' then
                     entity.health = 1000 * m
                 else
-                    entity.health = 600 * m
+                    entity.health = cargo_health * m
                 end
             end
         end
@@ -1067,10 +1072,15 @@ local function gui_click(event)
                 if not (entity and entity.valid) then
                     return
                 end
+                local cargo_health = 600
+                local modded = is_game_modded()
+                if modded then
+                    cargo_health = 750
+                end
                 if entity.type == 'locomotive' then
                     entity.health = 1000 * m
                 else
-                    entity.health = 600 * m
+                    entity.health = cargo_health * m
                 end
             end
         end
@@ -1327,10 +1337,16 @@ local function spawn_biter()
         'big-spitter',
         'behemoth-spitter'
     }
+    if is_mod_loaded('bobenemies') then
+        biters = {'bob-leviathan-biter', 'bob-behemoth-biter', 'bob-huge-explosive-spitter'}
+    end
+
+    local size_of = #biters
+
     if not position then
         return
     end
-    this.locomotive_biter = loco_surface.create_entity({name = biters[random(1, 4)], position = position, force = 'player', create_build_effect_smoke = false})
+    this.locomotive_biter = loco_surface.create_entity({name = biters[random(1, size_of)], position = position, force = 'player', create_build_effect_smoke = false})
     this.locomotive_biter.ai_settings.allow_destroy_when_commands_fail = false
     this.locomotive_biter.ai_settings.allow_try_return_to_spawner = false
 
@@ -1689,7 +1705,7 @@ local function shoo(event)
     message = string.lower(message)
     for word in string.gmatch(message, '%g+') do
         if word == 'shoo' then
-            if not locomotive_biter then
+            if not locomotive_biter or not locomotive_biter.valid then
                 spawn_biter()
                 return
             end
@@ -2144,34 +2160,67 @@ function Public.get_items()
     }
 
     if game.forces.player.technologies['logistics'].researched then
-        main_market_items['loader'] = {
-            stack = 1,
-            value = 'coin',
-            price = 128,
-            tooltip = ({'entity-name.loader'}),
-            upgrade = false,
-            static = true
-        }
+        if is_mod_loaded('Krastorio2') then
+            main_market_items['kr-loader'] = {
+                stack = 1,
+                value = 'coin',
+                price = 128,
+                tooltip = ({'entity-name.kr-loader'}),
+                upgrade = false,
+                static = true
+            }
+        else
+            main_market_items['loader'] = {
+                stack = 1,
+                value = 'coin',
+                price = 128,
+                tooltip = ({'entity-name.loader'}),
+                upgrade = false,
+                static = true
+            }
+        end
     end
     if game.forces.player.technologies['logistics-2'].researched then
-        main_market_items['fast-loader'] = {
-            stack = 1,
-            value = 'coin',
-            price = 256,
-            tooltip = ({'entity-name.fast-loader'}),
-            upgrade = false,
-            static = true
-        }
+        if is_mod_loaded('Krastorio2') then
+            main_market_items['kr-fast-loader'] = {
+                stack = 1,
+                value = 'coin',
+                price = 256,
+                tooltip = ({'entity-name.kr-fast-loader'}),
+                upgrade = false,
+                static = true
+            }
+        else
+            main_market_items['fast-loader'] = {
+                stack = 1,
+                value = 'coin',
+                price = 256,
+                tooltip = ({'entity-name.fast-loader'}),
+                upgrade = false,
+                static = true
+            }
+        end
     end
     if game.forces.player.technologies['logistics-3'].researched then
-        main_market_items['express-loader'] = {
-            stack = 1,
-            value = 'coin',
-            price = 512,
-            tooltip = ({'entity-name.express-loader'}),
-            upgrade = false,
-            static = true
-        }
+        if is_mod_loaded('Krastorio2') then
+            main_market_items['kr-express-loader'] = {
+                stack = 1,
+                value = 'coin',
+                price = 512,
+                tooltip = ({'entity-name.kr-express-loader'}),
+                upgrade = false,
+                static = true
+            }
+        else
+            main_market_items['express-loader'] = {
+                stack = 1,
+                value = 'coin',
+                price = 512,
+                tooltip = ({'entity-name.express-loader'}),
+                upgrade = false,
+                static = true
+            }
+        end
     end
     main_market_items['small-lamp'] = {
         stack = 1,
@@ -2229,6 +2278,26 @@ function Public.get_items()
         upgrade = false,
         static = false
     }
+    if is_mod_loaded('Factorio-Tiberium') then
+        main_market_items['tiberium-ore'] = {
+            stack = 25,
+            value = 'coin',
+            price = 15,
+            tooltip = ({'item-name.tiberium-ore'}),
+            upgrade = false,
+            static = false
+        }
+    end
+    if is_mod_loaded('Krastorio2') then
+        main_market_items['first-aid-kit'] = {
+            stack = 1,
+            value = 'coin',
+            price = 20,
+            tooltip = ({'item-name.first-aid-kit'}),
+            upgrade = false,
+            static = false
+        }
+    end
     main_market_items['land-mine'] = {
         stack = 1,
         value = 'coin',
@@ -2277,6 +2346,16 @@ function Public.get_items()
         upgrade = false,
         static = true
     }
+    if is_mod_loaded('Krastorio2') then
+        main_market_items['kr-advanced-tank'] = {
+            stack = 1,
+            value = 'coin',
+            price = 20000,
+            tooltip = ({'main_market.tank'}),
+            upgrade = false,
+            static = true
+        }
+    end
     local wave_number = WD.get_wave()
 
     if wave_number >= 650 then
