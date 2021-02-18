@@ -207,15 +207,16 @@ local function on_market_item_purchased(event)
     end
 if this.biter_health >= times then
       player.print({'amap.cap_upgrad'})
-      local pirce_biter_dam=this.biter_health*1000 +7000
-      if pirce_biter_dam >= 50000 then
-        pirce_biter_dam = 50000
+      local pirce_biter_health=this.biter_health*1000 +7000
+      if pirce_biter_health >= 50000 then
+        pirce_biter_health = 50000
       end
-      player.insert{name='coin',count = pirce_biter_dam}
+      player.insert{name='coin',count =pirce_biter_health}
       return
     end
     this.biter_health=this.biter_health+1
-BiterHealthBooster.set('biter_health_boost_forces',{[game.forces.player.index]=health*0.1+1})
+    local health = this.biter_health*0.1+1
+BiterHealthBooster.set('biter_health_boost_forces',{[game.forces.player.index]=health})
     game.print({'amap.buy_player_biter_over',player.name,this.biter_health*0.1+1})
   end
   if offer_index == 4 then
