@@ -88,7 +88,7 @@ require 'modules.autostash'
 --require 'maps.biter_battles.biter_battles'
 
 --![[A map that imitating MF, defending rocket silos instead of trains]]--
-require 'maps.amap.main'
+--require 'maps.amap.main'
 
 --![[Guide a Train through rough terrain, while defending it from the biters]]--
 -- require 'maps.mountain_fortress_v3.main'
