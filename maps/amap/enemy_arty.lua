@@ -256,7 +256,6 @@ if dis > 1000 then dis = 1000 end
 local bz_position={x=rand_x,y=rand_y}
 local magic = math.random(1+dis*0.1, dis*0.5)
     Loot.cool(surface, surface.find_non_colliding_position("steel-chest", bz_position, 20, 1, true) or bz_position, 'steel-chest', magic)
-    game.print(magic)
      many_baozhang= many_baozhang-1
   end
 
