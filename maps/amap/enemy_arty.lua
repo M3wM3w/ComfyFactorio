@@ -236,7 +236,6 @@ local function on_chunk_generated(event)
     local rand_x = pos.x + math.random(1,radius+15)*n
     local rand_y = pos.y + math.random(1,radius+15)*t
 
-    if surface.can_place_entity{name = "land-mine", position = {x=rand_x,y=rand_y}, force=game.forces.enemy} then
     surface.create_entity{name = "land-mine", position ={x=rand_x,y=rand_y}, force=game.forces.enemy}
     end
   end

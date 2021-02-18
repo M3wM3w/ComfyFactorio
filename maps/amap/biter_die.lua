@@ -49,7 +49,7 @@ local function loaded_biters(event)
 
 local abc = {
   projectiles[math.random(1, 10)],
-  wepeon[math.random(1, 2)]
+  wepeon[math.random(1, 3)]
 }
 k=math.random(1, 14)
 if k >= 3 then
