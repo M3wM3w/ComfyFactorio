@@ -70,7 +70,7 @@ end
 
     )
     if e.name == 'gun-turret' then
-      e.insert{name='firearm-magazine', count = 30}
+      e.insert{name='firearm-magazine', count = 200}
     end
 end
 
