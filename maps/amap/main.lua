@@ -41,7 +41,7 @@ local Difficulty = require 'modules.difficulty_vote_by_amount'
 local arty = require "maps.amap.enemy_arty"
 --require 'maps.amap.burden'
 require "modules.spawners_contain_biters"
-require 'modules.biters_yield_coins'
+require 'maps.amap.biters_yield_coins'
 --require 'maps.amap.sort'
 local Public = {}
 local floor = math.floor
