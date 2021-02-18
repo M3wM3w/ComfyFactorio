@@ -1,6 +1,7 @@
 local Event = require 'utils.event'
 local WPT = require 'maps.amap.table'
 
+
 local entity_types = {
     ['unit'] = true,
     ['turret'] = true,
@@ -65,12 +66,13 @@ end
             source = entity.position,
             target = position,
             max_range = 16,
-            speed = 0.01
+            speed = 0.5
         }
 
     )
     if e.name == 'gun-turret' then
-      e.insert{name='firearm-magazine', count = 200}
+      local ammo_name= require 'maps.amap.enemy_arty'.get_ammo()
+      e.insert{name=ammo_name, count = 200}
     end
 end
 

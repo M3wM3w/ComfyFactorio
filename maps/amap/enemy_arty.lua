@@ -12,12 +12,16 @@ local turret_worth ={
   [2]={name='land-mine',worth=0},
   [3]={name='laser-turret',worth=2},
   [4]={name='gun-turret',worth=2},
-  [5]={name='flamethrower-turret',worth=3},
-  [6]={name='artillery-turret',worth=200}
+  [5]={name='medium-worm-turret',worth=3},
+  [6]={name='flamethrower-turret',worth=3},
+  [7]={name='big-worm-turret',worth=7},
+  [8]={name='behemoth-worm-turret',worth=15},
+  [9]={name='artillery-turret',worth=30}
 }
 local ammo={
-  [1]={'piercing-rounds-magazine'},
-  [2]={'uranium-rounds-magazine'}
+  [1]={name='firearm-magazine'},
+  [2]={name='piercing-rounds-magazine'},
+  [3]={name='uranium-rounds-magazine'},
 }
 local direction={
   [1]={'north'},
@@ -67,7 +71,7 @@ arty_count.index=1
   arty_count.flame={}
 
   arty_count.last=145
-
+arty_count.ammo_index=1
   arty_count.count=0
 end
 
@@ -94,6 +98,11 @@ end
 local on_init = function()
   Public.reset_table()
 end
+function Public.get_ammo()
+  local index = arty_count.ammo_index
+local ammo_name =ammo[index].name
+return ammo_name
+end
 
 local function fast_remove(tbl, index)
   local count = #tbl
@@ -113,8 +122,9 @@ local function gun_bullet ()
       fast_remove(arty_count.gun, index)
       return
     end
-
-    turret.insert{name='firearm-magazine', count = 10}
+    local index = arty_count.ammo_index
+local ammo_name =ammo[index].name
+  turret.insert{name=ammo_name, count = 200}
   end
 end
 
@@ -174,20 +184,25 @@ local function on_chunk_generated(event)
 
 
   local dis = math.sqrt(a^2+b^2)
+if dis > 300 and arty_count.ammo_index==1 then
+arty_count.ammo_index=2
+end
 
+if dis > 800 and arty_count.ammo_index==2 then
+arty_count.ammo_index=3
+end
   local q = dis - arty_count.last -7
 
   if q<0 then return  end
   arty_count.last=dis
-  local many_turret = math.floor(dis*0.07)
-
+  local many_turret = math.floor(dis*0.06)
+  if many_turret<=30 then many_turret=30 end
   local radius =math.floor(dis*0.03)
-
   if radius > 50 then radius = 50 end
   while many_turret > 0 do
-    local roll_k =math.floor(many_turret/8)
-    if roll_k < 5 then roll_k = 5 end
-    if roll_k > 6 then roll_k = 6 end
+    local roll_k =math.floor(many_turret/6)
+    if roll_k < 6 then roll_k = 6 end
+    if roll_k > 9 then roll_k = 9 end
     local roll_turret = math.random(1,roll_k)
     local turret_name = turret_worth[roll_turret].name
 
@@ -204,15 +219,16 @@ local function on_chunk_generated(event)
       direction= math.random(1,7)}
       many_turret=many_turret-turret_worth[roll_turret].worth
       --  game.print(e.direction)
-      if e.valid and e.name then
+      --if e.valid and e.name then
       if e.name == 'gun-turret' then arty_count.gun[#arty_count.gun+1]=e end
       if e.name == 'laser-turret' then arty_count.laser[#arty_count.laser+1]=e end
       if e.name == 'flamethrower-turret' then arty_count.flame[#arty_count.flame+1]=e end
       if e.name == 'artillery-turret' then
      arty_count.all[e.unit_number]=e
+     game.print(e.position)
       arty_count.count = arty_count.count + 1
       end
-    end
+    --end
   end
 
 
@@ -242,7 +258,7 @@ local function on_chunk_generated(event)
  local many_baozhang =math.random(2, 5)
 
 dis =math.floor(dis)
-if dis > 1000 then dis = 1000 end
+if dis > 1500 then dis = 1500 end
 --game.print(dis)
   while many_baozhang>=0 do
     local n = math.random(-100,100)
@@ -252,7 +268,7 @@ if dis > 1000 then dis = 1000 end
     local rand_x = pos.x + math.random(1,5)*n
     local rand_y = pos.y + math.random(1,5)*t
 local bz_position={x=rand_x,y=rand_y}
-local magic = math.random(1+dis*0.1, dis*0.5)
+local magic = math.random(1+dis*0.05, dis*0.2)
     Loot.cool(surface, surface.find_non_colliding_position("steel-chest", bz_position, 20, 1, true) or bz_position, 'steel-chest', magic)
      many_baozhang= many_baozhang-1
   end
