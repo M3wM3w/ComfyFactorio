@@ -1,15 +1,18 @@
 require 'modules.rpg.main'
 require 'maps.amap.relax'
 require 'maps.amap.diff'
+require 'maps.amap.biter_die'
 local Functions = require 'maps.amap.functions'
 local IC = require 'maps.amap.ic.table'
 local CS = require 'maps.amap.surface'
 local Event = require 'utils.event'
+--local HS = require 'maps.amap.highscore'
 local WD = require 'modules.wave_defense.table'
-local wall_health = require 'maps.amap.wall_health_booster'.set_health_modifier
-
-local spider_health =require 'maps.amap.spider_health_booster'.set_health_modifier
-
+local wall_health = require 'maps.amap.wall_health_booster_v2'
+local Balance = require 'maps.amap.balance'
+--local enemy_health = require 'maps.amap.enemy_health_booster'.set_health_modifier
+local spider_health =require 'maps.amap.spider_health_booster_v2'
+local enemy_health = require 'maps.amap.enemy_health_booster_v2'
 local Map = require 'modules.map_info'
 local AntiGrief = require 'antigrief'
 --local Explosives = require 'modules.explosives'
@@ -24,13 +27,21 @@ local Token = require 'utils.token'
 local Alert = require 'utils.alert'
 local rock = require 'maps.amap.rock'
 local Loot = require'maps.amap.loot'
-local RPG = require 'modules.rpg.table'
+
+local rpg_spells = RPG_Settings.get('rpg_spells')
+ --rpg_spells[1].enabled = false
+  --rpg_spells[17].enabled = true
+  --for k=1,#rpg_spells do
+    rpg_spells[16].enabled = true
+    rpg_spells[17].enabled = true
+  --end
+  local RPG = require 'modules.rpg.table'
 local Difficulty = require 'modules.difficulty_vote_by_amount'
 
---local arty = require "maps.amap.enemy_arty"
+local arty = require "maps.amap.enemy_arty"
 --require 'maps.amap.burden'
 require "modules.spawners_contain_biters"
-require 'maps.amap.biters_yield_coins'
+require 'modules.biters_yield_coins'
 --require 'maps.amap.sort'
 local Public = {}
 local floor = math.floor
@@ -65,14 +76,23 @@ local setting = function()
   game.map_settings.enemy_expansion.max_expansion_distance = 20
   game.map_settings.enemy_expansion.settler_group_min_size = 5
   game.map_settings.enemy_expansion.settler_group_max_size = 50
-
-  global.biter_health_boost_forces[game.forces.player.index] = 1
+  game.forces.enemy.friendly_fire = false
   game.forces.player.set_ammo_damage_modifier("artillery-shell", 0)
   game.forces.player.set_ammo_damage_modifier("melee", 0)
   game.forces.player.set_ammo_damage_modifier("biological", 0)
-  local index = game.forces.player.index
-  wall_health(index,1)
-  spider_health(index,1)
+
+local this = WPT.get()
+local surface = game.surfaces[this.active_surface_index]
+--  local index = game.forces.player.index
+  wall_health.set('biter_health_boost', 1)
+  spider_health.set('biter_health_boost',1)
+  enemy_health.set('biter_health_boost_forces',1)
+  BiterHealthBooster.set('biter_health_boost_forces',{[game.forces.player.index]=1})
+  wall_health.set_active_surface(tostring(surface.name))
+  spider_health.set_active_surface(tostring(surface.name))
+--  spider_health(index,1)
+enemy_health.set_active_surface(tostring(surface.name))
+--enemy_health(game.forces.enemy.index,1)
 end
 
 function Public.reset_map()
@@ -95,6 +115,7 @@ function Public.reset_map()
 
   game.reset_time_played()
   WPT.reset_table()
+  arty.reset_table()
 
   --记得后面改为失去一半经验！并且修订技能！
   local xp = {}
@@ -127,6 +148,7 @@ function Public.reset_map()
   RPG_Settings.enable_one_punch_globally(false)
   RPG_Settings.enable_auto_allocate(true)
   RPG_Settings.disable_cooldowns_on_spells()
+--  RPG_Settings.enable_title(true)
 
   --初始化部队
   init_new_force()
@@ -199,8 +221,13 @@ function Public.reset_map()
 
   Functions.disable_tech()
   game.forces.player.set_spawn_position({0, 0}, surface)
-BiterHealthBooster.set_active_surface(tostring(surface.name))
 
+  BiterHealthBooster.set_active_surface(tostring(surface.name))
+     BiterHealthBooster.acid_nova(true)
+     BiterHealthBooster.check_on_entity_died(true)
+     BiterHealthBooster.boss_spawns_projectiles(true)
+     BiterHealthBooster.enable_boss_loot(false)
+Balance.init_enemy_weapon_damage()
   Task.start_queue()
   Task.set_queue_speed(16)
 
@@ -210,7 +237,7 @@ BiterHealthBooster.set_active_surface(tostring(surface.name))
 
   global.worm_distance = 210
   global.average_worm_amount_per_chunk = 5
-
+--HS.get_scores()
   setting()
 end
 
@@ -643,6 +670,7 @@ change()
 end
 
   function on_research_finished(Event)
+    if Event.research.force.index==game.forces.enemy.index then return end
     local this = WPT.get()
     this.science=this.science+1
     local rpg_t = RPG.get('rpg_t')

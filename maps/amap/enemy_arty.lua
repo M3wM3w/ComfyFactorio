@@ -5,200 +5,287 @@ local arty_count = {}
 local Public = {}
 local Token = require 'utils.token'
 local WPT = require 'maps.amap.table'
+
+local turret_worth ={
+  [1]={name='stone-wall',worth=0},
+  [2]={name='land-mine',worth=0},
+  [3]={name='laser-turret',worth=2},
+  [4]={name='gun-turret',worth=2},
+  [5]={name='flamethrower-turret',worth=3},
+  [6]={name='artillery-turret',worth=200}
+}
+local ammo={
+  [1]={'piercing-rounds-magazine'},
+  [2]={'uranium-rounds-magazine'}
+}
+local direction={
+  [1]={'north'},
+  [2]={'east'},
+  [3]={'south'},
+  [4]={'west'},
+}
 local artillery_target_entities = {
-    'character',
-    'tank',
-    'car',
-    'radar',
-    'lab',
-    'furnace',
-    'locomotive',
-    'cargo-wagon',
-    'fluid-wagon',
-    'artillery-wagon',
-    'artillery-turret',
-    'laser-turret',
-    'gun-turret',
-    'flamethrower-turret',
+  'character',
+  'tank',
+  'car',
+  'radar',
+  'lab',
+  'furnace',
+  'locomotive',
+  'cargo-wagon',
+  'fluid-wagon',
+  'artillery-wagon',
+  'artillery-turret',
+  'laser-turret',
+  'gun-turret',
+  'flamethrower-turret',
   --  'silo',
-    'spidertron'
+  'spidertron'
 }
 
 Global.register(
-    arty_count,
-    function(tbl)
-        arty_count = tbl
-    end
+arty_count,
+function(tbl)
+  arty_count = tbl
+end
 )
 
 function Public.reset_table()
   arty_count.max = 100
-  arty_count.all = {}
-  arty_count.count = 0
+
   arty_count.pace = 1
   arty_count.radius = 350
-  arty_count.distance = 1400
+  arty_count.distance = 1050
   arty_count.surface = {}
-  arty_count.index = 1
+arty_count.index=1
   arty_count.fire = {}
+
+  arty_count.all = {}
+  arty_count.gun={}
+  arty_count.laser={}
+  arty_count.flame={}
+
+  arty_count.last=135
+
+  arty_count.count=0
 end
 
 
 function Public.get(key)
-    if key then
-        return arty_count[key]
-    else
-        return arty_count
-    end
+  if key then
+    return arty_count[key]
+  else
+    return arty_count
+  end
 end
 
 function Public.set(key, value)
-    if key and (value or value == false) then
-        this[key] = value
-        return this[key]
-    elseif key then
-        return this[key]
-    else
-        return this
-    end
+  if key and (value or value == false) then
+    this[key] = value
+    return this[key]
+  elseif key then
+    return this[key]
+  else
+    return this
+  end
 end
 
 local on_init = function()
-    Public.reset_table()
+  Public.reset_table()
 end
 
-local function add_bullet ()
-  for k, p in pairs(arty_count.all) do
-      if arty_count.all[k].valid then
-        arty_count.all[k].insert{name='artillery-shell', count = '5'}
-      end
-  end
-end
-local function on_chunk_generated(event)
-   local surface = event.surface
-   local this = WPT.get()
-   if	not(surface.index == game.surfaces[this.active_surface_index].index) then return end
-	
-   local left_top_x = event.area.left_top.x
-   local left_top_y = event.area.left_top.y
-
-  local position
-   for x = 0, 31, 1 do
- 		for y = 0, 31, 1 do
-    	position = {x = left_top_x + x, y = left_top_y + y}
-      local q =position.x*position.x
-      local w =position.y*position.y
-      local distance =math.sqrt(q+w)
-
-      if distance >= arty_count.distance then
-
-        if arty_count.count >= arty_count.max then
-          return
-        else
-        local roll = math.random(1, 8024)
-        if roll == 1 then
-          local arty = surface.create_entity{name = "artillery-turret", position = position, force='enemy'}
-        --  arty.insert{name='artillery-shell', count = '5'}
-          --local k = #arty_count.all
-    --      game.print(k)
-         arty_count.all[arty.unit_number]=arty
-        -- game.print(arty_count.all[1].name)
-          arty_count.count = arty_count.count + 1
-      --    game.print(arty_count.count)
-      -- game.print(position)
-        end
-      end
-    end
-  end
-  end
-
-end
-
-local function on_entity_died(event)
-
-
-  local entity = event.entity
-
-if not entity or not entity.valid then return end
-
-
- if arty_count.all[entity.unit_number] then
- arty_count.all[entity.unit_number] = nil
- arty_count.count = arty_count.count - 1
- end
--- local force = entity.force
---  local name = entity.name
---   if name == 'artillery-turret' and force.name == 'enemy' then
--- arty_count.all[entity.unit_number] = nil
---     arty_count.count = arty_count.count -1
---
---      if arty_count.count <= 0 then
---        arty_count.count = 0
---      end
-
-end
-
-function on_player_changed_position(event)
-local player = game.players[event.player_index]
-local surface = player.surface
-if not surface.valid then
+local function fast_remove(tbl, index)
+  local count = #tbl
+  if index > count then
     return
+  elseif index < count then
+    tbl[index] = tbl[count]
+  end
+
+  tbl[count] = nil
 end
 
-local position = player.position
-
-local q =position.x*position.x
-local w =position.y*position.y
-local distance =math.sqrt(q+w)
---artillery-targeting-remote
-game.print("123")
-surface.create_entity(
-    {
-        name = 'artillery-targeting-remote',
-        position = position,
-        force = 'enemy',
-      --  target = position,
-      --  speed = 0.001
-    }
-  )
-  game.print("logging")
-end
-local artillery_target_callback =
-    Token.register(
-    function(data)
-        local position = data.position
-        local entity = data.entity
-
-        if not entity.valid then
-            return
-        end
-
-        local tx, ty = position.x, position.y
-        local pos = entity.position
-        local x, y = pos.x, pos.y
-        local dx, dy = tx - x, ty - y
-        local d = dx * dx + dy * dy
-        if d >= 1024 and d <= 441398 then -- 704 in depth~
-            if entity.name == 'character' then
-                entity.surface.create_entity {
-                    name = 'artillery-projectile',
-                    position = position,
-                    target = entity,
-                    force = 'enemy',
-                    speed = arty_count.pace
-                }
-            elseif entity.name ~= 'character' then
-                entity.surface.create_entity {
-                    name = 'rocket',
-                    position = position,
-                    target = entity,
-                    force = 'enemy',
-                    speed = arty_count.pace
-                }
-            end
-        end
+local function gun_bullet ()
+  for index = 1, #arty_count.gun do
+    local turret = arty_count.gun[index]
+    if not (turret and turret.valid) then
+      fast_remove(arty_count.gun, index)
+      return
     end
+
+    turret.insert{name='firearm-magazine', count = 10}
+  end
+end
+
+local function flame_bullet ()
+  for index = 1, #arty_count.flame do
+    local turret = arty_count.flame[index]
+    if not (turret and turret.valid) then
+      fast_remove(arty_count.flame, index)
+      return
+    end
+
+    turret.fluidbox[1]={name = 'light-oil', amount = 100}
+    -- {name = 'light-oil', amount = 100}
+    --     local data = turret_data.data
+    --     if data.liquid then
+    --         turret.fluidbox[1] = data
+    --     elseif data then
+    --         turret.insert(data)
+    --     end
+    --turret.fluidbox[1]={name='light-oil', count = 100}
+
+  end
+end
+
+local function energy_bullet ()
+  for index = 1, #arty_count.laser do
+    local turret = arty_count.laser[index]
+    if not (turret and turret.valid) then
+      fast_remove(arty_count.laser, index)
+      return
+    end
+
+    turret.energy = 0xfffff
+
+  end
+end
+
+local function on_chunk_generated(event)
+  local surface = event.surface
+  local area = event.area
+  local this = WPT.get()
+  if	not(surface.index == game.surfaces[this.active_surface_index].index) then return end
+  local resource=game.surfaces[this.active_surface_index].find_entities_filtered{area = event.area,type = "resource"}
+  --
+
+  if not resource[1] then
+    return
+  end
+  if not resource[1].valid then
+    return
+  end
+
+  local pos = resource[1].position
+
+  local a = math.abs(pos.x)
+  local b = math.abs(pos.y)
+
+
+  local dis = math.sqrt(a^2+b^2)
+
+  local q = dis - arty_count.last -7
+
+  if q<0 then return  end
+  arty_count.last=dis
+  local many_turret = math.floor(dis*0.07)
+
+  local radius =math.floor(dis*0.03)
+
+  if radius > 50 then radius = 50 end
+  while many_turret > 0 do
+    local roll_k =math.floor(many_turret/8)
+    if roll_k < 5 then roll_k = 5 end
+    if roll_k > 6 then roll_k = 6 end
+    local roll_turret = math.random(1,roll_k)
+    local turret_name = turret_worth[roll_turret].name
+
+    local n = math.random(-100,100)
+    local t = math.random(-100,100)
+    if n>=0 then n=1 else n = -1 end
+    if t>=0 then t=1 else t = -1 end
+    local rand_x = pos.x + math.random(1,radius+10)*n
+    local rand_y = pos.y + math.random(1,radius+10)*t
+
+
+      local e = surface.create_entity{name = turret_name, position = {x=rand_x,y=rand_y},
+      force=game.forces.enemy,
+      direction= math.random(1,7)}
+      many_turret=many_turret-turret_worth[roll_turret].worth
+      --  game.print(e.direction)
+      if e.valid and e.name then
+      if e.name == 'gun-turret' then arty_count.gun[#arty_count.gun+1]=e end
+      if e.name == 'laser-turret' then arty_count.laser[#arty_count.laser+1]=e end
+      if e.name == 'flamethrower-turret' then arty_count.flame[#arty_count.flame+1]=e end
+      if e.name == 'artillery-turret' then
+     arty_count.all[e.unit_number]=e
+      arty_count.count = arty_count.count + 1
+      end
+    end
+  end
+
+
+  for i=1,200 do
+    local n = math.random(-100,100)
+    local t = math.random(-100,100)
+    if n>=0 then n=1 else n = -1 end
+    if t>=0 then t=1 else t = -1 end
+    local rand_x = pos.x + math.random(1,radius+10)*n
+    local rand_y = pos.y + math.random(1,radius+10)*t
+
+    if surface.can_place_entity{name = "stone-wall", position = {x=rand_x,y=rand_y}, force=game.forces.enemy} then
+    surface.create_entity{name = "stone-wall", position ={x=rand_x,y=rand_y}, force=game.forces.enemy}
+    end
+  end
+  for i=1,20 do
+    local n = math.random(-100,100)
+    local t = math.random(-100,100)
+    if n>=0 then n=1 else n = -1 end
+    if t>=0 then t=1 else t = -1 end
+    local rand_x = pos.x + math.random(1,radius+15)*n
+    local rand_y = pos.y + math.random(1,radius+15)*t
+
+    if surface.can_place_entity{name = "land-mine", position = {x=rand_x,y=rand_y}, force=game.forces.enemy} then
+    surface.create_entity{name = "land-mine", position ={x=rand_x,y=rand_y}, force=game.forces.enemy}
+    end
+  end
+
+end
+
+local artillery_target_callback =
+Token.register(
+function(data)
+  local position = data.position
+  local entity = data.entity
+
+  if not entity.valid then
+    return
+  end
+
+  local tx, ty = position.x, position.y
+  local pos = entity.position
+  local x, y = pos.x, pos.y
+  local dx, dy = tx - x, ty - y
+  local d = dx * dx + dy * dy
+  if d >= 1024 and d <= 441398 then -- 704 in depth~
+    if entity.name == 'character' then
+      entity.surface.create_entity {
+        name = 'artillery-projectile',
+        position = position,
+        target = entity,
+        force = 'enemy',
+        speed = arty_count.pace
+      }
+    elseif entity.name ~= 'character' then
+      entity.surface.create_entity {
+        name = 'rocket',
+        position = position,
+        target = entity,
+        force = 'enemy',
+        speed = arty_count.pace
+      }
+    end
+  end
+end
 )
+
+local function add_bullet()
+  gun_bullet()
+  flame_bullet()
+  energy_bullet()
+end
+
+
 
 local function do_artillery_turrets_targets()
 --local surface = arty_count.surface
@@ -217,9 +304,6 @@ if arty_count.count <= 0 then return end
   end
   if #roll_table <= 0 then return end
   --local roll = math.random(1, #roll_table)
-if not arty_count.index then 
-arty_count.index = 1
-end
 
 --if arty_count.index > #roll_table then arty_count.index=1 end
 if arty_count.index and roll_table and arty_count.index > #roll_table then
@@ -227,10 +311,10 @@ if arty_count.index and roll_table and arty_count.index > #roll_table then
 end
 
 local now =game.tick
-if not arty_count.fire[arty_count.index] then 
+if not arty_count.fire[arty_count.index] then
 arty_count.fire[arty_count.index] = 0
 end
-if (now - arty_count.fire[arty_count.index]) < 400 then return end
+if (now - arty_count.fire[arty_count.index]) < 480 then return end
 arty_count.fire[arty_count.index] = now
   local position = roll_table[arty_count.index].position
 
@@ -258,10 +342,34 @@ local entities = surface.find_entities_filtered{position = position, radius = ar
       end
   end
 end
+
+local function on_entity_died(event)
+
+
+  local entity = event.entity
+
+if not entity or not entity.valid then return end
+
+
+ if arty_count.all[entity.unit_number] then
+ arty_count.all[entity.unit_number] = nil
+ arty_count.count = arty_count.count - 1
+ end
+-- local force = entity.force
+--  local name = entity.name
+--   if name == 'artillery-turret' and force.name == 'enemy' then
+-- arty_count.all[entity.unit_number] = nil
+--     arty_count.count = arty_count.count -1
+--
+--      if arty_count.count <= 0 then
+--        arty_count.count = 0
+--      end
+
+end
 Event.add(defines.events.on_chunk_generated, on_chunk_generated)
 Event.add(defines.events.on_entity_died, on_entity_died)
 --Event.add(defines.events.on_player_changed_position, on_player_changed_position)
---Event.on_nth_tick(600, add_bullet)
+Event.on_nth_tick(10, add_bullet)
 Event.on_nth_tick(10, do_artillery_turrets_targets)
 Event.on_init(on_init)
 

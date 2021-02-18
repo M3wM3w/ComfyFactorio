@@ -4,6 +4,8 @@ local WD = require 'modules.wave_defense.table'
 local WPT = require 'maps.amap.table'
 local Difficulty = require 'modules.difficulty_vote_by_amount'
 local atry_talbe = require "maps.amap.enemy_arty"
+local enemy_health = require 'maps.amap.enemy_health_booster_v2'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 local function calc_players()
   local players = game.connected_players
   local check_afk_players = WPT.get('check_afk_players')
@@ -151,7 +153,8 @@ local set_diff = function()
     hard()
   end
 
-
+local health = BiterHealthBooster.get('biter_health_boost')
+enemy_health.set('biter_health_boost_forces',{[game.forces.enemy.index]=health})
   --med()
   local wave_number = WD.get('wave_number')
   local damage_increase = 0
@@ -169,8 +172,8 @@ local set_diff = function()
   end
   k=math.floor(k)
   damage_increase = wave_number * 0.001*k
-game.forces.enemy.set_ammo_damage_modifier("artillery-shell", damage_increase)
-game.forces.enemy.set_ammo_damage_modifier("rocket", damage_increase)
+--game.forces.enemy.set_ammo_damage_modifier("artillery-shell", damage_increase)
+--game.forces.enemy.set_ammo_damage_modifier("rocket", damage_increase)
   --game.forces.enemy.set_ammo_damage_modifier("melee", damage_increase)
  -- game.forces.enemy.set_ammo_damage_modifier("biological", damage_increase)
 

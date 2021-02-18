@@ -3,12 +3,14 @@ local Event = require 'utils.event'
 local Public = {}
 local Alert = require 'utils.alert'
 local WD = require 'modules.wave_defense.table'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 local RPG = require 'modules.rpg.table'
+--local HS = require 'maps.amap.highscore'
 local wave_defense_table = WD.get_table()
 local Task = require 'utils.task'
 local Server = require 'utils.server'
-local wall_health = require 'maps.amap.wall_health_booster'.set_health_modifier
-local spider_health =require 'maps.amap.spider_health_booster'.set_health_modifier
+local wall_health = require 'maps.amap.wall_health_booster_v2'
+local spider_health =require 'maps.amap.spider_health_booster_v2'
 local urgrade_item = function(market)
   local this = WPT.get()
   local pirce_wall=this.health*1000 + 10000
@@ -100,7 +102,7 @@ local function on_rocket_launched(Event)
   --game.print({'amap.times',this.times})
   local rpg_t = RPG.get('rpg_t')
   --local money = 1000 + this.times*1000
-  local money = 10000
+  local money = 8000
   local point = 1
   -- if money >= 50000 then
   --   money = 50000
@@ -132,9 +134,7 @@ end
 local function on_entity_died(Event)
   local this = WPT.get()
   if Event.entity == this.rock then
-    for _, player in pairs(game.connected_players) do
-        player.play_sound {path = 'utility/game_lost', volume_modifier = 0.75}
-    end
+
     --game.print({'amap.lost',wave_number}),{r = 1, g = 0, b = 0, a = 0.5})
     local wave_number = WD.get('wave_number')
     local msg = {'amap.lost',wave_number}
@@ -154,9 +154,11 @@ local function on_entity_died(Event)
     --local game_reset_tick = WPT.get('game_reset_tick')
   --  game.print('GG,游戏结束，稍后自动重启',{r = 0.99, g = 0.00, b = 0.22})
   --  this.game_reset_tick = 5400
-
+  --local diff_name = Difficulty.get('name')
   Reset_map()
-
+  for _, player in pairs(game.connected_players) do
+      player.play_sound {path = 'utility/game_lost', volume_modifier = 0.75}
+  end
     --abc()
   end
 end
@@ -185,7 +187,8 @@ local function on_market_item_purchased(event)
       return
     end
     this.health=this.health+1
-    wall_health(index,this.health*0.1+1.1)
+    wall_health.set('biter_health_boost',this.health*0.1+1)
+
     game.print({'amap.buy_wall_over',player.name,this.health*0.1+1})
 
   end
@@ -201,7 +204,7 @@ local function on_market_item_purchased(event)
     local times = math.floor(wave_number/50)+this.cap
   if times >= 30 then
       times = 30
-    end  
+    end
 if this.biter_health >= times then
       player.print({'amap.cap_upgrad'})
       local pirce_biter_dam=this.biter_health*1000 +7000
@@ -212,7 +215,7 @@ if this.biter_health >= times then
       return
     end
     this.biter_health=this.biter_health+1
-    global.biter_health_boost_forces[game.forces.player.index] = this.biter_health*0.1+1
+BiterHealthBooster.set('biter_health_boost_forces',{[game.forces.player.index]=health*0.1+1})
     game.print({'amap.buy_player_biter_over',player.name,this.biter_health*0.1+1})
   end
   if offer_index == 4 then
@@ -229,7 +232,8 @@ if this.biter_health >= times then
       return
     end
     this.spider_health=this.spider_health+1
-    spider_health(index,this.spider_health*0.1+1.1)
+    spider_health.set('biter_health_boost',this.health*0.1+1)
+  --  spider_health(index,this.spider_health*0.1+1.1)
     game.print({'amap.buy_spider_health_over',player.name,this.spider_health*0.1+1})
   end
   if offer_index == 5 then

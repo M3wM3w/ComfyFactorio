@@ -885,6 +885,6 @@ Event.add(defines.events.on_robot_mined_entity, on_player_mined_entity)
 --Event.add(defines.events.on_player_changed_position, on_player_changed_position)
 Event.add(defines.events.on_pre_player_left_game, on_pre_player_left_game)
 Event.on_nth_tick(10, tick)
-Event.on_nth_tick(5, do_turret_energy)
+--Event.on_nth_tick(5, do_turret_energy)
 
 return Public
