@@ -86,9 +86,7 @@ local on_entity_died = function(event)
 
   if entity.name == 'land-mine' then
     --body...
-    if math.random(1, 10) == 1 then
         loaded_biters(event)
-    end
   end
 
   if not entity_types[entity.type] then

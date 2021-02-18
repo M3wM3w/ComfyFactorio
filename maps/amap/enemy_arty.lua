@@ -5,6 +5,7 @@ local arty_count = {}
 local Public = {}
 local Token = require 'utils.token'
 local WPT = require 'maps.amap.table'
+local Loot = require'maps.amap.loot'
 
 local turret_worth ={
   [1]={name='stone-wall',worth=0},
@@ -65,7 +66,7 @@ arty_count.index=1
   arty_count.laser={}
   arty_count.flame={}
 
-  arty_count.last=135
+  arty_count.last=145
 
   arty_count.count=0
 end
@@ -238,6 +239,25 @@ local function on_chunk_generated(event)
     if surface.can_place_entity{name = "land-mine", position = {x=rand_x,y=rand_y}, force=game.forces.enemy} then
     surface.create_entity{name = "land-mine", position ={x=rand_x,y=rand_y}, force=game.forces.enemy}
     end
+  end
+
+ local many_baozhang =math.random(2, 5)
+
+dis =math.floor(dis)
+if dis > 1000 then dis = 1000 end
+--game.print(dis)
+  while many_baozhang>=0 do
+    local n = math.random(-100,100)
+    local t = math.random(-100,100)
+    if n>=0 then n=1 else n = -1 end
+    if t>=0 then t=1 else t = -1 end
+    local rand_x = pos.x + math.random(1,5)*n
+    local rand_y = pos.y + math.random(1,5)*t
+local bz_position={x=rand_x,y=rand_y}
+local magic = math.random(1+dis*0.1, dis*0.5)
+    Loot.cool(surface, surface.find_non_colliding_position("steel-chest", bz_position, 20, 1, true) or bz_position, 'steel-chest', magic)
+    game.print(magic)
+     many_baozhang= many_baozhang-1
   end
 
 end
