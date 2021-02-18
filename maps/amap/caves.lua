@@ -82,7 +82,7 @@ local function move_away_things(surface, area)
 	for _, e in pairs(surface.find_entities_filtered({type = {"unit-spawner",  "unit", "tree"}, area = area})) do
 		local position = surface.find_non_colliding_position(e.name, e.position, 128, 4)
 		if position then
-		--	local entity = surface.create_entity({name = e.name, position = position, force = "enemy"})
+			local entity = surface.create_entity({name = e.name, position = position, force = "enemy"})
 			e.destroy()
 			-- if (entity.name == "biter-spawner" or entity.name == "spitter-spawner") and entity.force.name == "enemy" then
 			-- 	register_spawner(entity)
