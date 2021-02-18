@@ -47,7 +47,7 @@ local easy = function()
 
     max_threat = max_threat + wave_number * 0.0013
 
-   -- WD.set_biter_health_boost(wave_number * 0.002+1)
+    WD.set_biter_health_boost(wave_number * 0.0018+1)
     wave_defense_table.threat_gain_multiplier =  max_threat
 
   wave_defense_table.wave_interval = 4200 - player_count * 30
@@ -83,7 +83,7 @@ local med = function()
   end
 
     max_threat = max_threat + wave_number * 0.0013
-   -- WD.set_biter_health_boost(wave_number * 0.002+1)
+    WD.set_biter_health_boost(wave_number * 0.002+1)
     wave_defense_table.threat_gain_multiplier =  max_threat
 
   wave_defense_table.wave_interval = 4200 - player_count * 45
@@ -119,7 +119,7 @@ local hard = function()
   end
 
     max_threat = max_threat + wave_number * 0.0013
-    --WD.set_biter_health_boost(wave_number * 0.002+1)
+    WD.set_biter_health_boost(wave_number * 0.0022+1)
     wave_defense_table.threat_gain_multiplier =  max_threat
 
   wave_defense_table.wave_interval = 3900 - player_count * 60
@@ -172,6 +172,7 @@ enemy_health.set('biter_health_boost_forces',{[game.forces.enemy.index]=health})
   end
   k=math.floor(k)
   damage_increase = wave_number * 0.001*k
+  --game.forces.player.get_ammo_damage_modifier("beam")
 --game.forces.enemy.set_ammo_damage_modifier("artillery-shell", damage_increase)
 --game.forces.enemy.set_ammo_damage_modifier("rocket", damage_increase)
   --game.forces.enemy.set_ammo_damage_modifier("melee", damage_increase)
