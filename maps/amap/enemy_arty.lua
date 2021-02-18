@@ -225,7 +225,7 @@ end
       if e.name == 'flamethrower-turret' then arty_count.flame[#arty_count.flame+1]=e end
       if e.name == 'artillery-turret' then
      arty_count.all[e.unit_number]=e
-     game.print(e.position)
+     --game.print(e.position)
       arty_count.count = arty_count.count + 1
       end
     --end
