@@ -237,7 +237,6 @@ local function on_chunk_generated(event)
     local rand_y = pos.y + math.random(1,radius+15)*t
 
     surface.create_entity{name = "land-mine", position ={x=rand_x,y=rand_y}, force=game.forces.enemy}
-    end
   end
 
  local many_baozhang =math.random(2, 5)
