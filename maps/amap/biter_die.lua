@@ -60,13 +60,15 @@ local abc = {
   aoe[math.random(1, 3)]
 }
 k=math.random(1, 14)
-if k <= 3 then
-  k=1
-elseif k >11 then
+
+if k>11 then
   k=3
-else
+elseif k>3 then
   k=2
+else
+  k=1
 end
+
 if k==3 then
   position=entity.position
 end
