@@ -306,8 +306,19 @@ local function kick_players_out_of_vehicles(car)
     end
 end
 
+local function check_if_players_are_in_nauvis(ic)
+    for _, player in pairs(game.connected_players) do
+        local main_surface = game.surfaces[ic.allowed_surface]
+        if player.surface.name == 'nauvis' then
+            player.teleport(main_surface.find_non_colliding_position('character', game.forces.player.get_spawn_position(main_surface), 3, 0, 5), main_surface)
+        end
+    end
+end
+
+
 local function kick_players_from_surface(ic, car)
     if not validate_entity(car.surface) then
+      check_if_players_are_in_nauvis(ic)
         return log_err('Car surface was not valid.')
     end
     if not car.entity or not car.entity.valid then
@@ -332,6 +343,7 @@ local function kick_players_from_surface(ic, car)
             end
         end
     end
+      check_if_players_are_in_nauvis(ic)
 end
 
 local function kick_player_from_surface(ic, player, target)
