@@ -11,12 +11,13 @@ local turret_worth ={
   [1]={name='stone-wall',worth=0},
   [2]={name='land-mine',worth=1},
   [3]={name='laser-turret',worth=2},
-  [4]={name='gun-turret',worth=2},
-  [5]={name='medium-worm-turret',worth=3},
+  [4]={name='gun-turret',worth=1},
+  [5]={name='medium-worm-turret',worth=2},
   [6]={name='flamethrower-turret',worth=3},
   [7]={name='big-worm-turret',worth=7},
-  [8]={name='artillery-turret',worth=30},
-  [9]={name='behemoth-worm-turret',worth=20}
+  [8]={name='behemoth-worm-turret',worth=20},
+  [9]={name='artillery-turret',worth=30}
+
 }
 local ammo={
   [1]={name='firearm-magazine'},
@@ -184,18 +185,25 @@ local function on_chunk_generated(event)
 
 
   local dis = math.sqrt(a^2+b^2)
-if dis > 350 and arty_count.ammo_index==1 then
+  if dis <145 then
+    return
+  end
+if dis > 450 and arty_count.ammo_index==1 then
 arty_count.ammo_index=2
 end
 
-if dis > 800 and arty_count.ammo_index==2 then
+if dis > 1200 and arty_count.ammo_index==2 then
 arty_count.ammo_index=3
 end
-  local q = dis - arty_count.last -5
 
-  if q<0 then return  end
-  arty_count.last=dis
-  local many_turret = math.floor(dis*0.06)
+
+--  local q = dis - arty_count.last -5
+
+  if  arty_count.last== event.area.left_top.x then
+     return
+   end
+  arty_count.last= event.area.left_top.x
+  local many_turret = math.floor(dis*0.05)
   if many_turret<=20 then many_turret=20 end
   if many_turret>=1000 then many_turret=1000 end
   local radius =math.floor(dis*0.03)
@@ -220,7 +228,7 @@ end
       direction= math.random(1,7)}
       many_turret=many_turret-turret_worth[roll_turret].worth
       --  game.print(e.direction)
-      --if e.valid and e.name then
+      if e.valid and e.name then
       if e.name == 'gun-turret' then arty_count.gun[#arty_count.gun+1]=e end
       if e.name == 'laser-turret' then arty_count.laser[#arty_count.laser+1]=e end
       if e.name == 'flamethrower-turret' then arty_count.flame[#arty_count.flame+1]=e end
@@ -229,7 +237,7 @@ end
      --game.print(e.position)
       arty_count.count = arty_count.count + 1
       end
-    --end
+    end
   end
 
 
@@ -245,7 +253,7 @@ end
     surface.create_entity{name = "stone-wall", position ={x=rand_x,y=rand_y}, force=game.forces.enemy}
     end
   end
-  for i=1,20 do
+  for i=1,13 do
     local n = math.random(-100,100)
     local t = math.random(-100,100)
     if n>=0 then n=1 else n = -1 end

@@ -17,7 +17,7 @@ local projectiles = {
     'rocket',
     'poison-capsule',
   --  'grenade',
-    'rocket',
+    'rocket'
   --  'grenade'
 }
 
