@@ -15,10 +15,10 @@ local projectiles = {
     'laser',
     'distractor-capsule',
     'rocket',
-    'explosive-rocket',
-    'grenade',
+--    'explosive-rocket',
+  --  'grenade',
     'rocket',
-    'grenade'
+  --  'grenade'
 }
 
 local wepeon ={
@@ -49,10 +49,10 @@ local function loaded_biters(event)
     end
 
 local abc = {
-  projectiles[math.random(1, 10)],
+  projectiles[math.random(1, 7)],
   wepeon[math.random(1, 3)]
 }
-k=math.random(1, 14)
+k=math.random(1, 10)
 if k >= 3 then
   k=1
 else

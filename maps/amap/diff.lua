@@ -175,8 +175,8 @@ enemy_health.set('biter_health_boost_forces',{[game.forces.enemy.index]=health})
   --game.forces.player.get_ammo_damage_modifier("beam")
 --game.forces.enemy.set_ammo_damage_modifier("artillery-shell", damage_increase)
 --game.forces.enemy.set_ammo_damage_modifier("rocket", damage_increase)
-  --game.forces.enemy.set_ammo_damage_modifier("melee", damage_increase)
- -- game.forces.enemy.set_ammo_damage_modifier("biological", damage_increase)
+  game.forces.enemy.set_ammo_damage_modifier("melee", damage_increase)
+  game.forces.enemy.set_ammo_damage_modifier("biological", damage_increase)
 
   local table = atry_talbe.get()
   local radius=math.floor(wave_number*0.15)*k
