@@ -288,13 +288,13 @@ local function on_entity_damaged(event)
     end
 
     --Process boss unit health bars
-    -- local boss = health_pool[3]
-    -- if boss then
-    --     if boss.last_update + 10 < game.tick then
-    --         set_boss_healthbar(health_pool[1], boss.max_health, boss.healthbar_id)
-    --         boss.last_update = game.tick
-    --     end
-    -- end
+    local boss = health_pool[3]
+    if boss then
+        if boss.last_update + 10 < game.tick then
+            set_boss_healthbar(health_pool[1], boss.max_health, boss.healthbar_id)
+            boss.last_update = game.tick
+        end
+    end
 
     --Reduce health pool
     health_pool[1] = health_pool[1] - event.final_damage_amount
