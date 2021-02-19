@@ -15,7 +15,7 @@ local projectiles = {
     'laser',
     'distractor-capsule',
     'rocket',
---    'explosive-rocket',
+    'poison-capsule',
   --  'grenade',
     'rocket',
   --  'grenade'
@@ -26,6 +26,12 @@ local wepeon ={
   'land-mine',
   'biter-spawner'
 }
+local aoe ={
+  'explosive-rocket',
+  'grenade',
+  'cluster-grenade'
+}
+
 
 
 local function loaded_biters(event)
@@ -49,14 +55,20 @@ local function loaded_biters(event)
     end
 
 local abc = {
-  projectiles[math.random(1, 7)],
-  wepeon[math.random(1, 3)]
+  projectiles[math.random(1, 8)],
+  wepeon[math.random(1, 3)],
+  aoe[math.random(1, 3)]
 }
-k=math.random(1, 10)
-if k >= 3 then
+k=math.random(1, 14)
+if k <= 3 then
   k=1
+elseif k >11 then
+  k=3
 else
   k=2
+end
+if k==3 then
+  position=entity.position
 end
   e =  entity.surface.create_entity(
         {
@@ -96,7 +108,7 @@ local on_entity_died = function(event)
   end
   if math.random(1, 96) == 1 then
       loaded_biters(event)
-  end
+ end
 end
 local function on_player_mined_entity(event)
   local entity = event.entity
