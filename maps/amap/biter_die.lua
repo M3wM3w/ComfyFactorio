@@ -99,6 +99,9 @@ local on_entity_died = function(event)
   if not cause then
       return
   end
+if entity.force.index == game.forces.player.index then
+  return
+end
 
   if entity.name == 'land-mine' then
     --body...

@@ -79,13 +79,15 @@ function Public.reset_table()
     this.enable_boss_loot = false
 end
 
-local entity_name = {
-   ['stone-wall'] = true,
-    ['laser-turret'] = true,
-    ['gun-turret'] = true,
-  --  ['turret'] = true,
-  --  ['unit-spawner'] = true
+local entity_types = {
+    ['wall'] = true,
+    ['turret'] = true,
+    --['unit-spawner'] = true
 }
+
+if is_loaded('maps.biter_hatchery.terrain') then
+    entity_types['unit-spawner'] = nil
+end
 
 local function loaded_biters(event)
     local cause = event.cause
@@ -173,7 +175,7 @@ local function clean_table()
 
     --Remove valid health boost entries from deletion
     local validTypes = {}
-    for k, v in pairs(entity_name) do
+    for k, v in pairs(entity_types) do
         if v then
             insert(validTypes, k)
         end
@@ -219,7 +221,7 @@ function Public.add_unit(unit, health_multiplier)
     end
     this.biter_health_boost_units[unit.unit_number] = {
         floor(unit.prototype.max_health * health_multiplier),
-        round(1 / health_multiplier, 5)
+        round(1 / health_multiplier, 5),
     }
 end
 
@@ -243,38 +245,15 @@ local function on_entity_damaged(event)
     if not (biter and biter.valid) then
         return
     end
-    local cause = event.cause
-    if not cause then
-        return
-    end
-    if not(biter.force.index == game.forces.player.index) then
-      return
-    end
 
     local biter_health_boost_units = this.biter_health_boost_units
 
     local unit_number = biter.unit_number
-    local cause_unit_number = cause.unit_number
 
     --Create new health pool
     local health_pool = biter_health_boost_units[unit_number]
-    local cause_health_pool = biter_health_boost_units[cause_unit_number]
 
-    if cause_health_pool and cause_health_pool[3] and entity_name[cause.type] then
-        if this.acid_nova then
-            if acid_lines[cause.name] then
-                if not this.acid_lines_delay[cause_unit_number] then
-                    this.acid_lines_delay[cause_unit_number] = 0
-                end
-                if this.acid_lines_delay[cause_unit_number] < game.tick then
-                    acid_line(cause.surface, acid_lines[cause.name], cause.position, event.entity.position)
-                    this.acid_lines_delay[cause_unit_number] = game.tick + 180
-                end
-            end
-        end
-    end
-
-    if not entity_name[biter.name] then
+    if not entity_types[biter.type] then
         return
     end
 
@@ -325,12 +304,10 @@ local function on_entity_died(event)
     if not (biter and biter.valid) then
         return
     end
-    if not entity_name[biter.name] then
+    if not entity_types[biter.type] then
         return
     end
-    if not(biter.force.index == game.forces.player.index) then
-      return
-    end
+
     local biter_health_boost_units = this.biter_health_boost_units
 
     local unit_number = biter.unit_number
@@ -413,22 +390,10 @@ end
 local on_init = function()
     Public.reset_table()
 end
-local function on_player_repaired_entity(event)
-	local entity = event.entity
-	if not entity and not entity.valid then return end
-	local unit_number = entity.unit_number
-	if not unit_number then return end
-  if not(entity.force.index == game.forces.player.index) then
-    return
-  end
-  if not entity_name[entity.name] then
-      return
-  end
-	this.biter_health_boost_units[unit_number] = entity.health
-end
+
 Event.on_init(on_init)
 Event.add(defines.events.on_entity_damaged, on_entity_damaged)
 Event.on_nth_tick(7200, clean_table)
 Event.add(defines.events.on_entity_died, on_entity_died)
-Event.add(defines.events.on_player_repaired_entity, on_player_repaired_entity)
+
 return Public
