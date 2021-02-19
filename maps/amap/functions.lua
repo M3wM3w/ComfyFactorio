@@ -671,9 +671,10 @@ function Public.is_creativity_mode_on()
 end
 local function on_player_mined_entity(event)
   local name = event.entity.name
+  local force = event.entity.force
   local entity = event.entity
   local this = WPT.get()
-  if name == 'flamethrower-turret' then
+  if name == 'flamethrower-turret' and force.index == game.forces.player.index then
     this.flame = this.flame - 1
 
      if this.flame <= 0 then
