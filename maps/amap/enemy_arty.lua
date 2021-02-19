@@ -12,8 +12,8 @@ local turret_worth ={
   [2]={name='land-mine',worth=1},
   [3]={name='laser-turret',worth=2},
   [4]={name='gun-turret',worth=1},
-  [5]={name='medium-worm-turret',worth=2},
-  [6]={name='flamethrower-turret',worth=3},
+  [5]={name='medium-worm-turret',worth=3},
+  [6]={name='flamethrower-turret',worth=4},
   [7]={name='big-worm-turret',worth=7},
   [8]={name='behemoth-worm-turret',worth=20},
   [9]={name='artillery-turret',worth=30}
@@ -71,7 +71,7 @@ arty_count.index=1
   arty_count.laser={}
   arty_count.flame={}
 
-  arty_count.last=145
+  arty_count.last={}
 arty_count.ammo_index=1
   arty_count.count=0
 end
@@ -199,15 +199,15 @@ end
 
 --  local q = dis - arty_count.last -5
 
-  if  arty_count.last== event.area.left_top.x then
+  if  arty_count.last== event.area.left_top then
      return
    end
-  arty_count.last= event.area.left_top.x
+  arty_count.last= event.area.left_top
   local many_turret = math.floor(dis*0.05)
   if many_turret<=20 then many_turret=20 end
   if many_turret>=1000 then many_turret=1000 end
-  local radius =math.floor(dis*0.03)
-  if radius > 50 then radius = 50 end
+  local radius =math.floor(dis*0.025)
+  if radius > 15 then radius = 15 end
   while many_turret > 0 do
     local roll_k =math.floor(many_turret/6)
     if roll_k < 6 then roll_k = 6 end
@@ -228,7 +228,7 @@ end
       direction= math.random(1,7)}
       many_turret=many_turret-turret_worth[roll_turret].worth
       --  game.print(e.direction)
-      if e.valid and e.name then
+      if e then
       if e.name == 'gun-turret' then arty_count.gun[#arty_count.gun+1]=e end
       if e.name == 'laser-turret' then arty_count.laser[#arty_count.laser+1]=e end
       if e.name == 'flamethrower-turret' then arty_count.flame[#arty_count.flame+1]=e end
@@ -264,7 +264,7 @@ end
     surface.create_entity{name = "land-mine", position ={x=rand_x,y=rand_y}, force=game.forces.enemy}
   end
 
- local many_baozhang =math.random(2, 5)
+ local many_baozhang =1
 
 dis =math.floor(dis)
 if dis > 1500 then dis = 1500 end
