@@ -709,9 +709,10 @@ end
 local on_player_or_robot_built_entity = function(event)
 --change_pos  改变位置
 local name = event.created_entity.name
+local force = event.entity.force
 local entity = event.created_entity
 local this = WPT.get()
-if name == 'flamethrower-turret' then
+  if name == 'flamethrower-turret' and force.index == game.forces.player.index
   if this.flame >= 15 then
     game.print({'amap.too_many'})
     entity.destroy()
@@ -842,10 +843,10 @@ end
 local function on_entity_died(event)
 
   local name = event.entity.name
-
+local force = event.entity.force
   local entity = event.entity
   local this = WPT.get()
-  if name == 'flamethrower-turret' then
+  if name == 'flamethrower-turret' and force.index == game.forces.player.index
     this.flame = this.flame - 1
 
      if this.flame <= 0 then
