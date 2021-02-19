@@ -66,7 +66,7 @@ end
             source = entity.position,
             target = position,
             max_range = 16,
-            speed = 0.5
+            speed = 0.03
         }
 
     )

@@ -210,7 +210,7 @@ function Public.reset_map()
   WD.clear_corpses(false)
   WD.remove_entities(true)
   WD.enable_threat_log(true)
-  WD.increase_damage_per_wave(true)
+  WD.increase_damage_per_wave(false)
   WD.increase_health_per_wave(true)
   WD.set_disable_threat_below_zero(true)
   WD.set_biter_health_boost(1.4)
@@ -623,8 +623,8 @@ local single_rewrad = function()
       local player = game.connected_players[k]
       rpg_t[player.index].points_to_distribute = rpg_t[player.index].points_to_distribute + 200
       rpg_t[player.index].xp=  rpg_t[player.index].xp+5000
-      player.insert{name='coin', count = 10000}
-      player.insert{name='tank', count = 1}
+      player.insert{name='coin', count = 25000}
+    --  player.insert{name='tank', count = 1}
       game.print({'amap.single'})
       this.single = false
 

@@ -9,14 +9,14 @@ local Loot = require'maps.amap.loot'
 
 local turret_worth ={
   [1]={name='stone-wall',worth=0},
-  [2]={name='land-mine',worth=0},
+  [2]={name='land-mine',worth=1},
   [3]={name='laser-turret',worth=2},
   [4]={name='gun-turret',worth=2},
   [5]={name='medium-worm-turret',worth=3},
   [6]={name='flamethrower-turret',worth=3},
   [7]={name='big-worm-turret',worth=7},
   [8]={name='behemoth-worm-turret',worth=15},
-  [9]={name='artillery-turret',worth=30}
+  [9]={name='artillery-turret',worth=40}
 }
 local ammo={
   [1]={name='firearm-magazine'},
@@ -184,7 +184,7 @@ local function on_chunk_generated(event)
 
 
   local dis = math.sqrt(a^2+b^2)
-if dis > 300 and arty_count.ammo_index==1 then
+if dis > 350 and arty_count.ammo_index==1 then
 arty_count.ammo_index=2
 end
 
@@ -196,7 +196,8 @@ end
   if q<0 then return  end
   arty_count.last=dis
   local many_turret = math.floor(dis*0.06)
-  if many_turret<=30 then many_turret=30 end
+  if many_turret<=20 then many_turret=20 end
+  if many_turret>=350 then many_turret=350 end
   local radius =math.floor(dis*0.03)
   if radius > 50 then radius = 50 end
   while many_turret > 0 do
@@ -268,7 +269,7 @@ if dis > 1500 then dis = 1500 end
     local rand_x = pos.x + math.random(1,5)*n
     local rand_y = pos.y + math.random(1,5)*t
 local bz_position={x=rand_x,y=rand_y}
-local magic = math.random(1+dis*0.05, dis*0.2)
+local magic = math.random(1+dis*0.05, dis*0.25)
     Loot.cool(surface, surface.find_non_colliding_position("steel-chest", bz_position, 20, 1, true) or bz_position, 'steel-chest', magic)
      many_baozhang= many_baozhang-1
   end
