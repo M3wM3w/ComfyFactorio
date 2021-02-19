@@ -15,8 +15,8 @@ local turret_worth ={
   [5]={name='medium-worm-turret',worth=3},
   [6]={name='flamethrower-turret',worth=3},
   [7]={name='big-worm-turret',worth=7},
-  [8]={name='behemoth-worm-turret',worth=15},
-  [9]={name='artillery-turret',worth=40}
+  [8]={name='artillery-turret',worth=30},
+  [9]={name='behemoth-worm-turret',worth=20}
 }
 local ammo={
   [1]={name='firearm-magazine'},
@@ -191,13 +191,13 @@ end
 if dis > 800 and arty_count.ammo_index==2 then
 arty_count.ammo_index=3
 end
-  local q = dis - arty_count.last -7
+  local q = dis - arty_count.last -5
 
   if q<0 then return  end
   arty_count.last=dis
   local many_turret = math.floor(dis*0.06)
   if many_turret<=20 then many_turret=20 end
-  if many_turret>=350 then many_turret=350 end
+  if many_turret>=1000 then many_turret=1000 end
   local radius =math.floor(dis*0.03)
   if radius > 50 then radius = 50 end
   while many_turret > 0 do
