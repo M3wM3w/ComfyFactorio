@@ -188,11 +188,11 @@ local function on_chunk_generated(event)
   if dis <175 then
     return
   end
-if dis > 450 and arty_count.ammo_index==1 then
+if dis > 750 and arty_count.ammo_index==1 then
 arty_count.ammo_index=2
 end
 
-if dis > 1200 and arty_count.ammo_index==2 then
+if dis > 1500 and arty_count.ammo_index==2 then
 arty_count.ammo_index=3
 end
 
@@ -277,7 +277,7 @@ if dis > 1500 then dis = 1500 end
     local rand_x = pos.x + math.random(1,5)*n
     local rand_y = pos.y + math.random(1,5)*t
 local bz_position={x=rand_x,y=rand_y}
-local magic = math.random(1+dis*0.05, dis*0.25)
+local magic = math.random(1+dis*0.1, dis*0.3)
     Loot.cool(surface, surface.find_non_colliding_position("steel-chest", bz_position, 20, 1, true) or bz_position, 'steel-chest', magic)
      many_baozhang= many_baozhang-1
   end

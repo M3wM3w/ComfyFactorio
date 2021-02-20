@@ -704,6 +704,21 @@ end
     end
   end
 
+  local buff_build = function()
+    local rpg_t = RPG.get('rpg_t')
+    for k, p in pairs(game.connected_players) do
+      local player = game.connected_players[k]
+       local x = player.position.x^2
+       local y = player.position.y^2
+       local dis =math.sqrt(x + y)
+
+       if dis <=120 then
+         player.insert{name='coin', count = 5}
+         rpg_t[player.index].xp = rpg_t[player.index].xp+5
+       end
+    end
+  end
+
   local change_dis = function()
     local this = WPT.get()
     this.change_dist=true
@@ -713,6 +728,7 @@ end
   Event.on_nth_tick(10, on_tick)
   Event.on_nth_tick(7200, single_rewrad)
   Event.on_nth_tick(60, change_dis)
+  Event.on_nth_tick(600, buff_build)
   --Event.add(defines.events.on_player_joined_game, on_player_joined_game)
   --Event.add(defines.events.on_pre_player_left_game, on_player_left_game)
   Event.add(defines.events.on_research_finished, on_research_finished)
