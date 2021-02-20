@@ -709,7 +709,7 @@ end
 local on_player_or_robot_built_entity = function(event)
 --change_pos  改变位置
 local name = event.created_entity.name
-local force = event.entity.force
+local force = event.created_entity.force
 local entity = event.created_entity
 local this = WPT.get()
   if name == 'flamethrower-turret' and force.index == game.forces.player.index then
