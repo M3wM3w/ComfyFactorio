@@ -391,9 +391,24 @@ local on_init = function()
     Public.reset_table()
 end
 
+local function on_player_repaired_entity(event)
+	local entity = event.entity
+	if not entity and not entity.valid then return end
+	local unit_number = entity.unit_number
+	if not unit_number then return end
+  if not(entity.force.index == game.forces.player.index) then
+    return
+  end
+  if not entity_types[entity.type] then
+      return
+  end
+	this.biter_health_boost_units[unit_number] = entity.health
+end
+
 Event.on_init(on_init)
 Event.add(defines.events.on_entity_damaged, on_entity_damaged)
 Event.on_nth_tick(7200, clean_table)
 Event.add(defines.events.on_entity_died, on_entity_died)
+Event.add(defines.events.on_player_repaired_entity, on_player_repaired_entity)
 
 return Public
