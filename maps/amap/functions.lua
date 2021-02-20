@@ -712,7 +712,7 @@ local name = event.created_entity.name
 local force = event.entity.force
 local entity = event.created_entity
 local this = WPT.get()
-  if name == 'flamethrower-turret' and force.index == game.forces.player.index
+  if name == 'flamethrower-turret' and force.index == game.forces.player.index then
   if this.flame >= 15 then
     game.print({'amap.too_many'})
     entity.destroy()
@@ -846,7 +846,7 @@ local function on_entity_died(event)
 local force = event.entity.force
   local entity = event.entity
   local this = WPT.get()
-  if name == 'flamethrower-turret' and force.index == game.forces.player.index
+  if name == 'flamethrower-turret' and force.index == game.forces.player.index then
     this.flame = this.flame - 1
 
      if this.flame <= 0 then

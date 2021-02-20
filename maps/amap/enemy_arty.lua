@@ -185,7 +185,7 @@ local function on_chunk_generated(event)
 
 
   local dis = math.sqrt(a^2+b^2)
-  if dis <145 then
+  if dis <175 then
     return
   end
 if dis > 450 and arty_count.ammo_index==1 then

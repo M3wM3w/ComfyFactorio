@@ -171,7 +171,7 @@ enemy_health.set('biter_health_boost_forces',{[game.forces.enemy.index]=health})
     k =1
   end
   k=math.floor(k)
-  damage_increase = wave_number * 0.001*k
+  damage_increase = wave_number * 0.001*k*1.2
   --game.forces.player.get_ammo_damage_modifier("beam")
 --game.forces.enemy.set_ammo_damage_modifier("artillery-shell", damage_increase)
 --game.forces.enemy.set_ammo_damage_modifier("rocket", damage_increase)
