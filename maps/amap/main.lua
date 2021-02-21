@@ -623,7 +623,7 @@ local single_rewrad = function()
       local player = game.connected_players[k]
       rpg_t[player.index].points_to_distribute = rpg_t[player.index].points_to_distribute + 200
       rpg_t[player.index].xp=  rpg_t[player.index].xp+5000
-      player.insert{name='coin', count = 25000}
+      player.insert{name='coin', count = 15000}
     --  player.insert{name='tank', count = 1}
       game.print({'amap.single'})
       this.single = false

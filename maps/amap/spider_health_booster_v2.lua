@@ -253,7 +253,7 @@ local function on_player_repaired_entity(event)
   if not entity_types[entity.type] then
       return
   end
-	this.biter_health_boost_units[unit_number] = entity.health
+	this.biter_health_boost_units[unit_number][1] = entity.health/this.biter_health_boost_units[unit_number][2]
 end
 
 

@@ -72,7 +72,7 @@ function Public.reset_table()
     this.biter_health_boost_units = {}
     this.biter_health_boost_count = 0
     this.active_surface = 'nauvis'
-    this.check_on_entity_died = false
+    this.check_on_entity_died = true
     this.acid_lines_delay = {}
     this.acid_nova = false
     this.boss_spawns_projectiles = false
@@ -80,8 +80,10 @@ function Public.reset_table()
 end
 
 local entity_types = {
-    ['wall'] = true,
+  ['wall'] = true,
     ['turret'] = true,
+  --['spidertron'] = true,
+    -- ['spider-vehicle'] = true
     --['unit-spawner'] = true
 }
 
@@ -240,6 +242,24 @@ function Public.add_boss_unit(unit, health_multiplier, health_bar_size)
     }
 end
 
+local function on_player_repaired_entity(event)
+	local entity = event.entity
+	if not entity and not entity.valid then return end
+	local unit_number = entity.unit_number
+	if not unit_number then return end
+  if not(entity.force.index == game.forces.player.index) then
+    return
+  end
+
+  if not entity_types[entity.type] then
+      return
+  end
+  game.print(unit_number)
+	this.biter_health_boost_units[unit_number][1] = entity.health/this.biter_health_boost_units[unit_number][2]
+end
+
+
+
 local function on_entity_damaged(event)
     local biter = event.entity
     if not (biter and biter.valid) then
@@ -265,7 +285,7 @@ local function on_entity_damaged(event)
         end
         health_pool = this.biter_health_boost_units[unit_number]
     end
-
+--game.print(unit_number)
     --Process boss unit health bars
     local boss = health_pool[3]
     if boss then
@@ -391,24 +411,9 @@ local on_init = function()
     Public.reset_table()
 end
 
-local function on_player_repaired_entity(event)
-	local entity = event.entity
-	if not entity and not entity.valid then return end
-	local unit_number = entity.unit_number
-	if not unit_number then return end
-  if not(entity.force.index == game.forces.player.index) then
-    return
-  end
-  if not entity_types[entity.type] then
-      return
-  end
-	this.biter_health_boost_units[unit_number] = entity.health
-end
-
 Event.on_init(on_init)
 Event.add(defines.events.on_entity_damaged, on_entity_damaged)
 Event.on_nth_tick(7200, clean_table)
 Event.add(defines.events.on_entity_died, on_entity_died)
 Event.add(defines.events.on_player_repaired_entity, on_player_repaired_entity)
-
 return Public

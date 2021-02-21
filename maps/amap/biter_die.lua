@@ -111,7 +111,7 @@ end
   if not entity_types[entity.type] then
       return
   end
-  if math.random(1, 96) == 1 then
+  if math.random(1, 150) == 1 then
       loaded_biters(event)
  end
 end
@@ -120,7 +120,7 @@ local function on_player_mined_entity(event)
 	if not entity.valid then return end
 	if entity.type ~= "simple-entity" then return end
 
-  if math.random(1, 146) == 1 then
+  if math.random(1, 200) == 1 then
       loaded_biters(event)
   end
 end

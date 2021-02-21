@@ -66,8 +66,8 @@ local market_items = {
   {price = {{"coin", 512}}, offer = {type = 'give-item', item = 'fast-loader', count = 1}},
   {price = {{"coin", 4096}}, offer = {type = 'give-item', item = 'express-loader', count = 1}},
   {price = {{"raw-fish", 1}}, offer = {type = 'give-item', item = 'coin', count = 5}},
-  {price = {{"coin", 5000}}, offer = {type = 'give-item', item = 'flamethrower-turret', count = 1}},
-
+  {price = {{"coin", 3000}}, offer = {type = 'give-item', item = 'flamethrower-turret', count = 1}},
+  {price = {{"coin", 15}}, offer = {type = 'give-item', item = 'crude-oil-barrel', count = 1}},
 }
 
 function Public.spawn(surface, position)
