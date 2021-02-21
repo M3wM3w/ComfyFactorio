@@ -216,7 +216,7 @@ function Public.reset_map()
   WD.set_biter_health_boost(1.4)
   --  WD.set().wave_interval = 3300
   --  WD.set().threat_gain_multiplier = 4
-  WD.set().next_wave = game.tick + 7200* 15
+  WD.set().next_wave = game.tick + 7200* 15*2
   --初始化虫子科技
 
   Functions.disable_tech()
@@ -713,8 +713,8 @@ end
        local dis =math.sqrt(x + y)
 
        if dis <=120 then
-         player.insert{name='coin', count = 5}
-         rpg_t[player.index].xp = rpg_t[player.index].xp+5
+         player.insert{name='coin', count = 3}
+         rpg_t[player.index].xp = rpg_t[player.index].xp+4
        end
     end
   end

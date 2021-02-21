@@ -254,7 +254,7 @@ local function on_player_repaired_entity(event)
   if not entity_types[entity.type] then
       return
   end
- -- game.print(unit_number)
+  --game.print(unit_number)
 	this.biter_health_boost_units[unit_number][1] = entity.health/this.biter_health_boost_units[unit_number][2]
 end
 
