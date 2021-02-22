@@ -1,0 +1,11 @@
+{
+  "author": "itam and hankocz",
+  "dependencies": [
+    "base \u003e= 1.0"
+  ],
+  "description": "Protect the rocket silo. When the rocket launch is destroyed, the game fails. ",
+  "factorio_version": "1.1",
+  "name": "mountian_defenes",
+  "title": "Mountian_defenes_1.9.9",
+  "version": "1.9.9"
+}
