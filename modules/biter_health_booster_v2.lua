@@ -66,19 +66,6 @@ Global.register(
     end
 )
 
-function Public.reset_table()
-    this.biter_health_boost = 1
-    this.biter_health_boost_forces = {}
-    this.biter_health_boost_units = {}
-    this.biter_health_boost_count = 0
-    this.active_surface = 'nauvis'
-    this.check_on_entity_died = false
-    this.acid_lines_delay = {}
-    this.acid_nova = false
-    this.boss_spawns_projectiles = false
-    this.enable_boss_loot = false
-end
-
 local entity_types = {
     ['unit'] = true,
     ['turret'] = true,
@@ -215,31 +202,6 @@ local function set_boss_healthbar(health, max_health, healthbar_id)
     rendering.set_color(healthbar_id, {floor(255 - 255 * m), floor(200 * m), 0})
 end
 
-function Public.add_unit(unit, health_multiplier)
-    if not health_multiplier then
-        health_multiplier = this.biter_health_boost
-    end
-    this.biter_health_boost_units[unit.unit_number] = {
-        floor(unit.prototype.max_health * health_multiplier),
-        round(1 / health_multiplier, 5)
-    }
-end
-
-function Public.add_boss_unit(unit, health_multiplier, health_bar_size)
-    if not health_multiplier then
-        health_multiplier = this.biter_health_boost
-    end
-    if not health_bar_size then
-        health_bar_size = 0.5
-    end
-    local health = floor(unit.prototype.max_health * health_multiplier)
-    this.biter_health_boost_units[unit.unit_number] = {
-        health,
-        round(1 / health_multiplier, 5),
-        {max_health = health, healthbar_id = create_boss_healthbar(unit, health_bar_size), last_update = game.tick}
-    }
-end
-
 local function on_entity_damaged(event)
     local biter = event.entity
     if not (biter and biter.valid) then
@@ -337,7 +299,7 @@ local function on_entity_died(event)
     local health_pool = biter_health_boost_units[unit_number]
     if health_pool and health_pool[3] then
         if this.enable_boss_loot then
-            if random(1, 128) == 1 then 
+            if random(1, 128) == 1 then
                 LootDrop.drop_loot(biter, wave_count)
             end
         end
@@ -358,6 +320,8 @@ local function on_entity_died(event)
     end
 end
 
+--- Use this function to retrieve a key from the global table.
+---@param key <string>
 function Public.get(key)
     if key then
         return this[key]
@@ -366,6 +330,9 @@ function Public.get(key)
     end
 end
 
+--- Using this function can set a new value to an exist key or create a new key with value
+---@param key <string>
+---@param value <string/boolean>
 function Public.set(key, value)
     if key and (value or value == false) then
         this[key] = value
@@ -377,6 +344,54 @@ function Public.set(key, value)
     end
 end
 
+--- Use this function to reset the global table to it's init values.
+function Public.reset_table()
+    this.biter_health_boost = 1
+    this.biter_health_boost_forces = {}
+    this.biter_health_boost_units = {}
+    this.biter_health_boost_count = 0
+    this.active_surface = 'nauvis'
+    this.check_on_entity_died = false
+    this.acid_lines_delay = {}
+    this.acid_nova = false
+    this.boss_spawns_projectiles = false
+    this.enable_boss_loot = false
+end
+
+--- Use this function to add a new unit that has extra health
+---@param unit <LuaEntity>
+---@param health_multiplier <number>
+function Public.add_unit(unit, health_multiplier)
+    if not health_multiplier then
+        health_multiplier = this.biter_health_boost
+    end
+    this.biter_health_boost_units[unit.unit_number] = {
+        floor(unit.prototype.max_health * health_multiplier),
+        round(1 / health_multiplier, 5)
+    }
+end
+
+--- Use this function to add a new boss unit (with healthbar)
+---@param unit <LuaEntity>
+---@param health_multiplier <number>
+---@param health_bar_size <number>
+function Public.add_boss_unit(unit, health_multiplier, health_bar_size)
+    if not health_multiplier then
+        health_multiplier = this.biter_health_boost
+    end
+    if not health_bar_size then
+        health_bar_size = 0.5
+    end
+    local health = floor(unit.prototype.max_health * health_multiplier)
+    this.biter_health_boost_units[unit.unit_number] = {
+        health,
+        round(1 / health_multiplier, 5),
+        {max_health = health, healthbar_id = create_boss_healthbar(unit, health_bar_size), last_update = game.tick}
+    }
+end
+
+--- This sets the active surface that we check and have the script active.
+---@param string
 function Public.set_active_surface(str)
     if str and type(str) == 'string' then
         this.active_surface = str
@@ -384,34 +399,41 @@ function Public.set_active_surface(str)
     return this.active_surface
 end
 
-function Public.acid_nova(value)
-    this.acid_nova = value or false
+--- Enables that biter bosses (units with health bars) spawns acid on death.
+---@param boolean
+function Public.acid_nova(boolean)
+    this.acid_nova = boolean or false
     return this.acid_nova
 end
 
+--- Enables that we clear units from the global table when a unit dies.
+---@param boolean
 function Public.check_on_entity_died(boolean)
     this.check_on_entity_died = boolean or false
-
     return this.check_on_entity_died
 end
 
+--- Enables that biter bosses (units with health bars) spawns projectiles on death.
+---@param boolean
 function Public.boss_spawns_projectiles(boolean)
     this.boss_spawns_projectiles = boolean or false
 
     return this.boss_spawns_projectiles
 end
 
+--- Enables that biter bosses (units with health bars) drops loot.
+---@param boolean
 function Public.enable_boss_loot(boolean)
     this.enable_boss_loot = boolean or false
 
     return this.enable_boss_loot
 end
 
-local on_init = function()
-    Public.reset_table()
-end
-
-Event.on_init(on_init)
+Event.on_init(
+    function()
+        Public.reset_table()
+    end
+)
 Event.add(defines.events.on_entity_damaged, on_entity_damaged)
 Event.on_nth_tick(7200, clean_table)
 Event.add(defines.events.on_entity_died, on_entity_died)
