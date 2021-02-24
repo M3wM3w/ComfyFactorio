@@ -1,7 +1,7 @@
 require 'modules.rpg.main'
 require 'maps.amap.relax'
 require 'maps.amap.diff'
-require 'maps.amap.biter_die'
+--require 'maps.amap.biter_die'
 local Functions = require 'maps.amap.functions'
 local IC = require 'maps.amap.ic.table'
 local CS = require 'maps.amap.surface'
@@ -216,7 +216,7 @@ function Public.reset_map()
   WD.set_biter_health_boost(1.4)
   --  WD.set().wave_interval = 3300
   --  WD.set().threat_gain_multiplier = 4
-  WD.set().next_wave = game.tick + 7200* 15*2
+  WD.set().next_wave = game.tick + 7200* 15
   --初始化虫子科技
 
   Functions.disable_tech()

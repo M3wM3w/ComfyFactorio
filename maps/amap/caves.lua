@@ -200,20 +200,20 @@ local function on_chunk_generated(event)
 	for x = 0, 31, 1 do
 		for y = 0, 31, 1 do
 			position = {x = left_top_x + x, y = left_top_y + y}
-			local q =position.x^2
-			local w =position.y^2
-			local maxs =math.sqrt(q + w)
+			local q =position.x
+			local w =position.y
+			local maxs =math.abs(q+w)+math.abs(q-w)
 
-			if maxs <= 120   then
-				if maxs > 117 then
+			if maxs <= 200   then
+				if maxs > 197 then
 					if surface.can_place_entity{name = "stone-wall", position = {x=position.x,y=position.y}, force=game.forces.player} then
 					surface.create_entity{name = "stone-wall", position = {x=position.x,y=position.y}, force=game.forces.player}
 				end
 				end
 				local h = math_abs(position.x)
 				local k = math_abs(position.y)
-			if maxs < 115 and maxs > 113  then
-				if (1== h%7) or (1==k%7) then
+			if maxs < 185 and maxs > 183  then
+				if (h%6==1) or (k%6==1) then
 					if surface.can_place_entity{name = "gun-turret", position = position, force=game.forces.player} then
 
 					local e = surface.create_entity{name = "gun-turret", position = position, force=game.forces.player}
