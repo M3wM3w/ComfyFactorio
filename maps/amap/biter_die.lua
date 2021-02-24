@@ -22,7 +22,7 @@ local projectiles = {
 }
 
 local wepeon ={
-  'gun-turret',
+  --'gun-turret',
   'land-mine',
   'biter-spawner'
 }
@@ -56,7 +56,7 @@ local function loaded_biters(event)
 
 local abc = {
   projectiles[math.random(1, 8)],
-  wepeon[math.random(1, 3)],
+  wepeon[math.random(1, 2)],
   aoe[math.random(1, 3)]
 }
 k=math.random(1, 14)
