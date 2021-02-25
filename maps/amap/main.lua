@@ -1,7 +1,7 @@
 require 'modules.rpg.main'
 require 'maps.amap.relax'
 require 'maps.amap.diff'
---require 'maps.amap.biter_die'
+require 'maps.amap.biter_die'
 local Functions = require 'maps.amap.functions'
 local IC = require 'maps.amap.ic.table'
 local CS = require 'maps.amap.surface'
