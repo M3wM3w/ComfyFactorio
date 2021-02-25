@@ -174,6 +174,23 @@ turret_user[unit_number]=player
 end
 
 
+local function on_player_mined_entity(event)
+  if not entity.valid then
+      return
+  end
+  local name = event.entity.name
+  if entity.force.index == game.forces.player.index then
+    local name = event.entity.name
+        if  entities_that_earn_coins[name] then
+          local unit_number = event.entity.unit_number
+          turret_user[unit_number]=nil
+        --  game.print("已消除")
+        end
+  end
+end
 Event.add(defines.events.on_entity_died, on_entity_died)
 Event.add(defines.events.on_built_entity, on_player_or_robot_built_entity)
 Event.add(defines.events.on_robot_built_entity, on_player_or_robot_built_entity)
+
+Event.add(defines.events.on_player_mined_entity, on_player_mined_entity)
+Event.add(defines.events.on_robot_mined_entity, on_player_mined_entity)

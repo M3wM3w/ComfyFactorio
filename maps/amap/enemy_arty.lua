@@ -15,8 +15,8 @@ local turret_worth ={
   [5]={name='medium-worm-turret',worth=3},
   [6]={name='flamethrower-turret',worth=4},
   [7]={name='big-worm-turret',worth=7},
-  [8]={name='behemoth-worm-turret',worth=20},
-  [9]={name='artillery-turret',worth=30}
+  [8]={name='behemoth-worm-turret',worth=15},
+  [9]={name='artillery-turret',worth=20}
 
 }
 local ammo={
@@ -209,7 +209,7 @@ end
   local radius =math.floor(dis*0.025)
   if radius > 15 then radius = 15 end
   while many_turret > 0 do
-    local roll_k =math.floor(many_turret/6)
+    local roll_k =math.floor(many_turret/5.5)
     if roll_k < 6 then roll_k = 6 end
     if roll_k > 9 then roll_k = 9 end
     local roll_turret = math.random(1,roll_k)
@@ -322,12 +322,15 @@ end
 )
 
 local function add_bullet()
-  gun_bullet()
+--  gun_bullet()
   flame_bullet()
+--  energy_bullet()
+end
+local function energy()
+--  gun_bullet()
+--  flame_bullet()
   energy_bullet()
 end
-
-
 
 local function do_artillery_turrets_targets()
 --local surface = arty_count.surface
@@ -411,8 +414,10 @@ end
 Event.add(defines.events.on_chunk_generated, on_chunk_generated)
 Event.add(defines.events.on_entity_died, on_entity_died)
 --Event.add(defines.events.on_player_changed_position, on_player_changed_position)
-Event.on_nth_tick(10, add_bullet)
-Event.on_nth_tick(10, do_artillery_turrets_targets)
+Event.on_nth_tick(360, gun_bullet)
+Event.on_nth_tick(60, add_bullet)
+Event.on_nth_tick(10, energy)
+Event.on_nth_tick(40, do_artillery_turrets_targets)
 Event.on_init(on_init)
 
 
