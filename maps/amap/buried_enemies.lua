@@ -3,7 +3,7 @@ local Global = require 'utils.global'
 local BiterRolls = require 'modules.wave_defense.biter_rolls'
 local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 local WD = require 'modules.wave_defense.table'
-local WPT = require 'maps.mountain_fortress_v3.table'
+local WPT = require 'maps.amap.table'
 local Diff = require 'modules.difficulty_vote_by_amount'
 
 local traps = {}

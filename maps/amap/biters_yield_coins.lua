@@ -4,6 +4,7 @@ local insert = table.insert
 local floor = math.floor
 local random = math.random
 local Functions = require 'modules.rpg.functions'
+local turret_user={}
 
 local coin_yield = {
     ['behemoth-biter'] = 5,
@@ -61,6 +62,16 @@ local function on_entity_died(event)
     if not entity.valid then
         return
     end
+
+    if entity.force.index == game.forces.player.index then
+      local name = event.entity.name
+          if  entities_that_earn_coins[name] then
+            local unit_number = event.entity.unit_number
+            turret_user[unit_number]=nil
+          --  game.print("已消除")
+          end
+    end
+
     if entity.force.index ~= 2 then
         return
     end
@@ -121,14 +132,19 @@ local function on_entity_died(event)
             end
         end
         if entities_that_earn_coins[cause.name] then
-if event.cause.last_user then
-    local player = event.cause.last_user
-   -- game.print(player.name)
-    player.insert({name = 'coin', count = coin_count})
-
-  --  Functions.gain_xp(event.entity.last_user, 1)
-    reward_has_been_given = true
-end
+        --  game.print(cause.unit_number)
+        local unit_number= cause.unit_number
+          if turret_user[unit_number] then
+turret_user[unit_number].insert({name = 'coin', count = coin_count})
+          end
+-- if event.cause.last_user then
+--     local player = event.cause.last_user
+--   --  game.print(player.name)
+--     player.insert({name = 'coin', count = coin_count})
+--
+--   --  Functions.gain_xp(event.entity.last_user, 1)
+--     reward_has_been_given = true
+--end
 
             -- event.entity.surface.spill_item_stack(cause.position, {name = 'coin', count = coin_count}, true)
 
@@ -140,4 +156,24 @@ end
     -- end
 end
 
+local on_player_or_robot_built_entity = function(event)
+
+  local force = event.created_entity.force
+
+
+      if not force.index == game.forces.player.index then
+        return
+      end
+  local name = event.created_entity.name
+      if not entities_that_earn_coins[name] then
+        return
+      end
+local unit_number = event.created_entity.unit_number
+local player = event.created_entity.last_user
+turret_user[unit_number]=player
+end
+
+
 Event.add(defines.events.on_entity_died, on_entity_died)
+Event.add(defines.events.on_built_entity, on_player_or_robot_built_entity)
+Event.add(defines.events.on_robot_built_entity, on_player_or_robot_built_entity)
