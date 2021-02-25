@@ -3,6 +3,7 @@ local RPG_Settings = require 'modules.rpg.table'
 local insert = table.insert
 local floor = math.floor
 local random = math.random
+local Functions = require 'modules.rpg.functions'
 
 local coin_yield = {
     ['behemoth-biter'] = 5,
@@ -120,14 +121,23 @@ local function on_entity_died(event)
             end
         end
         if entities_that_earn_coins[cause.name] then
-            event.entity.surface.spill_item_stack(cause.position, {name = 'coin', count = coin_count}, true)
-            reward_has_been_given = true
+if event.cause.last_user then
+    local player = event.cause.last_user
+    game.print(player.name)
+    player.insert({name = 'coin', count = coin_count})
+
+  --  Functions.gain_xp(event.entity.last_user, 1)
+    reward_has_been_given = true
+end
+
+            -- event.entity.surface.spill_item_stack(cause.position, {name = 'coin', count = coin_count}, true)
+
         end
     end
 
-    if reward_has_been_given == false then
-        event.entity.surface.spill_item_stack(event.entity.position, {name = 'coin', count = coin_count}, true)
-    end
+    -- if reward_has_been_given == false then
+    --     event.entity.surface.spill_item_stack(event.entity.position, {name = 'coin', count = coin_count}, true)
+    -- end
 end
 
 Event.add(defines.events.on_entity_died, on_entity_died)

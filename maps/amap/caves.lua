@@ -206,6 +206,7 @@ local function on_chunk_generated(event)
 
 			if maxs <= 200   then
 				if maxs > 197 then
+				move_away_things(surface, event.area)
 					if surface.can_place_entity{name = "stone-wall", position = {x=position.x,y=position.y}, force=game.forces.player} then
 					surface.create_entity{name = "stone-wall", position = {x=position.x,y=position.y}, force=game.forces.player}
 				end
@@ -225,7 +226,7 @@ local function on_chunk_generated(event)
 				if not get_tile(position).collides_with("resource-layer") then
 					noise = get_noise("scrapyard", position, seed)
 					if is_scrap_area(noise) then
-						set_tiles({{name = "dirt-" .. math_floor(math_abs(noise) * 12) % 4 + 3, position = position}}, true)
+					--	set_tiles({{name = "dirt-" .. math_floor(math_abs(noise) * 12) % 4 + 3, position = position}}, true)
 
             if maxs >= 3000 then
 							local roll = math_random(1,1024)
