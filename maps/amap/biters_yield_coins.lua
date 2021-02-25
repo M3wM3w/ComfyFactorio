@@ -175,11 +175,11 @@ end
 
 
 local function on_player_mined_entity(event)
-  if not entity.valid then
+  if not event.entity.valid then
       return
   end
   local name = event.entity.name
-  if entity.force.index == game.forces.player.index then
+  if event.entity.force.index == game.forces.player.index then
     local name = event.entity.name
         if  entities_that_earn_coins[name] then
           local unit_number = event.entity.unit_number
