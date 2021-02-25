@@ -123,7 +123,7 @@ local function on_entity_died(event)
         if entities_that_earn_coins[cause.name] then
 if event.cause.last_user then
     local player = event.cause.last_user
-    game.print(player.name)
+   -- game.print(player.name)
     player.insert({name = 'coin', count = coin_count})
 
   --  Functions.gain_xp(event.entity.last_user, 1)
