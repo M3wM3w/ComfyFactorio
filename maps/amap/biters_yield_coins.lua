@@ -4,7 +4,7 @@ local insert = table.insert
 local floor = math.floor
 local random = math.random
 local Functions = require 'modules.rpg.functions'
-local turret_user={}
+local WPT = require 'maps.amap.table'
 
 local coin_yield = {
     ['behemoth-biter'] = 5,
@@ -67,7 +67,8 @@ local function on_entity_died(event)
       local name = event.entity.name
           if  entities_that_earn_coins[name] then
             local unit_number = event.entity.unit_number
-            turret_user[unit_number]=nil
+            local this = WPT.get()
+            this.turret[unit_number]=nil
           --  game.print("已消除")
           end
     end
@@ -134,8 +135,9 @@ local function on_entity_died(event)
         if entities_that_earn_coins[cause.name] then
         --  game.print(cause.unit_number)
         local unit_number= cause.unit_number
-          if turret_user[unit_number] then
-turret_user[unit_number].insert({name = 'coin', count = coin_count})
+        local this = WPT.get()
+          if this.turret[unit_number] then
+this.turret[unit_number].insert({name = 'coin', count = coin_count})
           end
 -- if event.cause.last_user then
 --     local player = event.cause.last_user
@@ -170,7 +172,8 @@ local on_player_or_robot_built_entity = function(event)
       end
 local unit_number = event.created_entity.unit_number
 local player = event.created_entity.last_user
-turret_user[unit_number]=player
+local this = WPT.get()
+this.turret[unit_number]=player
 end
 
 
@@ -183,7 +186,8 @@ local function on_player_mined_entity(event)
     local name = event.entity.name
         if  entities_that_earn_coins[name] then
           local unit_number = event.entity.unit_number
-          turret_user[unit_number]=nil
+          local this = WPT.get()
+          this.turret[unit_number]=nil
         --  game.print("已消除")
         end
   end

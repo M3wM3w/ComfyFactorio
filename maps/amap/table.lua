@@ -20,6 +20,7 @@ function Public.reset_table()
 -- @start
     -- these 3 are in case of stop/start/reloading the instance
     this.biter_dam=0
+    this.turret={}
     this.cap=2
      this.biter_health=0
      this.change_dist=false
