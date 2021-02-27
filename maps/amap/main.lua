@@ -21,7 +21,7 @@ local Autostash = require 'modules.autostash'
 local BuriedEnemies = require 'maps.amap.buried_enemies'
 local RPG_Settings = require 'modules.rpg.table'
 local RPG_Func = require 'modules.rpg.functions'
-local Commands = require 'commands.misc'
+local BottomFrame = require 'comfy_panel.bottom_frame'
 local Task = require 'utils.task'
 local Token = require 'utils.token'
 local Alert = require 'utils.alert'
@@ -106,10 +106,9 @@ function Public.reset_map()
   Autostash.insert_into_furnace(true)
   Autostash.bottom_button(true)
   BuriedEnemies.reset()
-  Commands.reset()
-  Commands.activate_custom_buttons(true)
-  Commands.bottom_right(false)
-
+  BottomFrame.reset()
+  BottomFrame.activate_custom_buttons(true)
+  BottomFrame.bottom_right(true)
   IC.reset()
   IC.allowed_surface('amap')
 
@@ -163,10 +162,24 @@ function Public.reset_map()
 
 
 
+  -- local players = game.connected_players
+  -- for i = 1, #players do
+  --   local player = players[i]
+  --   Commands.insert_all_items(player)
+  -- end
+
+
   local players = game.connected_players
   for i = 1, #players do
-    local player = players[i]
-    Commands.insert_all_items(player)
+      local player = players[i]
+      Score.init_player_table(player, true)
+      BottomFrame.insert_all_items(player)
+      Modifiers.reset_player_modifiers(player)
+      if player.gui.left['mvps'] then
+          player.gui.left['mvps'].destroy()
+      end
+      ICMinimap.kill_minimap(player)
+      raise_event(Gui_mf.events.reset_map, {player_index = player.index})
   end
 
   --生产火箭发射井
@@ -203,8 +216,7 @@ function Public.reset_map()
 
   wave_defense_table.spawn_position = positions
   this.pos = positions
-  this.change = false
-  this.science = 0
+
   --game.print(positions)
   WD.alert_boss_wave(true)
   WD.clear_corpses(false)
@@ -606,6 +618,10 @@ local change = function()
   end
 end
 local single_rewrad = function()
+  local this = WPT.get()
+  if not this.first then
+    return
+  end
   local game_lost = WPT.get('game_lost')
   if game_lost then
     return
@@ -616,7 +632,7 @@ local single_rewrad = function()
   end
   local rpg_t = RPG.get('rpg_t')
 
-  local this = WPT.get()
+
   local player_count = calc_players()
   if this.single and player_count <= 2 and not this.first then
     for k, p in pairs(game.connected_players) do
@@ -727,7 +743,7 @@ end
   Event.on_init(on_init)
   Event.on_nth_tick(10, on_tick)
   Event.on_nth_tick(7200, single_rewrad)
-  Event.on_nth_tick(60, change_dis)
+  Event.on_nth_tick(120, change_dis)
   Event.on_nth_tick(600, buff_build)
   --Event.add(defines.events.on_player_joined_game, on_player_joined_game)
   --Event.add(defines.events.on_pre_player_left_game, on_player_left_game)
