@@ -6,6 +6,7 @@ local Functions = require 'maps.amap.functions'
 local IC = require 'maps.amap.ic.table'
 local CS = require 'maps.amap.surface'
 local Event = require 'utils.event'
+local ICMinimap = require 'maps.amap.ic.minimap'
 --local HS = require 'maps.amap.highscore'
 local WD = require 'modules.wave_defense.table'
 local wall_health = require 'maps.amap.wall_health_booster_v2'
@@ -27,7 +28,7 @@ local Token = require 'utils.token'
 local Alert = require 'utils.alert'
 local rock = require 'maps.amap.rock'
 local Loot = require'maps.amap.loot'
-
+local Modifiers = require 'player_modifiers'
 local rpg_spells = RPG_Settings.get('rpg_spells')
  --rpg_spells[1].enabled = false
   --rpg_spells[17].enabled = true
@@ -148,7 +149,13 @@ function Public.reset_map()
   RPG_Settings.enable_auto_allocate(true)
   RPG_Settings.disable_cooldowns_on_spells()
 --  RPG_Settings.enable_title(true)
-
+AntiGrief.log_tree_harvest(true)
+AntiGrief.whitelist_types('tree', true)
+AntiGrief.enable_capsule_warning(false)
+AntiGrief.enable_capsule_cursor_warning(false)
+AntiGrief.enable_jail(true)
+AntiGrief.damage_entity_threshold(20)
+AntiGrief.explosive_threshold(32)
   --初始化部队
   init_new_force()
   --难度设置
@@ -172,14 +179,9 @@ function Public.reset_map()
   local players = game.connected_players
   for i = 1, #players do
       local player = players[i]
-      Score.init_player_table(player, true)
-      BottomFrame.insert_all_items(player)
+      --BottomFrame.insert_all_items(player)
       Modifiers.reset_player_modifiers(player)
-      if player.gui.left['mvps'] then
-          player.gui.left['mvps'].destroy()
-      end
       ICMinimap.kill_minimap(player)
-      raise_event(Gui_mf.events.reset_map, {player_index = player.index})
   end
 
   --生产火箭发射井
@@ -619,7 +621,7 @@ local change = function()
 end
 local single_rewrad = function()
   local this = WPT.get()
-  if not this.first then
+  if not this.single then
     return
   end
   local game_lost = WPT.get('game_lost')
