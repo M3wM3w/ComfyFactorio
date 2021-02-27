@@ -8,12 +8,14 @@ local Event = require 'utils.event'
 local LootDrop = require 'modules.mobs_drop_loot'
 local WD = require 'modules.wave_defense.table'
 local Global = require 'utils.global'
+local Task = require 'utils.task'
+local Token = require 'utils.token'
 
 local floor = math.floor
 local insert = table.insert
-local round = math.round
 local random = math.random
 local sqrt = math.sqrt
+local ceil = math.ceil
 local Public = {}
 
 local this = {
@@ -71,6 +73,15 @@ local entity_types = {
     ['turret'] = true,
     ['unit-spawner'] = true
 }
+
+local removeUnit =
+    Token.register(
+    function(data)
+        local biter_health_boost_units = data.biter_health_boost_units
+        local unit_number = data.unit_number
+        biter_health_boost_units[unit_number] = nil
+    end
+)
 
 if is_loaded('maps.biter_hatchery.terrain') then
     entity_types['unit-spawner'] = nil
@@ -293,28 +304,29 @@ local function on_entity_died(event)
     local biter_health_boost_units = this.biter_health_boost_units
 
     local unit_number = biter.unit_number
-
+    local health_pool = biter_health_boost_units[unit_number]
     local wave_count = WD.get_wave()
 
-    local health_pool = biter_health_boost_units[unit_number]
-    if health_pool and health_pool[3] then
-        if this.enable_boss_loot then
-            if random(1, 128) == 1 then
-                LootDrop.drop_loot(biter, wave_count)
+    if health_pool then
+        Task.set_timeout_in_ticks(30, removeUnit, {unit_number = unit_number, biter_health_boost_units = biter_health_boost_units})
+        if health_pool[3] then
+            if this.enable_boss_loot then
+                if random(1, 128) == 1 then
+                    LootDrop.drop_loot(biter, wave_count)
+                end
             end
-        end
-        if this.boss_spawns_projectiles then
-            if random(1, 96) == 1 then
-                loaded_biters(event)
+            if this.boss_spawns_projectiles then
+                if random(1, 96) == 1 then
+                    loaded_biters(event)
+                end
             end
-        end
-        biter_health_boost_units[unit_number] = nil
-        if this.acid_nova then
-            if acid_splashes[biter.name] then
-                acid_nova(event)
-            end
-            if this.acid_lines_delay[biter.unit_number] then
-                this.acid_lines_delay[biter.unit_number] = nil
+            if this.acid_nova then
+                if acid_splashes[biter.name] then
+                    acid_nova(event)
+                end
+                if this.acid_lines_delay[biter.unit_number] then
+                    this.acid_lines_delay[biter.unit_number] = nil
+                end
             end
         end
     end
@@ -367,7 +379,7 @@ function Public.add_unit(unit, health_multiplier)
     end
     this.biter_health_boost_units[unit.unit_number] = {
         floor(unit.prototype.max_health * health_multiplier),
-        round(1 / health_multiplier, 5)
+        ceil(sqrt(health_multiplier))
     }
 end
 
@@ -385,7 +397,7 @@ function Public.add_boss_unit(unit, health_multiplier, health_bar_size)
     local health = floor(unit.prototype.max_health * health_multiplier)
     this.biter_health_boost_units[unit.unit_number] = {
         health,
-        round(1 / health_multiplier, 5),
+        ceil(sqrt(health_multiplier)),
         {max_health = health, healthbar_id = create_boss_healthbar(unit, health_bar_size), last_update = game.tick}
     }
 end
