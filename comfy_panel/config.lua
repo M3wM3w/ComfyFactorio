@@ -5,6 +5,7 @@ local Color = require 'utils.color_presets'
 local SessionData = require 'utils.datastore.session_data'
 local Utils = require 'utils.core'
 local SpamProtection = require 'utils.spam_protection'
+local BottomFrame = require 'comfy_panel.bottom_frame'
 
 local spaghett_entity_blacklist = {
     ['logistic-chest-requester'] = true,
@@ -98,6 +99,20 @@ local functions = {
             game.players[event.player_index].spectator = true
         else
             game.players[event.player_index].spectator = false
+        end
+    end,
+    ['comfy_panel_bottom_right_frame'] = function(event)
+        local player = game.get_player(event.player_index)
+        if event.element.switch_state == 'left' then
+            local bottom_frame = BottomFrame.get_player_data(player)
+            if not bottom_frame then
+                return
+            end
+            bottom_frame.bottom_left = true
+            BottomFrame.set_location(player)
+        else
+            BottomFrame.get_player_data(player, true)
+            BottomFrame.set_location(player)
         end
     end,
     ['comfy_panel_auto_hotbar_switch'] = function(event)
@@ -345,6 +360,22 @@ local build_config_gui = (function(player, frame)
             switch_state = 'left'
         end
         add_switch(scroll_pane, switch_state, 'comfy_panel_poll_no_notify_toggle', 'Notify on polls', 'Receive a message when new polls are created and popup the poll.')
+        scroll_pane.add({type = 'line'})
+    end
+
+    if BottomFrame.is_custom_buttons_enabled() then
+        switch_state = 'right'
+        local bottom_frame = BottomFrame.get('players')
+        if bottom_frame[player.index] then
+            switch_state = 'left'
+        end
+        add_switch(
+            scroll_pane,
+            switch_state,
+            'comfy_panel_bottom_right_frame',
+            'Button Location',
+            'Toggle to select if you want the bottom button on the right side or the left side.'
+        )
         scroll_pane.add({type = 'line'})
     end
 

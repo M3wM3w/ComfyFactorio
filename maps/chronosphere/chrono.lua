@@ -42,7 +42,7 @@ function Public.reset_surfaces()
 		if player.controller_type == defines.controllers.editor then player.toggle_map_editor() end
 	end
 
-	if game.surfaces["chronosphere"] then game.delete_surface(game.surfaces["chronosphere"]) end
+	--if game.surfaces["chronosphere"] then game.delete_surface(game.surfaces["chronosphere"]) end
 	if game.surfaces["cargo_wagon"] then game.delete_surface(game.surfaces["cargo_wagon"]) end
 	for i = 13, 16, 1 do
 		objective.upgrades[i] = 0

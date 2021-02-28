@@ -31,7 +31,7 @@ local Task = require 'utils.task'
 local Token = require 'utils.token'
 local Alert = require 'utils.alert'
 local AntiGrief = require 'antigrief'
-local Commands = require 'commands.misc'
+local BottomFrame = require 'comfy_panel.bottom_frame'
 local Modifiers = require 'player_modifiers'
 local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 
@@ -109,9 +109,9 @@ function Public.reset_map()
     Autostash.insert_into_wagon(true)
     Autostash.bottom_button(true)
     BuriedEnemies.reset()
-    Commands.reset()
-    Commands.activate_custom_buttons(true)
-    Commands.bottom_right(true)
+    BottomFrame.reset()
+    BottomFrame.activate_custom_buttons(true)
+    BottomFrame.bottom_right(true)
 
     Poll.reset()
     ICW.reset()
@@ -133,6 +133,8 @@ function Public.reset_map()
     RPG_Settings.enable_one_punch_globally(false)
     RPG_Settings.enable_auto_allocate(true)
     RPG_Settings.disable_cooldowns_on_spells()
+    RPG_Settings.enable_explosive_bullets_globally(true)
+    RPG_Settings.enable_explosive_bullets(false)
 
     Group.reset_groups()
     Group.alphanumeric_only(false)
@@ -175,7 +177,7 @@ function Public.reset_map()
     for i = 1, #players do
         local player = players[i]
         Score.init_player_table(player, true)
-        Commands.insert_all_items(player)
+        BottomFrame.insert_all_items(player)
         Modifiers.reset_player_modifiers(player)
         if player.gui.left['mvps'] then
             player.gui.left['mvps'].destroy()

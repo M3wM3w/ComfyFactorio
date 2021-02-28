@@ -212,6 +212,14 @@ function Public.get_position()
     return collapse.position
 end
 
+function Public.get_amount()
+    return collapse.amount
+end
+
+function Public.get_speed()
+    return collapse.speed
+end
+
 function Public.start_now(status)
     if status == true then
         collapse.start_now = true

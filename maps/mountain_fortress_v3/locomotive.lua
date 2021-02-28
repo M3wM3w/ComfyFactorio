@@ -237,7 +237,6 @@ function Public.add_player_to_permission_group(player, group, forced)
         locomotive_group.set_allows_action(defines.input_action.add_permission_group, false)
         locomotive_group.set_allows_action(defines.input_action.admin_action, false)
         locomotive_group.set_allows_action(defines.input_action.drop_item, false)
-        locomotive_group.set_allows_action(defines.input_action.place_equipment, false)
     end
 
     if not game.permissions.get_group('plebs') then
@@ -258,7 +257,6 @@ function Public.add_player_to_permission_group(player, group, forced)
         not_trusted.set_allows_action(defines.input_action.add_permission_group, false)
         not_trusted.set_allows_action(defines.input_action.admin_action, false)
         not_trusted.set_allows_action(defines.input_action.drop_item, false)
-        not_trusted.set_allows_action(defines.input_action.place_equipment, false)
         not_trusted.set_allows_action(defines.input_action.disconnect_rolling_stock, false)
         not_trusted.set_allows_action(defines.input_action.connect_rolling_stock, false)
     end
@@ -1163,6 +1161,7 @@ local function gui_click(event)
                 player.name .. ' has bought the explosive bullet modifier for ' .. format_number(item.price) .. ' coins.'
             }
         )
+        RPG_Settings.enable_explosive_bullets(true)
         this.explosive_bullets = true
 
         redraw_market_items(data.item_frame, player, data.search_text)
@@ -2296,6 +2295,14 @@ function Public.get_items()
             tooltip = ({'item-name.first-aid-kit'}),
             upgrade = false,
             static = false
+        }
+        main_market_items['kr-creep-collector'] = {
+            price = 50,
+            stack = 1,
+            tooltip = ({'item-name.kr-creep-collector'}),
+            upgrade = false,
+            static = true,
+            value = 'coin'
         }
     end
     main_market_items['land-mine'] = {

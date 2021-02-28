@@ -304,6 +304,7 @@ function Public.extra_settings(player)
     local spell_gui_input2
     local spell_gui_input3
     local flame_boots_gui_input
+    local explosive_bullets_gui_input
     local stone_path_gui_input
     local one_punch_gui_input
     local auto_allocate_gui_input
@@ -426,6 +427,43 @@ function Public.extra_settings(player)
         else
             flame_boots_gui_input.enabled = false
             flame_boots_gui_input.tooltip = ({'rpg_settings.no_mana'})
+        end
+    end
+
+    if rpg_extra.enable_explosive_bullets_globally then
+        local explosive_bullets_label =
+            setting_grid.add(
+            {
+                type = 'label',
+                caption = ({'rpg_settings.explosive_bullets_label'}),
+                tooltip = ({'rpg_settings.explosive_bullets_tooltip'})
+            }
+        )
+
+        local explosive_bullets_label_style = explosive_bullets_label.style
+        explosive_bullets_label_style.horizontally_stretchable = true
+        explosive_bullets_label_style.height = 35
+        explosive_bullets_label_style.vertical_align = 'center'
+
+        local explosive_bullet_input = setting_grid.add({type = 'flow'})
+        local explosive_bullet_input_style = explosive_bullet_input.style
+        explosive_bullet_input_style.height = 35
+        explosive_bullet_input_style.vertical_align = 'center'
+        local explosive_bullets
+        if rpg_t[player.index].explosive_bullets then
+            explosive_bullets = rpg_t[player.index].explosive_bullets
+        else
+            explosive_bullets = false
+        end
+        explosive_bullets_gui_input = create_input_element(explosive_bullet_input, 'boolean', explosive_bullets)
+
+        if rpg_t[player.index].level < 50 then
+            explosive_bullets_gui_input.enabled = false
+            explosive_bullets_gui_input.tooltip = ({'rpg_settings.low_level', 50})
+            explosive_bullets_label.tooltip = ({'rpg_settings.low_level', 50})
+        else
+            explosive_bullets_gui_input.enabled = true
+            explosive_bullets_gui_input.tooltip = ({'rpg_settings.explosive_bullets_tooltip'})
         end
     end
 
@@ -626,6 +664,10 @@ function Public.extra_settings(player)
 
     if rpg_extra.enable_flame_boots then
         data.flame_boots_gui_input = flame_boots_gui_input
+    end
+
+    if rpg_extra.enable_explosive_bullets_globally then
+        data.explosive_bullets_gui_input = explosive_bullets_gui_input
     end
 
     if rpg_extra.enable_stone_path then

@@ -178,9 +178,10 @@ local function get_active_biter_count()
 	return count
 end
 
-local function select_units_around_spawner(spawner)
+local function select_units_around_spawner(spawner, size)
   local bitertable = Chrono_table.get_biter_table()
   local difficulty = Difficulty.get().difficulty_vote_value
+  if not size then size = 1 end
 
 	local biters = spawner.surface.find_enemy_units(spawner.position, 50, "player")
 	if not biters[1] then return nil end
@@ -189,7 +190,7 @@ local function select_units_around_spawner(spawner)
 	local unit_count = 0
 
 	for _, biter in pairs(biters) do
-		if unit_count >= Balance.max_new_attack_group_size(difficulty) then break end
+		if unit_count >= floor(Balance.max_new_attack_group_size(difficulty) * size) then break end
 		if biter.force.name == "enemy" and bitertable.active_biters[biter.unit_number] == nil then
 			valid_biters[#valid_biters + 1] = biter
 			bitertable.active_biters[biter.unit_number] = {entity = biter, active_since = game.tick}
@@ -199,7 +200,7 @@ local function select_units_around_spawner(spawner)
 	--Manual spawning of additional units
   local size_of_biter_raffle = #bitertable.biter_raffle
 	if size_of_biter_raffle > 0 then
-		for _ = 1, Balance.max_new_attack_group_size(difficulty) - unit_count, 1 do
+		for _ = 1, floor(Balance.max_new_attack_group_size(difficulty) * size - unit_count), 1 do
 			local biter_name = bitertable.biter_raffle[random(1, size_of_biter_raffle)]
 			local position = spawner.surface.find_non_colliding_position(biter_name, spawner.position, 50, 2)
 			if not position then break end
@@ -255,7 +256,7 @@ local function set_biter_raffle_table(surface)
 	end
 end
 
-local function create_attack_group(surface)
+local function create_attack_group(surface, size)
   local objective = Chrono_table.get_table()
   local bitertable = Chrono_table.get_biter_table()
 	if get_active_biter_count() > 512 * Difficulty.get().difficulty_vote_value then
@@ -266,7 +267,7 @@ local function create_attack_group(surface)
 		return nil
 	end
 	local position = surface.find_non_colliding_position("rocket-silo", spawner.position, 256, 1)
-	local units = select_units_around_spawner(spawner)
+	local units = select_units_around_spawner(spawner, size)
 	if not units then return nil end
 	local unit_group = surface.create_unit_group({position = position, force = "enemy"})
 	for _, unit in pairs(units) do unit_group.add_member(unit) end
@@ -336,9 +337,9 @@ end
 
 local function send_near_biters_to_objective()
   local objective = Chrono_table.get_table()
-  if objective.game_lost then game.print("lost game") return end
+  if objective.game_lost then return end
   local target = generate_main_attack_target()
-  if not target or not target.valid then game.print("no target") return end
+  if not target or not target.valid then return end
   if pollution_requirement(target.surface, target.position, true) or random(1, math.max(1, 40 - objective.chronojumps)) == 1 then
     if _DEBUG then game.print(game.tick .. ": sending objective wave") end
     multi_attack(target.surface, target)
@@ -397,7 +398,7 @@ end
 function Public.perform_rogue_attack()
   local objective = Chrono_table.get_table()
 	local surface = game.surfaces[objective.active_surface_index]
-	local group = create_attack_group(surface)
+	local group = create_attack_group(surface, 0.2)
   if not group or not group.valid then return end
   local target = generate_side_attack_target(surface, group.position)
   if not target or not target.valid then return end
@@ -408,7 +409,7 @@ end
 function Public.perform_main_attack()
   local objective = Chrono_table.get_table()
 	local surface = game.surfaces[objective.active_surface_index]
-	local group = create_attack_group(surface)
+	local group = create_attack_group(surface, 1)
   local target = generate_main_attack_target()
   if not group or not group.valid or not target or not target.valid then return end
   attack_check(group, target, true)

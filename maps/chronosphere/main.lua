@@ -105,8 +105,8 @@ local function chronojump(choice)
 	game.forces.player.set_spawn_position({12, 10}, surface)
 	Locomotive.locomotive_spawn(surface, {x = 16, y = 10}, Chrono.get_wagons(false))
 	Event_functions.render_train_hp()
-	Tick_functions.change_to_neutral(oldsurface)
-	Tick_functions.add_schedule(oldsurface)
+	Reset.change_entities_to_neutral(oldsurface, "player", true)
+	Reset.add_schedule_to_delete_surface(oldsurface)
 	Chrono.post_jump()
 	Event_functions.flamer_nerfs()
 	Minimap.update_surface()
@@ -146,10 +146,6 @@ local function tick()
 	local objective = Chrono_table.get_table()
 	local tick = game.tick
 	Ai.Tick_actions(tick)
-
-	if tick % 60 == 10 and objective.passivetimer > 64 then
-		Tick_functions.scheduled_surface_clearing()
-	end
 	if tick % 60 == 30 and objective.passivetimer < 64 then
 		Tick_functions.request_chunks()
 	end

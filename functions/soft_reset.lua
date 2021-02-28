@@ -1,7 +1,138 @@
 local Server = require 'utils.server'
 local Modifers = require 'player_modifiers'
+local Global = require 'utils.global'
+local Event = require 'utils.event'
 
 local Public = {}
+local resettable = {}
+
+---------------------------global table-----------------------------------------
+Global.register(
+    resettable,
+    function(tbl)
+        resettable = tbl
+    end
+)
+
+function Public.reset_table()
+    for k, _ in pairs(resettable) do
+        resettable[k] = nil
+    end
+    resettable.soft_reset_counter = 0
+    resettable.original_surface_name = nil
+    resettable.schedule_step = 0
+    resettable.schedule_max_step = 0
+    resettable.schedule = {}
+    resettable.initial_tick = 0
+end
+
+function Public.get_table()
+    return resettable
+end
+
+local on_init = function ()
+    Public.reset_table()
+end
+
+Event.on_init(on_init)
+
+-------------------------scheduled deletion-------------------------------------
+local function add_step()
+    if resettable.schedule_step ~= resettable.schedule_max_step then
+        resettable.schedule_step = resettable.schedule_step + 1
+    end
+end
+
+local function scheduled_surface_clearing()
+    if resettable.initial_tick > game.tick then return end
+    local step = resettable.schedule_step
+    local schedule = resettable.schedule
+    if schedule[step] then
+        local surface = schedule[step].surface
+        if not surface.valid then
+            schedule[step] = nil
+            add_step()
+            return
+        end
+        if schedule[step].operation == "biter_clearing" then
+            local biters = surface.find_entities_filtered{type = "unit", limit = 10000}
+            for _,biter in pairs(biters) do
+                if biter.valid then biter.destroy() end
+            end
+            schedule[step] = nil
+            add_step()
+        elseif schedule[step].operation == "nest_clearing" then
+            local nests = surface.find_entities_filtered{type = "unit-spawner"}
+            for _, nest in pairs(nests) do
+                if nest.valid then nest.destroy() end
+            end
+            schedule[step] = nil
+            add_step()
+        elseif schedule[step].operation == "scrap_clearing" then
+            local scrap = surface.find_entities_filtered{force = "neutral", limit = 5000}
+            for _, e in pairs(scrap) do
+                if e.valid then e.destroy() end
+            end
+            schedule[step] = nil
+            add_step()
+        elseif schedule[step].operation == "clear" then
+            surface.clear()
+            schedule[step] = nil
+            add_step()
+        elseif schedule[step].operation == "delete" then
+            game.delete_surface(surface)
+            schedule[step] = nil
+            add_step()
+        end
+    end
+end
+
+function Public.add_schedule_to_delete_surface(surface)
+    local step = resettable.schedule_max_step
+    local add = 1
+    resettable.schedule[step + add] = {operation = "nest_clearing", surface = surface}
+    add = add + 1
+    local count_biters = surface.count_entities_filtered{type = "unit"}
+    for i = 1, count_biters, 10000 do
+        resettable.schedule[step + add] = {operation = "biter_clearing", surface = surface}
+        add = add + 1
+    end
+    local count_scrap = surface.count_entities_filtered{force = "neutral"}
+    for i = 1, count_scrap, 5000 do
+        resettable.schedule[step + add] = {operation = "scrap_clearing", surface = surface}
+        add = add + 1
+    end
+    resettable.schedule[step + add] = {operation = "clear", surface = surface}
+    add = add + 1
+    resettable.schedule[step + add] = {operation = "delete", surface = surface}
+    resettable.schedule_max_step = resettable.schedule_max_step + add
+    if resettable.schedule_step == step then
+        resettable.schedule_step = resettable.schedule_step + 1
+    end
+    if resettable.initial_tick <= game.tick then
+        --add offset for starting of deletion, so new map can generate peacefully for a minute and tiny bit
+        resettable.initial_tick = game.tick + 4000
+    end
+end
+
+function Public.change_entities_to_neutral(surface, force, delete_pollution)
+    local entities = surface.find_entities_filtered{force = force or "player"}
+    for _, entity in pairs(entities) do
+        if entity.valid then
+            entity.force = "neutral"
+            entity.active = false
+        end
+    end
+    if delete_pollution then
+        local pollution = surface.get_total_pollution()
+        surface.clear_pollution()
+        game.pollution_statistics.on_flow("power-switch", -pollution)
+    end
+end
+
+Event.on_nth_tick(10, scheduled_surface_clearing)
+
+---------------------------soft reset-------------------------------------------
 
 local function reset_forces(new_surface, old_surface)
     for _, f in pairs(game.forces) do
@@ -49,17 +180,14 @@ local function equip_players(player_starting_items)
 end
 
 function Public.soft_reset_map(old_surface, map_gen_settings, player_starting_items)
-    if not global.soft_reset_counter then
-        global.soft_reset_counter = 0
+    if not resettable.original_surface_name then
+        resettable.original_surface_name = old_surface.name
     end
-    if not global.original_surface_name then
-        global.original_surface_name = old_surface.name
-    end
-    global.soft_reset_counter = global.soft_reset_counter + 1
+    resettable.soft_reset_counter = resettable.soft_reset_counter + 1
 
     local new_surface =
         game.create_surface(
-        global.original_surface_name .. '_' .. tostring(global.soft_reset_counter),
+        resettable.original_surface_name .. '_' .. tostring(resettable.soft_reset_counter),
         map_gen_settings
     )
     new_surface.request_to_generate_chunks({0, 0}, 1)
@@ -69,23 +197,20 @@ function Public.soft_reset_map(old_surface, map_gen_settings, player_starting_it
     teleport_players(new_surface)
     equip_players(player_starting_items)
 
-    game.delete_surface(old_surface)
+    Public.change_entities_to_neutral(old_surface)
+    Public.add_schedule_to_delete_surface(old_surface)
 
-    local message = table.concat({'>> Welcome to ', global.original_surface_name, '!'})
-    if global.soft_reset_counter > 1 then
+    local message = {'modules.soft_reset_welcome', resettable.original_surface_name}
+    if resettable.soft_reset_counter > 1 then
         message =
-            table.concat(
             {
-                '>> The world has been reshaped, welcome to ',
-                global.original_surface_name,
-                ' number ',
-                tostring(global.soft_reset_counter),
-                '!'
+                'modules.soft_reset_reshape',
+                resettable.original_surface_name,
+                tostring(resettable.soft_reset_counter),
             }
-        )
     end
     game.print(message, {r = 0.98, g = 0.66, b = 0.22})
-    Server.to_discord_embed(message)
+    Server.to_discord_embed(message, true)
 
     return new_surface
 end

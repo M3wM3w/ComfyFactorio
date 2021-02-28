@@ -95,6 +95,8 @@ function Public.reset_table()
     this.rpg_extra.mana_limit = 1500
     this.rpg_extra.enable_wave_defense = false
     this.rpg_extra.enable_flame_boots = false
+    this.rpg_extra.enable_explosive_bullets = false
+    this.rpg_extra.enable_explosive_bullets_globally = false
     this.rpg_extra.mana_per_tick = 0.1
     this.rpg_extra.force_mana_per_tick = false
     this.rpg_extra.enable_stone_path = false
@@ -267,6 +269,40 @@ function Public.enable_flame_boots(value)
     end
 
     return this.rpg_extra.enable_flame_boots
+end
+
+--- Enables/disabled explosive bullets globally.
+---@param value <boolean>
+function Public.enable_explosive_bullets_globally(value)
+    if value then
+        this.rpg_extra.enable_explosive_bullets_globally = value
+    else
+        this.rpg_extra.enable_explosive_bullets_globally = false
+    end
+
+    return this.rpg_extra.enable_explosive_bullets_globally
+end
+
+--- Fetches if the explosive bullets module is activated globally.
+function Public.get_explosive_bullets()
+    return this.rpg_extra.enable_explosive_bullets_globally
+end
+
+--- Enables/disabled explosive bullets.
+---@param value <boolean>
+function Public.enable_explosive_bullets(value)
+    if value then
+        this.rpg_extra.enable_explosive_bullets = value
+    else
+        this.rpg_extra.enable_explosive_bullets = false
+    end
+
+    return this.rpg_extra.enable_explosive_bullets
+end
+
+--- Fetches if the explosive bullets module is activated.
+function Public.get_explosive_bullets()
+    return this.rpg_extra.enable_explosive_bullets
 end
 
 --- Enables/disabled personal tax.

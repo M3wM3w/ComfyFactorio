@@ -64,9 +64,6 @@ function Public.reset_schedule_table()
   for k, _ in pairs(schedulesphere) do
     schedulesphere[k] = nil
   end
-  schedulesphere.schedule_step = 0
-  schedulesphere.schedule_max_step = 0
-  schedulesphere.schedule = {}
   schedulesphere.lab_cells = {}
 end
 

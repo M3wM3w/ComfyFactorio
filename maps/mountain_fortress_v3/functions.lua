@@ -10,7 +10,7 @@ local Collapse = require 'modules.collapse'
 local Difficulty = require 'modules.difficulty_vote_by_amount'
 local ICW_Func = require 'maps.mountain_fortress_v3.icw.functions'
 local math2d = require 'math2d'
-local Commands = require 'commands.misc'
+local BottomFrame = require 'comfy_panel.bottom_frame'
 
 local this = {
     power_sources = {index = 1},
@@ -1195,7 +1195,7 @@ function Public.on_player_left_game()
 end
 
 function Public.is_creativity_mode_on()
-    local creative_enabled = Commands.get('creative_enabled')
+    local creative_enabled = BottomFrame.get('creative_enabled')
     if creative_enabled then
         WD.set('next_wave', 1000)
         Collapse.start_now(true)
@@ -1204,9 +1204,9 @@ function Public.is_creativity_mode_on()
 end
 
 function Public.disable_creative()
-    local creative_enabled = Commands.get('creative_enabled')
+    local creative_enabled = BottomFrame.get('creative_enabled')
     if creative_enabled then
-        Commands.set('creative_enabled', false)
+        BottomFrame.set('creative_enabled', false)
     end
 end
 

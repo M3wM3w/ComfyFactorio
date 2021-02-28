@@ -3,7 +3,7 @@
 
 local Global = require 'utils.global'
 local Event = require 'utils.event'
-local Misc = require 'commands.misc'
+local BottomFrame = require 'comfy_panel.bottom_frame'
 local math_floor = math.floor
 local print_color = {r = 120, g = 255, b = 0}
 
@@ -54,7 +54,7 @@ local function chest_is_valid(chest, inventory)
                 local n = chest_inventory.get_filter(index)
                 if inventory[n] then
                     if (t[n] and t[n].valid) then
-                        t[n].count = t[n].count + inventory[n]
+                        t[n].count = inventory[n]
                     else
                         t[n] = {count = inventory[n], valid = true}
                     end
@@ -464,7 +464,7 @@ local function create_gui_button(player)
         tooltip = 'Sort your inventory into nearby chests.\nLMB: Everything, excluding quickbar items.\nRMB: Only ores to nearby chests, excluding quickbar items.'
     end
     if this.bottom_button then
-        local data = Misc.get('bottom_quickbar_button')
+        local data = BottomFrame.get('bottom_quickbar_button')
         -- save it for later use
         data.tooltip = tooltip
         data.sprite = 'item/wooden-chest'
@@ -527,7 +527,7 @@ local function on_gui_click(event)
     local player = game.players[event.player_index]
     local name = 'auto_stash'
     if this.bottom_button then
-        local data = Misc.get('bottom_quickbar_button')
+        local data = BottomFrame.get('bottom_quickbar_button')
         if data[player.index] then
             data = data[player.index]
             name = data.name

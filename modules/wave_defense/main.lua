@@ -540,8 +540,8 @@ local function increase_biters_health()
     boosted_health = boosted_health * (wave_number * 0.03)
     local sum = boosted_health * 4
     debug_print('[HEALTHBOOSTER] > Boss Health Boosted: ' .. sum)
-    if sum >= 100 then
-        sum = 100
+    if sum >= 300 then
+        sum = 300
     end
 
     WD.set('modified_boss_unit_health', sum)

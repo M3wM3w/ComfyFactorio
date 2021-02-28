@@ -407,6 +407,7 @@ local function get_score_list()
         }
         return score_list
     end
+
     for p, _ in pairs(score_force.players) do
         local score = score_force.players[p]
         insert(

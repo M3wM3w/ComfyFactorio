@@ -566,6 +566,7 @@ Gui.on_click(
         local magic_pickup_gui_input = data.magic_pickup_gui_input
         local movement_speed_gui_input = data.movement_speed_gui_input
         local flame_boots_gui_input = data.flame_boots_gui_input
+        local explosive_bullets_gui_input = data.explosive_bullets_gui_input
         local enable_entity_gui_input = data.enable_entity_gui_input
         local stone_path_gui_input = data.stone_path_gui_input
         local one_punch_gui_input = data.one_punch_gui_input
@@ -607,6 +608,14 @@ Gui.on_click(
                     rpg_t[player.index].flame_boots = false
                 elseif flame_boots_gui_input.state then
                     rpg_t[player.index].flame_boots = true
+                end
+            end
+
+            if explosive_bullets_gui_input and explosive_bullets_gui_input.valid then
+                if not explosive_bullets_gui_input.state then
+                    rpg_t[player.index].explosive_bullets = false
+                elseif explosive_bullets_gui_input.state then
+                    rpg_t[player.index].explosive_bullets = true
                 end
             end
 

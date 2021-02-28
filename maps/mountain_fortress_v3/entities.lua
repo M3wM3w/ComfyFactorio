@@ -13,7 +13,6 @@ local Mining = require 'maps.mountain_fortress_v3.mining'
 local Terrain = require 'maps.mountain_fortress_v3.terrain'
 local Traps = require 'maps.mountain_fortress_v3.traps'
 local Locomotive = require 'maps.mountain_fortress_v3.locomotive'
-local ExplosiveBullets = require 'maps.mountain_fortress_v3.explosive_gun_bullets'
 local Collapse = require 'modules.collapse'
 local Alert = require 'utils.alert'
 local Task = require 'utils.task'
@@ -941,10 +940,6 @@ local function on_entity_damaged(event)
                 boss_puncher(event)
             end
         end
-    end
-    if WPT.get('explosive_bullets') then
-        ExplosiveBullets.explosive_bullets(event)
-        return
     end
 end
 
