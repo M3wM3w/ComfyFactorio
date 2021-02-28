@@ -10,6 +10,7 @@ local rock_yield = {
 	["sand-rock-big"] = 1
 }
 
+
 local particles = {
 	["iron-ore"] = "iron-ore-particle",
 	["copper-ore"] = "copper-ore-particle",
@@ -39,7 +40,12 @@ local function get_chances()
 	table.insert(chances, {"copper-ore",17})
 	table.insert(chances, {"coal",13})
 	table.insert(chances, {"uranium-ore",2})
-  table.insert(chances, {"stone",7})
+  table.insert(chances, {"stone",10})
+
+	-- if is_mod_loaded('Krastorio2') then
+	-- 	table.insert(chances, {"tiberium-ore",1})
+	-- 	table.insert(chances, {"raw-rare-metals",1})
+	-- end
 	return chances
 end
 

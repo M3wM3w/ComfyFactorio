@@ -141,6 +141,7 @@ function Public.reset_map()
   RPG_Settings.set_surface_name('amap')
   RPG_Settings.enable_health_and_mana_bars(true)
   RPG_Settings.enable_wave_defense(true)
+  RPG_Settings.enable_explosive_bullets(true)
   RPG_Settings.enable_mana(true)
   RPG_Settings.enable_flame_boots(true)
   RPG_Settings.enable_stone_path(true)
@@ -187,7 +188,7 @@ AntiGrief.explosive_threshold(32)
   --生产火箭发射井
   rock.spawn(surface,{x=0,y=10})
   rock.market(surface)
-
+  rock.start(surface,{x=0,y=0})
   WD.reset_wave_defense()
   wave_defense_table.surface_index = this.active_surface_index
   --记得修改目标！
@@ -500,6 +501,8 @@ local timereward = function()
         k=k+1
       end
       this.last = wave_number
+      WD.set().next_wave = game.tick + 7200* 15/6
+      game.print({'amap.break'})
    end
 
   end

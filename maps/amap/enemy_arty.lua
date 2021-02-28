@@ -19,11 +19,20 @@ local turret_worth ={
   [9]={name='artillery-turret',worth=20}
 
 }
-local ammo={
-  [1]={name='firearm-magazine'},
-  [2]={name='piercing-rounds-magazine'},
-  [3]={name='uranium-rounds-magazine'},
-}
+if is_mod_loaded('Krastorio2') then
+  local ammo={
+    [1]={name='rifle-magazine'},
+    [2]={name='armor-piercing-rifle-magazine'},
+    [3]={name='uranium-rifle-magazine'},
+  }
+else
+  local ammo={
+    [1]={name='firearm-magazine'},
+    [2]={name='piercing-rounds-magazine'},
+    [3]={name='uranium-rounds-magazine'},
+  }
+end
+
 local direction={
   [1]={'north'},
   [2]={'east'},

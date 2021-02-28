@@ -17,7 +17,11 @@ Global.register(
     end
 )
 
-local starting_items = {['pistol'] = 1, ['firearm-magazine'] = 16,  ['wood'] = 16}
+local starting_items = {
+  ['pistol'] = 1,
+  ['firearm-magazine'] = 16,
+  ['wood'] = 16
+}
 
 function Public.create_surface()
         local map_gen_settings = {

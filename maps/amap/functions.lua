@@ -825,6 +825,9 @@ local disable_recipes = function()
     force.recipes['pistol'].enabled = false
     force.recipes['land-mine'].enabled = false
     force.recipes['spidertron-remote'].enabled = false
+    if is_mod_loaded('Krastorio2') then
+      force.recipes['kr-advanced-tank'].enabled = false
+  end
   --  force.recipes['flamethrower-turret'].enabled = false
 end
 
@@ -832,6 +835,12 @@ function Public.disable_tech()
     game.forces.player.technologies['landfill'].enabled = false
     game.forces.player.technologies['spidertron'].enabled = false
     game.forces.player.technologies['spidertron'].researched = false
+   local force = game.forces.player
+    if is_mod_loaded('Krastorio2') then
+        force.technologies['kr-advanced-tank'].enabled = false
+        force.technologies['kr-advanced-tank'].researched = false
+    end
+
     disable_recipes()
 end
 

@@ -55,7 +55,7 @@ local market_items = {
 
   {price = {{"coin", 5}}, offer = {type = 'give-item', item = "raw-fish", count = 1}},
   {price = {{"coin", 2000}}, offer = {type = 'give-item', item = 'car', count = 1}},
-  {price = {{"coin", 15000}}, offer = {type = 'give-item', item = 'tank', count = 1}},
+  {price = {{"coin", 8000}}, offer = {type = 'give-item', item = 'tank', count = 1}},
   {price = {{"coin", 60000}}, offer = {type = 'give-item', item = 'spidertron', count = 1}},
   {price = {{"coin", 500}}, offer = {type = 'give-item', item = 'spidertron-remote', count = 1}},
   --{price = {{"coin", 5000}}, offer = {type = 'give-item', item = 'locomotive', count = 1}},
@@ -69,13 +69,30 @@ local market_items = {
   {price = {{"coin", 3000}}, offer = {type = 'give-item', item = 'flamethrower-turret', count = 1}},
   {price = {{"coin", 15}}, offer = {type = 'give-item', item = 'crude-oil-barrel', count = 1}},
 }
-
+if is_mod_loaded('Krastorio2') then
+  market_items[#market_items+1]={price = {{"coin", 40000}}, offer = {type = 'give-item', item = 'kr-advanced-tank', count = 1}
+}
+end
 function Public.spawn(surface, position)
   local this = WPT.get()
   this.rock = surface.create_entity{name = "rocket-silo", position = position, force=game.forces.player}
 
   this.rock.minable = false
   game.forces.player.set_spawn_position({0,0}, surface)
+end
+
+function Public.start(surface, position)
+  e = surface.create_entity{
+    name = "steel-chest",
+    position = position,
+    force=game.forces.player
+  }
+
+  e.insert{name='logistic-chest-storage', count=1}
+  e.insert{name='construction-robot', count=15}
+  e.insert{name='roboport', count=1}
+
+
 end
 
 function Public.market(surface)

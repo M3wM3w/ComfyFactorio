@@ -42,6 +42,12 @@ local size_of_rock_raffle = #rock_raffle
 local Pets = require 'maps.amap.biter_pets'
 local WD = require 'modules.wave_defense.table'
 
+local ent_to_create = {'biter-spawner', 'spitter-spawner'}
+
+if is_mod_loaded('bobenemies') then
+	ent_to_create = {'bob-biter-spawner', 'bob-spitter-spawner'}
+end
+
 local function place_entity(surface, position)
 	if math_random(1, 3) ~= 1 then
 		surface.create_entity({name = rock_raffle[math_random(1, size_of_rock_raffle)], position = position, force = "neutral"})
@@ -158,7 +164,7 @@ local function on_player_mined_entity(event)
 
 		local position = {entity.position.x , entity.position.y }
 		local player = game.players[event.player_index]
-		surface.create_entity({name = 'biter-spawner', position = position, force = 'enemy'})
+		local e = surface.create_entity({name = ent_to_create[random(1, #ent_to_create)], position = position, force = 'enemy'})
 		Public.unstuck_player(player.index)
 	end
 	--挖出宝藏
@@ -187,7 +193,7 @@ end
 local function on_chunk_generated(event)
 	local surface = event.surface
 	local this = WPT.get()
-		if	not(surface.index == game.surfaces[this.active_surface_index].index) then return end
+	if	not(surface.index == game.surfaces[this.active_surface_index].index) then return end
 	local seed = surface.map_gen_settings.seed
 	local left_top_x = event.area.left_top.x
 	local left_top_y = event.area.left_top.y
@@ -195,7 +201,7 @@ local function on_chunk_generated(event)
 	local get_tile = surface.get_tile
 	local position
 	local noise
-  local tem_pos
+	local tem_pos
 
 	for x = 0, 31, 1 do
 		for y = 0, 31, 1 do
@@ -206,35 +212,40 @@ local function on_chunk_generated(event)
 
 			if maxs <= 200   then
 				if maxs > 197 then
-				move_away_things(surface, event.area)
+					move_away_things(surface, event.area)
 					if surface.can_place_entity{name = "stone-wall", position = {x=position.x,y=position.y}, force=game.forces.player} then
-					surface.create_entity{name = "stone-wall", position = {x=position.x,y=position.y}, force=game.forces.player}
-				end
+						surface.create_entity{name = "stone-wall", position = {x=position.x,y=position.y}, force=game.forces.player}
+					end
 				end
 				local h = math_abs(position.x)
 				local k = math_abs(position.y)
-			if maxs < 185 and maxs > 183  then
-				if (h%6==1) or (k%6==1) then
-					if surface.can_place_entity{name = "gun-turret", position = position, force=game.forces.player} then
+				if maxs < 185 and maxs > 183  then
+					if (h%6==1) or (k%6==1) then
+						if surface.can_place_entity{name = "gun-turret", position = position, force=game.forces.player} then
 
-					local e = surface.create_entity{name = "gun-turret", position = position, force=game.forces.player}
-					e.insert{name='firearm-magazine', count = 30}
+							local e = surface.create_entity{name = "gun-turret", position = position, force=game.forces.player}
+							if is_mod_loaded('Krastorio2') then
+								e.insert{name='rifle-magazine', count = 40}
+							else
+								e.insert{name='firearm-magazine', count = 40}
+							end
+
+						end
+					end
 				end
-				end
-			end
 			else
 				if not get_tile(position).collides_with("resource-layer") then
 					noise = get_noise("scrapyard", position, seed)
 					if is_scrap_area(noise) then
-					--	set_tiles({{name = "dirt-" .. math_floor(math_abs(noise) * 12) % 4 + 3, position = position}}, true)
+						--	set_tiles({{name = "dirt-" .. math_floor(math_abs(noise) * 12) % 4 + 3, position = position}}, true)
 
-            if maxs >= 3000 then
+						if maxs >= 3000 then
 							local roll = math_random(1,1024)
-						if roll <= 2 then
-							BiterRolls.wave_defense_set_worm_raffle(math.sqrt(position.x ^ 2 + position.y ^ 2) * 0.19)
-							surface.create_entity({name = BiterRolls.wave_defense_roll_worm_name(), position = position, force = 'enemy'})
+							if roll <= 2 then
+								BiterRolls.wave_defense_set_worm_raffle(math.sqrt(position.x ^ 2 + position.y ^ 2) * 0.19)
+								surface.create_entity({name = BiterRolls.wave_defense_roll_worm_name(), position = position, force = 'enemy'})
+							end
 						end
-					end
 						if x+y > 33 and x+y < 40 then
 							local b = math_random(1,200)
 							--宝藏
