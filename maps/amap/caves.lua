@@ -224,11 +224,12 @@ local function on_chunk_generated(event)
 						if surface.can_place_entity{name = "gun-turret", position = position, force=game.forces.player} then
 
 							local e = surface.create_entity{name = "gun-turret", position = position, force=game.forces.player}
-							if is_mod_loaded('Krastorio2') then
-								e.insert{name='rifle-magazine', count = 40}
-							else
-								e.insert{name='firearm-magazine', count = 40}
-							end
+							e.insert{name='firearm-magazine', count = 40}
+							-- if is_mod_loaded('Krastorio2') then
+							-- 	e.insert{name='rifle-magazine', count = 40}
+							-- else
+							-- 	e.insert{name='firearm-magazine', count = 40}
+							-- end
 
 						end
 					end
