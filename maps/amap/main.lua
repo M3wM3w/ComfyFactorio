@@ -501,6 +501,10 @@ local timereward = function()
         k=k+1
       end
       this.last = wave_number
+
+      if  this.single then
+        return
+      end
       WD.set().next_wave = game.tick + 7200* 15/6
       game.print({'amap.break'})
    end
