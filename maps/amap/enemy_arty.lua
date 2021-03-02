@@ -9,14 +9,14 @@ local Loot = require'maps.amap.loot'
 
 local turret_worth ={
   [1]={name='stone-wall',worth=0},
-  [2]={name='land-mine',worth=1},
+  [2]={name='land-mine',worth=0},
   [3]={name='laser-turret',worth=2},
   [4]={name='gun-turret',worth=1},
   [5]={name='medium-worm-turret',worth=3},
   [6]={name='flamethrower-turret',worth=4},
   [7]={name='big-worm-turret',worth=7},
   [8]={name='behemoth-worm-turret',worth=15},
-  [9]={name='artillery-turret',worth=20}
+  [9]={name='artillery-turret',worth=30}
 
 }
 local ammo={}
@@ -207,7 +207,7 @@ if dis > 750 and arty_count.ammo_index==1 then
 arty_count.ammo_index=2
 end
 
-if dis > 1700 and arty_count.ammo_index==2 then
+if dis > 1500 and arty_count.ammo_index==2 then
 arty_count.ammo_index=3
 end
 
@@ -248,7 +248,8 @@ end
       if e.name == 'laser-turret' then arty_count.laser[#arty_count.laser+1]=e end
       if e.name == 'flamethrower-turret' then arty_count.flame[#arty_count.flame+1]=e end
       if e.name == 'artillery-turret' then
-     arty_count.all[e.unit_number]=e
+     arty_count.all[#arty_count.all+1]=e
+     arty_count.fire[#arty_count.fire+1]=0
      --game.print(e.position)
       arty_count.count = arty_count.count + 1
       end
@@ -348,42 +349,38 @@ local function energy()
 end
 
 local function do_artillery_turrets_targets()
---local surface = arty_count.surface
-  local this = WPT.get()
-local surface = game.surfaces[this.active_surface_index]
 if arty_count.count <= 0 then return end
---选取重炮
-  local roll_table = {}
-  for index, arty in pairs(arty_count.all) do
-    if arty.valid then
-      roll_table[#roll_table + 1] = arty
-    else
-      arty_count.all[index] = nil   -- <- if not valid, remove from table
-      arty_count.count = arty_count.count - 1
-    end
-  end
-  if #roll_table <= 0 then return end
-  --local roll = math.random(1, #roll_table)
+local this = WPT.get()
 
---if arty_count.index > #roll_table then arty_count.index=1 end
-if arty_count.index and roll_table and arty_count.index > #roll_table then
-  arty_count.index = 1
+
+--选取重炮
+
+arty_count.index=arty_count.index+1
+if arty_count.index > arty_count.count then arty_count.index=1 end
+
+local index = arty_count.index
+local turret = arty_count.all[index]
+
+if not (turret and turret.valid) then
+  fast_remove(arty_count.all, index)
+  fast_remove(arty_count.fire, index)
+  arty_count.count=arty_count.count-1
+  return
 end
 
 local now =game.tick
-if not arty_count.fire[arty_count.index] then
-arty_count.fire[arty_count.index] = 0
+if not arty_count.fire[index] then
+arty_count.fire[index] = 0
 end
-if (now - arty_count.fire[arty_count.index]) < 480 then return end
-arty_count.fire[arty_count.index] = now
-  local position = roll_table[arty_count.index].position
+if (now - arty_count.fire[index]) < 480 then return end
+arty_count.fire[index] = now
 
-arty_count.index=arty_count.index+1
+local position = arty_count.all[index].position
+
+
   --扫描区域
---   local normal_area = {left_top = {-480, -480}, right_bottom = {480, 480}}
--- game.print(123)
--- normal_area=  roll_table[roll].artillery_area
--- game.print(12)
+
+local surface = game.surfaces[this.active_surface_index]
 local entities = surface.find_entities_filtered{position = position, radius = arty_count.radius, name = artillery_target_entities, force = game.forces.player}
 
     -- local entities = surface.find_entities_filtered {area = normal_area, name = artillery_target_entities, force = 'player'}
@@ -427,12 +424,12 @@ if not entity or not entity.valid then return end
 
 end
 Event.add(defines.events.on_chunk_generated, on_chunk_generated)
-Event.add(defines.events.on_entity_died, on_entity_died)
+--Event.add(defines.events.on_entity_died, on_entity_died)
 --Event.add(defines.events.on_player_changed_position, on_player_changed_position)
-Event.on_nth_tick(1200, gun_bullet)
+Event.on_nth_tick(2000, gun_bullet)
 Event.on_nth_tick(120, add_bullet)
 Event.on_nth_tick(10, energy)
-Event.on_nth_tick(40, do_artillery_turrets_targets)
+Event.on_nth_tick(60, do_artillery_turrets_targets)
 Event.on_init(on_init)
 
 

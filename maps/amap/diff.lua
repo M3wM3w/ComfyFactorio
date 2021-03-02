@@ -185,9 +185,9 @@ if radius >= 350 then
 end
 table.radius=350+radius
 local pace=wave_number*0.0002*k+1
-if pace >= 2 then
-  pace = 2
-end
+--if pace >= 2 then
+  pace = 1.5
+--end
 table.pace=pace
 
 end
