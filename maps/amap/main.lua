@@ -188,7 +188,7 @@ AntiGrief.explosive_threshold(32)
   --生产火箭发射井
   rock.spawn(surface,{x=0,y=10})
   rock.market(surface)
-  rock.start(surface,{x=0,y=0})
+  --rock.start(surface,{x=0,y=0})
   WD.reset_wave_defense()
   wave_defense_table.surface_index = this.active_surface_index
   --记得修改目标！
@@ -647,6 +647,8 @@ local single_rewrad = function()
       player.insert{name='coin', count = 15000}
     --  player.insert{name='tank', count = 1}
       game.print({'amap.single'})
+      local surface = game.surfaces[this.active_surface_index]
+      rock.start(surface,{x=0,y=0})
       this.single = false
 
     end
