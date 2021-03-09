@@ -27,7 +27,9 @@ function Public.create_scrap(surface, position)
 	surface.create_entity({name = scraps[math_random(1, #scraps)], position = position, force = "neutral"})
 end
 
-
+function Public.random_scrap_name()
+	return scrap_list[math_random(1, #scrap_list)]
+end
 
 function Public.get_scrap_name(index)
 	if index > #scrap_list then return scrap_list[1] end
