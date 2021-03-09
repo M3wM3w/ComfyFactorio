@@ -326,7 +326,7 @@ local function process_entity(e)
 				e.surface.create_entity({name = entity_replacements[e.name], position = e.position})
 			end
 		else
-			e.surface.create_entity({name = entity_replacements[e.name], position = e.position})
+			e.surface.create_entity({name = entity_replacements[e.name], position = e.position, force = "scrap"})
 		end
 		e.destroy()
 		return
@@ -457,7 +457,11 @@ local function on_player_joined_game(event)
 	game.forces.scrap.set_friend('player', true)
 	game.forces.scrap.set_friend('enemy', true)
 	game.forces.scrap.share_chart = false
-
+	
+	--- Scrap turrets are friends with biters
+	game.forces.scrap_defense.set_friend("enemy",true)
+	game.forces.enemy.set_friend("scrap_defense", true)
+	
 	global.map_init_done = true
 end
 
