@@ -22,6 +22,7 @@ local tick_tack_trap = require "functions.tick_tack_trap"
 local map_functions = require "tools.map_functions"
 local simplex_noise = require 'utils.simplex_noise'
 simplex_noise = simplex_noise.d2
+local scrap = require "tools.scrap"
 
 local math_random = math.random
 local insert = table.insert
@@ -181,7 +182,7 @@ local function get_entity(position)
 	local entity_name = false
 	if noise > 0 then
 		if math_random(1, 3) ~= 1 then
-			entity_name = "mineable-wreckage"
+			entity_name = scrap.random_scrap_name()
 			if noise > 0.59 then
 				entity_name = rock_raffle[math_random(1, #rock_raffle)]
 				if math_random(1, 128) == 1 then
@@ -480,8 +481,8 @@ end
 local function on_player_mined_entity(event)
 	local entity = event.entity
 	if not entity.valid then return end
-
-	if entity.name == "mineable-wreckage" then
+	local scrap_array = scrap.get_scrap_true_array()
+	if scrap_array[entity.name] then
 		if math_random(1,40) == 1 then unearthing_biters(entity.surface, entity.position, math_random(4,12)) end
 		if math_random(1,80) == 1 then unearthing_worm(entity.surface, entity.position) end
 		if math_random(1,160) == 1 then tick_tack_trap(entity.surface, entity.position) end
@@ -522,8 +523,9 @@ local function on_entity_died(event)
 			end
 		end
 	end
-
-	if event.entity.type == "tree" or event.entity.name == "mineable-wreckage" or event.entity.type == "rock" then
+	
+	local scrap_array = scrap.get_scrap_true_array()
+	if event.entity.type == "tree" or scrap_array[event.entity.name] or event.entity.type == "rock" then
 		if math_random(1, 32) == 1 then
 			spawn_biter(event.entity.surface, event.entity.position)
 		end
@@ -540,6 +542,12 @@ local disabled_for_deconstruction = {
 		["tree-04"] = true,
 		["dead-tree-desert"] = true,
 		["mineable-wreckage"] = true,
+		["crash-site-spaceship-wreck-small-1"] = true,
+		["crash-site-spaceship-wreck-small-2"] = true,
+		["crash-site-spaceship-wreck-small-3"] = true,
+		["crash-site-spaceship-wreck-small-4"] = true,
+		["crash-site-spaceship-wreck-small-5"] = true,
+		["crash-site-spaceship-wreck-small-6"] = true,
 		["tree-02-red"] = true,
 		["tree-09-red"] = true
 	}
