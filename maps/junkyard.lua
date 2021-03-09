@@ -25,12 +25,39 @@ local table_insert = table.insert
 local math_random = math.random
 local map_functions = require "tools.map_functions"
 
+
+
+local function create_scrap(surface, position)
+	local scraps = {
+	  "crash-site-spaceship-wreck-small-1",
+	  "crash-site-spaceship-wreck-small-1",
+	  "crash-site-spaceship-wreck-small-2",
+	  "crash-site-spaceship-wreck-small-2",
+	  "crash-site-spaceship-wreck-small-3",
+	  "crash-site-spaceship-wreck-small-3",
+	  "crash-site-spaceship-wreck-small-4",
+	  "crash-site-spaceship-wreck-small-4",
+	  "crash-site-spaceship-wreck-small-5",
+	  "crash-site-spaceship-wreck-small-5",
+	  "crash-site-spaceship-wreck-small-6"
+	}
+	surface.create_entity({name = scraps[math_random(1, #scraps)], position = position, force = "neutral"})
+end
+
+
+
 local disabled_for_deconstruction = {
 		["fish"] = true,
 		["rock-huge"] = true,
 		["rock-big"] = true,
 		["sand-rock-big"] = true,
-		["mineable-wreckage"] = true
+		
+		["crash-site-spaceship-wreck-small-1"] = true,
+		["crash-site-spaceship-wreck-small-2"] = true,
+		["crash-site-spaceship-wreck-small-3"] = true,
+		["crash-site-spaceship-wreck-small-4"] = true,
+		["crash-site-spaceship-wreck-small-5"] = true,
+		["crash-site-spaceship-wreck-small-6"] = true,
 	}
 
 local tile_replacements = {
@@ -60,10 +87,10 @@ local entity_replacements = {
 	["tree-08-brown"] = "tree-06-brown",
 	["tree-09-brown"] = "tree-06-brown",
 	["tree-09-red"] = "tree-06-brown",
-	["iron-ore"] = "mineable-wreckage",
-	["copper-ore"] = "mineable-wreckage",
-	["coal"] = "mineable-wreckage",
-	["stone"] = "mineable-wreckage"
+	["iron-ore"] = "crash-site-spaceship-wreck-small-1",
+	["copper-ore"] = "crash-site-spaceship-wreck-small-2",
+	["coal"] = "crash-site-spaceship-wreck-small-3",
+	["stone"] = "crash-site-spaceship-wreck-small-4"
 }
 
 local wrecks = {"big-ship-wreck-1", "big-ship-wreck-2", "big-ship-wreck-3"}
@@ -326,7 +353,15 @@ local function process_entity(e)
 	end
 
 	if e.type == "unit-spawner" then
-		for _, wreck in pairs (e.surface.find_entities_filtered({area = {{e.position.x - 4, e.position.y - 4},{e.position.x + 4, e.position.y + 4}}, name = "mineable-wreckage"})) do
+		local scraps = {
+			"crash-site-spaceship-wreck-small-1",
+			"crash-site-spaceship-wreck-small-2",
+			"crash-site-spaceship-wreck-small-3",
+			"crash-site-spaceship-wreck-small-4",
+			"crash-site-spaceship-wreck-small-5",
+			"crash-site-spaceship-wreck-small-6"
+		}
+		for _, wreck in pairs (e.surface.find_entities_filtered({area = {{e.position.x - 4, e.position.y - 4},{e.position.x + 4, e.position.y + 4}}, name = scraps})) do
 			if wreck.valid then wreck.destroy() end
 		end
 		return
@@ -353,7 +388,7 @@ local function on_chunk_generated(event)
 				local noise = get_noise(1, pos)
 				if noise > 0.43 or noise < -0.43 then
 					if math_random(1,3) ~= 1 then
-						surface.create_entity({name = "mineable-wreckage", position = pos})
+						create_scrap(surface, pos)
 					else
 						if math_random(1,512) == 1 then
 							create_shipwreck(surface, pos)
@@ -381,10 +416,19 @@ local function on_chunk_generated(event)
 	map_functions.draw_rainbow_patch_v2({x = 0, y = 0}, surface, 12, 2500)
 	local p = surface.find_non_colliding_position("character-corpse", {2,-2}, 32, 2)
 	local e = surface.create_entity({name = "character-corpse", position = p})
+	local scraps = {
+			["crash-site-spaceship-wreck-small-1"] = true,
+			["crash-site-spaceship-wreck-small-2"] = true,
+			["crash-site-spaceship-wreck-small-3"] = true,
+			["crash-site-spaceship-wreck-small-4"] = true,
+			["crash-site-spaceship-wreck-small-5"] = true,
+			["crash-site-spaceship-wreck-small-6"] = true
+	}
+	
 	for _, e in pairs (surface.find_entities_filtered({area = {{-50, -50},{50, 50}}})) do
 		local distance_to_center = math.sqrt(e.position.x^2 + e.position.y^2)
 		if e.valid then
-			if distance_to_center < 8 and e.name == "mineable-wreckage" and math_random(1,5) ~= 1 then e.destroy() end
+			if distance_to_center < 8 and scraps[e.name] and math_random(1,5) ~= 1 then e.destroy() end
 		end
 		if e.valid then
 			if distance_to_center < 30 and e.name == "gun-turret" then e.destroy() end
@@ -461,7 +505,16 @@ local function on_player_mined_entity(event)
 	local entity = event.entity
 	if not entity.valid then return end
 
-	if entity.name == "mineable-wreckage" then
+	local scraps = {
+			["crash-site-spaceship-wreck-small-1"] = true,
+			["crash-site-spaceship-wreck-small-2"] = true,
+			["crash-site-spaceship-wreck-small-3"] = true,
+			["crash-site-spaceship-wreck-small-4"] = true,
+			["crash-site-spaceship-wreck-small-5"] = true,
+			["crash-site-spaceship-wreck-small-6"] = true
+	}
+	
+	if scraps[entity.name] then
 		if math_random(1,40) == 1 then unearthing_biters(entity.surface, entity.position, math_random(4,12)) end
 		if math_random(1,80) == 1 then unearthing_worm(entity.surface, entity.position) end
 		if math_random(1,160) == 1 then tick_tack_trap(entity.surface, entity.position) end
