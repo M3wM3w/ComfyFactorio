@@ -4,6 +4,7 @@ local math_floor = math.floor
 local Treasure = require 'maps.junkyard_pvp.treasure'
 local Map_functions = require "tools.map_functions"
 local simplex_noise = require "utils.simplex_noise".d2
+local scrap = require "tools.scrap"
 local rock_raffle = {"sand-rock-big","sand-rock-big", "rock-big","rock-big","rock-big","rock-big","rock-big","rock-big","rock-big","rock-huge"}
 local spawner_raffle = {"biter-spawner", "biter-spawner", "biter-spawner", "spitter-spawner"}
 local noises = {
@@ -163,7 +164,7 @@ local function process_junk_position(p, seed, tiles, entities, markets, treasure
 				--entities[#entities + 1] = {name = "small-worm-turret", position = p, force = "enemy"} 
 			--end
 			if math_random(1,96) == 1 then entities[#entities + 1] = {name = scrap_entities[math_random(1, scrap_entities_index)], position = p, force = "enemy"} end	
-			if math_random(1,3) > 1 then entities[#entities + 1] = {name="mineable-wreckage", position=p} end
+			if math_random(1,3) > 1 then entities[#entities + 1] = {name=scrap.random_scrap_name(), position=p} end
 			return
 		end
 		return
