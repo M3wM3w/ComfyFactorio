@@ -1,5 +1,6 @@
 local Functions = require "maps.dungeons.functions"
 local BiterRaffle = require "functions.biter_raffle"
+local DungeonsTable = require 'maps.dungeons.table'
 
 local table_shuffle_table = table.shuffle_table
 local table_insert = table.insert
@@ -10,15 +11,17 @@ local math_sqrt = math.sqrt
 local math_floor = math.floor
 
 local function add_enemy_units(surface, room)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	for _, tile in pairs(room.room_tiles) do
 		if math_random(1, 2) == 1 then
 			local name = BiterRaffle.roll("biter", Functions.get_dungeon_evolution_factor(surface.index) * 1.5)
-			local unit = surface.create_entity({name = name, position = tile.position, force = global.enemy_forces[surface.index]})
+			local unit = surface.create_entity({name = name, position = tile.position, force = dungeontable.enemy_forces[surface.index]})
 		end
 	end
 end
 
 local function concrete(surface, room)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	for _, tile in pairs(room.path_tiles) do
 		surface.set_tiles({{name = "concrete", position = tile.position}}, true)
 	end
@@ -35,7 +38,7 @@ local function concrete(surface, room)
 			Functions.crash_site_chest(surface, tile.position)
 		end
 		if key % 128 == 1 and math_random(1, 3) == 1 then
-			Functions.set_spawner_tier(surface.create_entity({name = "biter-spawner", position = tile.position, force = global.enemy_forces[surface.index]}), surface.index)
+			Functions.set_spawner_tier(surface.create_entity({name = "biter-spawner", position = tile.position, force = dungeontable.enemy_forces[surface.index]}), surface.index)
 		end
 	end
 

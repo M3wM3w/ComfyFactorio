@@ -10,6 +10,7 @@ local BiterHealthBooster = require "modules.biter_health_booster"
 local BiterRaffle = require "functions.biter_raffle"
 local Functions = require "maps.dungeons.functions"
 local Get_noise = require "utils.get_noise"
+local DungeonsTable = require 'maps.dungeons.table'
 
 local Biomes = {}
 Biomes.dirtlands = require "maps.dungeons.biome_dirtlands"
@@ -36,7 +37,12 @@ local disabled_for_deconstruction = {
 		["rock-huge"] = true,
 		["rock-big"] = true,
 		["sand-rock-big"] = true,
-		["mineable-wreckage"] = true
+		["crash-site-spaceship-wreck-small-1"] = true,
+	  ["crash-site-spaceship-wreck-small-2"] = true,
+	  ["crash-site-spaceship-wreck-small-3"] = true,
+	  ["crash-site-spaceship-wreck-small-4"] = true,
+	  ["crash-site-spaceship-wreck-small-5"] = true,
+	  ["crash-site-spaceship-wreck-small-6"] = true
 	}
 
 local function get_biome(position)
@@ -69,12 +75,13 @@ local function get_biome(position)
 end
 
 local function draw_depth_gui()
+	local dungeontable = DungeonsTable.get_dungeontable()
 	for _, player in pairs(game.connected_players) do
 		local surface = player.surface
 		if player.gui.top.dungeon_depth then player.gui.top.dungeon_depth.destroy() end
 		if surface.name == "gulag" then return end
 		local element = player.gui.top.add({type = "sprite-button", name = "dungeon_depth"})
-		element.caption = {"dungeons.depth", global.dungeons.depth[surface.index]}
+		element.caption = {"dungeons.depth", dungeontable.depth[surface.index]}
 		element.tooltip = {
 			"dungeons.depth_tooltip",
 			Functions.get_dungeon_evolution_factor(surface.index) * 100,
@@ -96,6 +103,7 @@ local function draw_depth_gui()
 end
 
 local function expand(surface, position)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local room = Room_generator.get_room(surface, position)
 	if not room then return end
 	local name = get_biome(position)
@@ -105,7 +113,7 @@ local function expand(surface, position)
 
 	local a = 2000
 
-	global.dungeons.depth[surface.index] = global.dungeons.depth[surface.index] + 1
+	dungeontable.depth[surface.index] = dungeontable.depth[surface.index] + 1
 
 	local evo = Functions.get_dungeon_evolution_factor(surface.index)
 
@@ -119,7 +127,7 @@ local function expand(surface, position)
 		force.set_ammo_damage_modifier("biological", damage_mod)
 		force.set_ammo_damage_modifier("artillery-shell", damage_mod)
 		force.set_ammo_damage_modifier("flamethrower", damage_mod)
-		force.set_ammo_damage_modifier("laser-turret", damage_mod)
+		force.set_ammo_damage_modifier("laser", damage_mod)
 	else
 		global.biter_health_boost = 1 + evo
 	end
@@ -147,11 +155,12 @@ local function init_player(player)
 end
 
 local function on_entity_spawned(event)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local spawner = event.spawner
 	local unit = event.entity
 	local surface = spawner.surface
 
-	local spawner_tier = global.dungeons.spawner_tier
+	local spawner_tier = dungeontable.spawner_tier
 	if not spawner_tier[spawner.unit_number] then
 		Functions.set_spawner_tier(spawner, surface.index)
 	end
@@ -246,18 +255,19 @@ local function on_player_joined_game(event)
 end
 
 local function spawner_death(entity)
-	local tier = global.dungeons.spawner_tier[entity.unit_number]
+	local dungeontable = DungeonsTable.get_dungeontable()
+	local tier = dungeontable.spawner_tier[entity.unit_number]
 
 	if not tier then
 		Functions.set_spawner_tier(entity, entity.surface.index)
-		tier = global.dungeons.spawner_tier[entity.unit_number]
+		tier = dungeontable.spawner_tier[entity.unit_number]
 	end
 
 	for _ = 1, tier * 2, 1 do
 		Functions.spawn_random_biter(entity.surface, entity.position)
 	end
 
-	global.dungeons.spawner_tier[entity.unit_number] = nil
+	dungeontable.spawner_tier[entity.unit_number] = nil
 end
 
 --make expansion rocks very durable against biters
@@ -300,6 +310,7 @@ local function on_marked_for_deconstruction(event)
 end
 
 local function on_init()
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local force = game.create_force("dungeon")
 	force.set_friend("enemy", false)
 	force.set_friend("player", false)
@@ -343,15 +354,10 @@ local function on_init()
 	game.map_settings.enemy_expansion.max_expansion_distance = 16
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 0.50
 
-	global.dungeons = {}
-	global.dungeons.tiered = false
-	global.dungeons.depth = {}
-	global.dungeons.depth[1] = 0
-	global.dungeons.depth[game.surfaces["dungeons"].index] = 0
-	global.dungeons.spawn_size = 42
-	global.dungeons.spawner_tier = {}
-	global.enemy_forces = {}
-	global.enemy_forces[game.surfaces["dungeons"].index] = game.forces.enemy
+	dungeontable.tiered = false
+	dungeontable.depth[1] = 0
+	dungeontable.depth[game.surfaces["dungeons"].index] = 0
+	dungeontable.enemy_forces[game.surfaces["dungeons"].index] = game.forces.enemy
 
 	global.rocks_yield_ore_base_amount = 100
 	global.rocks_yield_ore_distance_modifier = 0.001

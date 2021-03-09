@@ -1,4 +1,5 @@
 local Functions = require "maps.dungeons.functions"
+local DungeonsTable = require 'maps.dungeons.table'
 
 local table_shuffle_table = table.shuffle_table
 local table_insert = table.insert
@@ -9,6 +10,7 @@ local math_abs = math.abs
 local ores = {"iron-ore", "copper-ore", "coal", "stone"}
 
 local function glitch(surface, room)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	for _, tile in pairs(room.path_tiles) do
 		surface.set_tiles({{name = "lab-white", position = tile.position}}, true)
 	end
@@ -22,7 +24,7 @@ local function glitch(surface, room)
 			surface.create_entity({name = ores[math_random(1, #ores)], position = tile.position, amount = Functions.get_common_resource_amount(surface.index)})
 		end
 		if math_random(1, 12) == 1 then
-			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = global.enemy_forces[surface.index]})
+			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = dungeontable.enemy_forces[surface.index]})
 		end
 		if math_random(1, 96) == 1 then
 			Functions.common_loot_crate(surface, tile.position)

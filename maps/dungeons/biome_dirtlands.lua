@@ -1,5 +1,6 @@
 local Functions = require "maps.dungeons.functions"
 local Get_noise = require "utils.get_noise"
+local DungeonsTable = require 'maps.dungeons.table'
 
 local table_shuffle_table = table.shuffle_table
 local table_insert = table.insert
@@ -35,6 +36,7 @@ local function add_enemy_units(surface, room)
 end
 
 local function dirtlands(surface, room)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local path_tile = "dirt-" .. math_random(1, 3)
 	for _, tile in pairs(room.path_tiles) do
 		surface.set_tiles({{name = path_tile, position = tile.position}}, true)
@@ -55,14 +57,14 @@ local function dirtlands(surface, room)
 				surface.create_entity({name = trees[math_random(1, size_of_trees)], position = tile.position})
 			end
 		end
-		if key % 128 == 1 and math_random(1, 2) == 1 and global.dungeons.depth[surface.index] > 8 then
-			Functions.set_spawner_tier(surface.create_entity({name = Functions.roll_spawner_name(), position = tile.position, force = global.enemy_forces[surface.index]}), surface.index)
+		if key % 128 == 1 and math_random(1, 2) == 1 and dungeontable.depth[surface.index] > 8 then
+			Functions.set_spawner_tier(surface.create_entity({name = Functions.roll_spawner_name(), position = tile.position, force = dungeontable.enemy_forces[surface.index]}), surface.index)
 		end
-		if math_random(1, 320) == 1 and global.dungeons.depth[surface.index] > 8 then
-			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = global.enemy_forces[surface.index]})
+		if math_random(1, 320) == 1 and dungeontable.depth[surface.index] > 8 then
+			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = dungeontable.enemy_forces[surface.index]})
 		end
 		if math_random(1, 512) == 1 then
-			surface.create_entity({name = "mineable-wreckage", position = tile.position})
+			Functions.create_scrap(surface, tile.position)
 		end
 		if math_random(1, 256) == 1 then
 			surface.create_entity({name = "rock-huge", position = tile.position})

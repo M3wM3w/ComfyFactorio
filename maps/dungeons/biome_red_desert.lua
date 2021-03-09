@@ -1,4 +1,5 @@
 local Functions = require "maps.dungeons.functions"
+local DungeonsTable = require 'maps.dungeons.table'
 
 local table_shuffle_table = table.shuffle_table
 local table_insert = table.insert
@@ -18,6 +19,7 @@ local function add_enemy_units(surface, room)
 end
 
 local function red_desert(surface, room)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	for _, tile in pairs(room.path_tiles) do
 		surface.set_tiles({{name = "red-desert-0", position = tile.position}}, true)
 	end
@@ -33,10 +35,10 @@ local function red_desert(surface, room)
 			end
 		end
 		if key % 16 == 0 and math_random(1, 32) == 1 then
-			Functions.set_spawner_tier(surface.create_entity({name = Functions.roll_spawner_name(), position = tile.position, force = global.enemy_forces[surface.index]}), surface.index)
+			Functions.set_spawner_tier(surface.create_entity({name = Functions.roll_spawner_name(), position = tile.position, force = dungeontable.enemy_forces[surface.index]}), surface.index)
 		end
 		if math_random(1, 256) == 1 then
-			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = global.enemy_forces[surface.index]})
+			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = dungeontable.enemy_forces[surface.index]})
 		end
 		if math_random(1, 32) == 1 then
 			surface.create_entity({name = "rock-huge", position = tile.position})

@@ -1,5 +1,6 @@
 local Functions = require "maps.dungeons.functions"
 local Get_noise = require "utils.get_noise"
+local DungeonsTable = require 'maps.dungeons.table'
 
 local table_shuffle_table = table.shuffle_table
 local table_insert = table.insert
@@ -35,6 +36,7 @@ local function add_enemy_units(surface, room)
 end
 
 local function desert(surface, room)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	for _, tile in pairs(room.path_tiles) do
 		surface.set_tiles({{name = "sand-2", position = tile.position}}, true)
 	end
@@ -63,14 +65,14 @@ local function desert(surface, room)
 			end
 		end
 		if key % 128 == 1 and math_random(1, 3) == 1 then
-			Functions.set_spawner_tier(surface.create_entity({name = Functions.roll_spawner_name(), position = tile.position, force = global.enemy_forces[surface.index]}), surface.index)
+			Functions.set_spawner_tier(surface.create_entity({name = Functions.roll_spawner_name(), position = tile.position, force = dungeontable.enemy_forces[surface.index]}), surface.index)
 		end
 		if math_random(1, 160) == 1 then
-			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = global.enemy_forces[surface.index]})
+			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = dungeontable.enemy_forces[surface.index]})
 		end
 		local noise = Get_noise("decoratives", tile.position, seed)
 		if math_random(1, 3) > 1 and math_abs(noise) > 0.52 then
-			surface.create_entity({name = "mineable-wreckage", position = tile.position})
+			Functions.create_scrap(surface, tile.position)
 		end
 		if math_random(1, 128) == 1 then
 			surface.create_entity({name = "rock-huge", position = tile.position})

@@ -1,4 +1,5 @@
 local Functions = require "maps.dungeons.functions"
+local DungeonsTable = require 'maps.dungeons.table'
 
 local table_shuffle_table = table.shuffle_table
 local table_insert = table.insert
@@ -14,6 +15,7 @@ local function add_enemy_units(surface, room)
 end
 
 local function doom(surface, room)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	for _, tile in pairs(room.path_tiles) do
 		surface.set_tiles({{name = "refined-concrete", position = tile.position}}, true)
 	end
@@ -25,7 +27,7 @@ local function doom(surface, room)
 			surface.create_entity({name = "copper-ore", position = tile.position, amount = Functions.get_common_resource_amount(surface.index)})
 		end
 		if math_random(1, 16) == 1 then
-			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = global.enemy_forces[surface.index]})
+			surface.create_entity({name = Functions.roll_worm_name(surface.index), position = tile.position, force = dungeontable.enemy_forces[surface.index]})
 		end
 		if math_random(1, 320) == 1 then
 			Functions.rare_loot_crate(surface, tile.position)
@@ -35,7 +37,7 @@ local function doom(surface, room)
 			end
 		end
 		if key % 12 == 1 and math_random(1, 2) == 1 then
-			Functions.set_spawner_tier(surface.create_entity({name = Functions.roll_spawner_name(), position = tile.position, force = global.enemy_forces[surface.index]}), surface.index)
+			Functions.set_spawner_tier(surface.create_entity({name = Functions.roll_spawner_name(), position = tile.position, force = dungeontable.enemy_forces[surface.index]}), surface.index)
 		end
 	end
 

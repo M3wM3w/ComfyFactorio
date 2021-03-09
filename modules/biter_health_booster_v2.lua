@@ -26,6 +26,7 @@ local this = {
     biter_health_boost_count = 0,
     make_normal_unit_mini_bosses = false,
     active_surface = 'nauvis',
+    active_surfaces = {},
     acid_lines_delay = {},
     acid_nova = false,
     boss_spawns_projectiles = false,
@@ -181,6 +182,15 @@ local function clean_table()
         end
     end
 
+    for name, enabled in pairs(this.active_surfaces) do
+        local surface = game.surfaces[name]
+        if surface and surface.valid and enabled then
+            for _, unit in pairs(surface.find_entities_filtered({type = validTypes})) do
+                units_to_delete[unit.unit_number] = nil
+            end
+        end
+    end
+
     local surface = game.surfaces[this.active_surface]
 
     for _, unit in pairs(surface.find_entities_filtered({type = validTypes})) do
@@ -215,25 +225,13 @@ local function set_boss_healthbar(health, max_health, healthbar_id)
     rendering.set_color(healthbar_id, {floor(255 - 255 * m), floor(200 * m), 0})
 end
 
-local function on_entity_damaged(event)
-    local biter = event.entity
-    if not (biter and biter.valid) then
+local function try_acid(cause, target)
+    if not cause or not cause.valid then
         return
     end
-    local cause = event.cause
-    if not cause then
-        return
-    end
-
     local biter_health_boost_units = this.biter_health_boost_units
-
-    local unit_number = biter.unit_number
     local cause_unit_number = cause.unit_number
-
-    --Create new health pool
-    local health_pool = biter_health_boost_units[unit_number]
     local cause_health_pool = biter_health_boost_units[cause_unit_number]
-
     if cause_health_pool and cause_health_pool[3] and entity_types[cause.type] then
         if this.acid_nova then
             if acid_lines[cause.name] then
@@ -241,12 +239,28 @@ local function on_entity_damaged(event)
                     this.acid_lines_delay[cause_unit_number] = 0
                 end
                 if this.acid_lines_delay[cause_unit_number] < game.tick then
-                    acid_line(cause.surface, acid_lines[cause.name], cause.position, event.entity.position)
+                    acid_line(cause.surface, acid_lines[cause.name], cause.position, target.position)
                     this.acid_lines_delay[cause_unit_number] = game.tick + 180
                 end
             end
         end
     end
+end
+
+local function on_entity_damaged(event)
+    local biter = event.entity
+    if not (biter and biter.valid) then
+        return
+    end
+    local cause = event.cause
+
+    local biter_health_boost_units = this.biter_health_boost_units
+
+    local unit_number = biter.unit_number
+
+    --Create new health pool
+    local health_pool = biter_health_boost_units[unit_number]
+    try_acid(cause, biter)
 
     if not entity_types[biter.type] then
         return
@@ -371,6 +385,7 @@ function Public.reset_table()
     this.biter_health_boost_count = 0
     this.make_normal_unit_mini_bosses = false
     this.active_surface = 'nauvis'
+    this.active_surfaces = {}
     this.check_on_entity_died = false
     this.acid_lines_delay = {}
     this.acid_nova = false
@@ -413,12 +428,23 @@ function Public.add_boss_unit(unit, health_multiplier, health_bar_size)
 end
 
 --- This sets the active surface that we check and have the script active.
+--- This deletes the list of surfaces if we use multiple, so use it only before setting more of them.
 ---@param string
 function Public.set_active_surface(str)
     if str and type(str) == 'string' then
+        this.active_surfaces = {}
         this.active_surface = str
     end
     return this.active_surface
+end
+
+--- This sets if this surface is active, when we using multiple surfaces. The default active surface does not need to be added again
+---@param string, boolean
+function Public.set_surface_activity(name, value)
+    if name and type(name) == 'string' and type(value) == 'boolean' then
+        this.active_surfaces[name] = value
+    end
+    return this.active_surfaces
 end
 
 --- Enables that biter bosses (units with health bars) spawns acid on death.

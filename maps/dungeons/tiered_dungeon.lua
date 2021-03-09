@@ -9,11 +9,12 @@ local Room_generator = require "functions.room_generator"
 require "modules.rpg.main"
 local RPG_F = require "modules.rpg.functions"
 local RPG_T = require 'modules.rpg.table'
-local BiterHealthBooster = require "modules.biter_health_booster"
+local BiterHealthBooster = require "modules.biter_health_booster_v2"
 local BiterRaffle = require "functions.biter_raffle"
 local Functions = require "maps.dungeons.functions"
 local Get_noise = require "utils.get_noise"
 local Alert = require 'utils.alert'
+local DungeonsTable = require 'maps.dungeons.table'
 require 'maps.dungeons.boss_arena'
 
 local Biomes = {}
@@ -44,7 +45,12 @@ local disabled_for_deconstruction = {
 		["rock-huge"] = true,
 		["rock-big"] = true,
 		["sand-rock-big"] = true,
-		["mineable-wreckage"] = true
+		["crash-site-spaceship-wreck-small-1"] = true,
+	  ["crash-site-spaceship-wreck-small-2"] = true,
+	  ["crash-site-spaceship-wreck-small-3"] = true,
+	  ["crash-site-spaceship-wreck-small-4"] = true,
+	  ["crash-site-spaceship-wreck-small-5"] = true,
+	  ["crash-site-spaceship-wreck-small-6"] = true
 	}
 
 local function get_biome(position, surface_index)
@@ -116,26 +122,29 @@ local function draw_arrows_gui()
 end
 
 local function get_surface_research(index)
-	return locked_researches[index - global.dungeons.original_surface_index]
+	local dungeontable = DungeonsTable.get_dungeontable()
+	return locked_researches[index - dungeontable.original_surface_index]
 end
 
 local function draw_depth_gui()
+	local dungeontable = DungeonsTable.get_dungeontable()
+	local forceshp = BiterHealthBooster.get("biter_health_boost_forces")
 	for _, player in pairs(game.connected_players) do
 		local surface = player.surface
 		local techs = 0
 		if get_surface_research(surface.index) and game.forces.player.technologies[get_surface_research(surface.index)].enabled == false then techs = 1 end
-		local enemy_force = global.enemy_forces[surface.index]
+		local enemy_force = dungeontable.enemy_forces[surface.index]
 		if player.gui.top.dungeon_depth then player.gui.top.dungeon_depth.destroy() end
-		if surface.name == "gulag" or surface.name == "nauvis" then return end
+		if surface.name == "gulag" or surface.name == "nauvis" or surface.name == "dungeons_floor_arena" then return end
 		local element = player.gui.top.add({type = "sprite-button", name = "dungeon_depth"})
-		element.caption = {"dungeons_tiered.depth", surface.index - global.dungeons.original_surface_index, global.dungeons.depth[surface.index]}
+		element.caption = {"dungeons_tiered.depth", surface.index - dungeontable.original_surface_index, dungeontable.depth[surface.index]}
 		element.tooltip = {
 			"dungeons_tiered.depth_tooltip",
 			Functions.get_dungeon_evolution_factor(surface.index) * 100,
-			global.biter_health_boost_forces[enemy_force.index] * 100,
+			forceshp[enemy_force.index] * 100,
 			math_round(enemy_force.get_ammo_damage_modifier("melee") * 100 + 100, 1),
 			Functions.get_dungeon_evolution_factor(surface.index) * 2000,
-			global.dungeons.treasures[surface.index],
+			dungeontable.treasures[surface.index],
 			techs
 		}
 
@@ -153,14 +162,17 @@ local function draw_depth_gui()
 end
 
 local function unlock_researches(surface_index)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local tech = game.forces.player.technologies
 	if get_surface_research(surface_index) and tech[get_surface_research(surface_index)].enabled == false then
 		tech[get_surface_research(surface_index)].enabled = true
-		game.print({"dungeons_tiered.tech_unlock", "[technology=" .. get_surface_research(surface_index) .. "]", surface_index - global.dungeons.original_surface_index})
+		game.print({"dungeons_tiered.tech_unlock", "[technology=" .. get_surface_research(surface_index) .. "]", surface_index - dungeontable.original_surface_index})
 	end
 end
 
 local function expand(surface, position)
+	local dungeontable = DungeonsTable.get_dungeontable()
+	local forceshp = BiterHealthBooster.get("biter_health_boost_forces")
 	local room
 	local roll = math_random(1,100)
 	if roll > 96 then
@@ -175,13 +187,13 @@ local function expand(surface, position)
 			room = Room_generator.get_room(surface, position, "square")
 	end
 	if not room then return end
-	if global.dungeons.treasures[surface.index] < 5 and global.dungeons.surface_size[surface.index] >= 225 and math.random(1,50) == 1 then
+	if dungeontable.treasures[surface.index] < 5 and dungeontable.surface_size[surface.index] >= 225 and math.random(1,50) == 1 then
 		Biomes["treasure"](surface, room)
 		if room.room_tiles[1] then
-			global.dungeons.treasures[surface.index] = global.dungeons.treasures[surface.index] + 1
-			game.print({"dungeons_tiered.treasure_room", surface.index - global.dungeons.original_surface_index}, {r = 0.88, g = 0.22, b = 0})
+			dungeontable.treasures[surface.index] = dungeontable.treasures[surface.index] + 1
+			game.print({"dungeons_tiered.treasure_room", surface.index - dungeontable.original_surface_index}, {r = 0.88, g = 0.22, b = 0})
 		end
-	elseif global.dungeons.surface_size[surface.index] >= 225 and math.random(1,50) == 1 and get_surface_research(surface.index) and game.forces.player.technologies[get_surface_research(surface.index)].enabled == false then
+	elseif dungeontable.surface_size[surface.index] >= 225 and math.random(1,50) == 1 and get_surface_research(surface.index) and game.forces.player.technologies[get_surface_research(surface.index)].enabled == false then
 		Biomes["laboratory"](surface, room)
 		if room.room_tiles[1] then
 			unlock_researches(surface.index)
@@ -195,27 +207,27 @@ local function expand(surface, position)
 
 	if not room.room_tiles[1] then return end
 
-	global.dungeons.depth[surface.index] = global.dungeons.depth[surface.index] + 1
-	global.dungeons.surface_size[surface.index] = 200 + (global.dungeons.depth[surface.index] - 100 * (surface.index - global.dungeons.original_surface_index)) / 4
+	dungeontable.depth[surface.index] = dungeontable.depth[surface.index] + 1
+	dungeontable.surface_size[surface.index] = 200 + (dungeontable.depth[surface.index] - 100 * (surface.index - dungeontable.original_surface_index)) / 4
 
 	local evo = Functions.get_dungeon_evolution_factor(surface.index)
 
-	local force = global.enemy_forces[surface.index]
+	local force = dungeontable.enemy_forces[surface.index]
 	force.evolution_factor = evo
 
 	if evo > 1 then
-		global.biter_health_boost_forces[force.index] = 3 + ((evo - 1) * 4)
+		forceshp[force.index] = 3 + ((evo - 1) * 4)
 		local damage_mod = (evo - 1) * 0.35
 		force.set_ammo_damage_modifier("melee", damage_mod)
 		force.set_ammo_damage_modifier("biological", damage_mod)
 		force.set_ammo_damage_modifier("artillery-shell", damage_mod)
 		force.set_ammo_damage_modifier("flamethrower", damage_mod)
-		force.set_ammo_damage_modifier("laser-turret", damage_mod)
+		force.set_ammo_damage_modifier("laser", damage_mod)
 	else
-		global.biter_health_boost_forces[force.index] = 1 + evo * 2
+		forceshp[force.index] = 1 + evo * 2
 	end
 
-	global.biter_health_boost_forces[force.index] = math_round(global.biter_health_boost_forces[force.index], 2)
+	forceshp[force.index] = math_round(forceshp[force.index], 2)
 	draw_depth_gui()
 end
 
@@ -261,12 +273,14 @@ local function init_player(player, surface)
 end
 
 local function on_entity_spawned(event)
+	local dungeontable = DungeonsTable.get_dungeontable()
+	local forceshp = BiterHealthBooster.get("biter_health_boost_forces")
 	local spawner = event.spawner
 	local unit = event.entity
 	local surface = spawner.surface
 	local force = unit.force
 
-	local spawner_tier = global.dungeons.spawner_tier
+	local spawner_tier = dungeontable.spawner_tier
 	if not spawner_tier[spawner.unit_number] then
 		Functions.set_spawner_tier(spawner, surface.index)
 	end
@@ -285,18 +299,18 @@ local function on_entity_spawned(event)
 		bonus_unit.ai_settings.allow_destroy_when_commands_fail = true
 
 		if math_random(1, 256) == 1 then
-			BiterHealthBooster.add_boss_unit(bonus_unit, global.biter_health_boost_forces[force.index] * 8, 0.25)
+			BiterHealthBooster.add_boss_unit(bonus_unit, forceshp[force.index] * 8, 0.25)
 		end
 	end
 
 	if math_random(1, 256) == 1 then
-		BiterHealthBooster.add_boss_unit(unit, global.biter_health_boost_forces[force.index] * 8, 0.25)
+		BiterHealthBooster.add_boss_unit(unit, forceshp[force.index] * 8, 0.25)
 	end
 end
 
 local function on_chunk_generated(event)
 	local surface = event.surface
-	if surface.name == "nauvis" or surface.name == "gulag" then return end
+	if surface.name == "nauvis" or surface.name == "gulag" or surface.name == "dungeons_floor_arena" then return end
 
 	local left_top = event.area.left_top
 
@@ -363,26 +377,28 @@ local function on_player_joined_game(event)
 end
 
 local function spawner_death(entity)
-	local tier = global.dungeons.spawner_tier[entity.unit_number]
+	local dungeontable = DungeonsTable.get_dungeontable()
+	local tier = dungeontable.spawner_tier[entity.unit_number]
 
 	if not tier then
 		Functions.set_spawner_tier(entity, entity.surface.index)
-		tier = global.dungeons.spawner_tier[entity.unit_number]
+		tier = dungeontable.spawner_tier[entity.unit_number]
 	end
 
 	for _ = 1, tier * 2, 1 do
 		Functions.spawn_random_biter(entity.surface, entity.position)
 	end
 
-	global.dungeons.spawner_tier[entity.unit_number] = nil
+	dungeontable.spawner_tier[entity.unit_number] = nil
 end
 
 --make expansion rocks very durable against biters
 local function on_entity_damaged(event)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local entity = event.entity
 	if not entity.valid then return end
-	if entity.surface.name == "nauvis" then return end
-	local size = global.dungeons.surface_size[entity.surface.index]
+	if entity.surface.name == "nauvis" or entity.surface.name == "dungeons_floor_arena" then return end
+	local size = dungeontable.surface_size[entity.surface.index]
 	if size < math.abs(entity.position.y) or size < math.abs(entity.position.x) then
 		if entity.name == "rock-big" then
 			entity.health = entity.health + event.final_damage_amount
@@ -399,11 +415,12 @@ local function on_entity_damaged(event)
 end
 
 local function on_player_mined_entity(event)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local entity = event.entity
 	if not entity.valid then return end
 	local player = game.players[event.player_index]
 	if entity.name == "rock-big" then
-		local size = global.dungeons.surface_size[entity.surface.index]
+		local size = dungeontable.surface_size[entity.surface.index]
 		if size < math.abs(entity.position.y) or size < math.abs(entity.position.x) then
 			entity.surface.create_entity({name = entity.name, position = entity.position})
 			entity.destroy()
@@ -415,12 +432,15 @@ local function on_player_mined_entity(event)
 	end
 	if entity.type == "simple-entity" then
 		Functions.mining_events(entity)
+		Functions.rocky_loot(event)
 	end
 	if entity.name ~= "rock-big" then return end
 	expand(entity.surface, entity.position)
 end
 
 local function on_entity_died(event)
+	local rpg_extra = RPG_T.get("rpg_extra")
+	local hp_units = BiterHealthBooster.get('biter_health_boost_units')
 	local entity = event.entity
 	if not entity.valid then return end
 	if entity.type == "unit-spawner" then
@@ -455,24 +475,26 @@ local function map_gen_settings()
 end
 
 local function get_lowest_safe_floor(player)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local rpg = RPG_T.get("rpg_t")
 	local level = rpg[player.index].level
-	local sizes = global.dungeons.surface_size
-	local safe = global.dungeons.original_surface_index
+	local sizes = dungeontable.surface_size
+	local safe = dungeontable.original_surface_index
 	for key, size in pairs(sizes) do
-		if size > 215 and level >= (key + 1 - global.dungeons.original_surface_index) * 10 and game.surfaces[key + 1] then
+		if size > 215 and level >= (key + 1 - dungeontable.original_surface_index) * 10 and game.surfaces[key + 1] then
 			safe = key + 1
 		else
 			break
 		end
 	end
-	if safe >= global.dungeons.original_surface_index + 50 then safe = global.dungeons.original_surface_index + 50 end
+	if safe >= dungeontable.original_surface_index + 50 then safe = dungeontable.original_surface_index + 50 end
 	return safe
 end
 
 local function descend(player, button, shift)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local rpg = RPG_T.get("rpg_t")
-	if player.surface.index >= global.dungeons.original_surface_index + 50 then
+	if player.surface.index >= dungeontable.original_surface_index + 50 then
 		player.print({"dungeons_tiered.max_depth"})
 		return
 	end
@@ -480,27 +502,27 @@ local function descend(player, button, shift)
 		player.print({"dungeons_tiered.only_on_spawn"})
 		return
 	end
-	if rpg[player.index].level < (player.surface.index - global.dungeons.original_surface_index) * 10 + 10 then
-		player.print({"dungeons_tiered.level_required", (player.surface.index - global.dungeons.original_surface_index) * 10 + 10})
+	if rpg[player.index].level < (player.surface.index - dungeontable.original_surface_index) * 10 + 10 then
+		player.print({"dungeons_tiered.level_required", (player.surface.index - dungeontable.original_surface_index) * 10 + 10})
 		return
 	end
 	local surface = game.surfaces[player.surface.index + 1]
 	if not surface then
-		if global.dungeons.surface_size[player.surface.index] < 215 then
+		if dungeontable.surface_size[player.surface.index] < 215 then
 			player.print({"dungeons_tiered.floor_size_required"})
 			return
 		end
-		surface = game.create_surface("dungeons_floor" .. player.surface.index - global.dungeons.original_surface_index + 1, map_gen_settings())
-		if surface.index % 5 == global.dungeons.original_surface_index then global.dungeons.spawn_size = 60 else global.dungeons.spawn_size = 42 end
+		surface = game.create_surface("dungeons_floor" .. player.surface.index - dungeontable.original_surface_index + 1, map_gen_settings())
+		if surface.index % 5 == dungeontable.original_surface_index then dungeontable.spawn_size = 60 else dungeontable.spawn_size = 42 end
 		surface.request_to_generate_chunks({0,0}, 2)
 		surface.force_generate_chunk_requests()
-		surface.daytime = 0.25 + 0.30 * (surface.index / (global.dungeons.original_surface_index + 50))
+		surface.daytime = 0.25 + 0.30 * (surface.index / (dungeontable.original_surface_index + 50))
 		surface.freeze_daytime = true
 		surface.min_brightness = 0
 		surface.brightness_visual_weights = {1, 1, 1}
-		global.dungeons.surface_size[surface.index] = 200
-		global.dungeons.treasures[surface.index] = 0
-		game.print({"dungeons_tiered.first_visit", player.name, rpg[player.index].level, surface.index - global.dungeons.original_surface_index}, {r = 0.8, g = 0.5, b = 0})
+		dungeontable.surface_size[surface.index] = 200
+		dungeontable.treasures[surface.index] = 0
+		game.print({"dungeons_tiered.first_visit", player.name, rpg[player.index].level, surface.index - dungeontable.original_surface_index}, {r = 0.8, g = 0.5, b = 0})
 		--Alert.alert_all_players(15, {"dungeons_tiered.first_visit", player.name, rpg[player.index].level, surface.index - 2}, {r=0.8,g=0.2,b=0},"recipe/artillery-targeting-remote", 0.7)
 
 	end
@@ -511,7 +533,8 @@ local function descend(player, button, shift)
 end
 
 local function ascend(player, button, shift)
-	if player.surface.index <= global.dungeons.original_surface_index then
+	local dungeontable = DungeonsTable.get_dungeontable()
+	if player.surface.index <= dungeontable.original_surface_index then
 		player.print({"dungeons_tiered.min_depth"})
 		return
 	end
@@ -520,21 +543,27 @@ local function ascend(player, button, shift)
 		return
 	end
 	local surface = game.surfaces[player.surface.index - 1]
-	if button == defines.mouse_button_type.right then surface = game.surfaces[math.max(global.dungeons.original_surface_index, player.surface.index - 5)] end
-	if shift then surface = game.surfaces[global.dungeons.original_surface_index] end
+	if button == defines.mouse_button_type.right then surface = game.surfaces[math.max(dungeontable.original_surface_index, player.surface.index - 5)] end
+	if shift then surface = game.surfaces[dungeontable.original_surface_index] end
 	player.teleport(surface.find_non_colliding_position("character", {0, 0}, 50, 0.5), surface)
 	--player.print({"dungeons_tiered.travel_up"})
 end
 
 local function on_built_entity(event)
+	local dungeontable = DungeonsTable.get_dungeontable()
 	local entity = event.created_entity
 	if not entity or not entity.valid then return end
 	if entity.name == "spidertron" then
-		if entity.surface.index < global.dungeons.original_surface_index + 20 then
-			entity.destroy()
+		if entity.surface.index < dungeontable.original_surface_index + 20 then
 			local player = game.players[event.player_index]
+			local try_mine = player.mine_entity(entity, true)
+			if not try_mine then
+				if entity.valid then
+					entity.destroy()
+					player.insert({name = "spidertron", count = 1})
+				end
+			end
 			Alert.alert_player_warning(player, 8, {"dungeons_tiered.spidertron_not_allowed"})
-			player.insert({name = "spidertron", count = 1})
 		end
 	end
 end
@@ -556,10 +585,13 @@ local function on_gui_click(event)
 end
 
 local function on_surface_created(event)
+	local dungeontable = DungeonsTable.get_dungeontable()
+	local forceshp = BiterHealthBooster.get("biter_health_boost_forces")
 	local force = game.create_force("enemy" .. event.surface_index)
-	global.enemy_forces[event.surface_index] = force
-	global.biter_health_boost_forces[force.index] = 1
-	global.dungeons.depth[event.surface_index] = 100 * event.surface_index - (global.dungeons.original_surface_index * 100)
+	dungeontable.enemy_forces[event.surface_index] = force
+	forceshp[force.index] = 1
+	dungeontable.depth[event.surface_index] = 100 * event.surface_index - (dungeontable.original_surface_index * 100)
+	BiterHealthBooster.set_surface_activity(game.surfaces[event.surface_index].name, true)
 end
 
 local function on_player_changed_surface(event)
@@ -576,16 +608,17 @@ end
 --   local position = player.position
 -- 	local surface = player.surface
 -- 	if surface.index < 2 then return end
--- 	local size = global.dungeons.surface_size[surface.index]
+-- 	local size = dungeontable.surface_size[surface.index]
 -- 	if (size >= math.abs(player.position.y) and size < math.abs(player.position.y) + 1) or (size >= math.abs(player.position.x) and size < math.abs(player.position.x) + 1) then
 --       Alert.alert_player_warning(player, 30, {"dungeons_tiered.too_small"}, {r=0.98,g=0.22,b=0})
 --   end
 -- end
 
 local function transfer_items(surface_index)
-	if surface_index > global.dungeons.original_surface_index then
-		local inputs = global.dungeons.transport_chests_inputs[surface_index]
-		local outputs = global.dungeons.transport_chests_outputs[surface_index - 1]
+	local dungeontable = DungeonsTable.get_dungeontable()
+	if surface_index > dungeontable.original_surface_index then
+		local inputs = dungeontable.transport_chests_inputs[surface_index]
+		local outputs = dungeontable.transport_chests_outputs[surface_index - 1]
 		for i = 1, 2, 1 do
 			if inputs[i].valid and outputs[i].valid then
 				local input_inventory = inputs[i].get_inventory(defines.inventory.chest)
@@ -604,9 +637,10 @@ local function transfer_items(surface_index)
 end
 
 local function transfer_signals(surface_index)
-	if surface_index > global.dungeons.original_surface_index then
-		local inputs = global.dungeons.transport_poles_inputs[surface_index - 1]
-		local outputs = global.dungeons.transport_poles_outputs[surface_index]
+	local dungeontable = DungeonsTable.get_dungeontable()
+	if surface_index > dungeontable.original_surface_index then
+		local inputs = dungeontable.transport_poles_inputs[surface_index - 1]
+		local outputs = dungeontable.transport_poles_outputs[surface_index]
 		for i = 1, 2, 1 do
 			if inputs[i].valid and outputs[i].valid then
 				local signals = inputs[i].get_merged_signals(defines.circuit_connector_id.electric_pole)
@@ -629,6 +663,8 @@ end
 
 
 local function on_init()
+	local dungeontable = DungeonsTable.get_dungeontable()
+	local forceshp = BiterHealthBooster.get("biter_health_boost_forces")
 	local force = game.create_force("dungeon")
 	force.set_friend("enemy", false)
 	force.set_friend("player", false)
@@ -665,32 +701,19 @@ local function on_init()
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 0.50
 	game.difficulty_settings.technology_price_multiplier = 3
 
-	global.dungeons = {}
-	global.dungeons.tiered = true
-	global.dungeons.depth = {}
-	global.dungeons.depth[surface.index] = 0
-	global.dungeons.depth[nauvis.index] = 0
-	global.dungeons.spawn_size = 42
-	global.dungeons.spawner_tier = {}
-	global.dungeons.transport_chests_inputs = {}
-	global.dungeons.transport_chests_outputs = {}
-	global.dungeons.transport_poles_inputs = {}
-	global.dungeons.transport_poles_outputs = {}
-	global.dungeons.transport_surfaces = {}
-	global.dungeons.surface_size = {}
-	global.dungeons.surface_size[surface.index] = 200
-	global.dungeons.treasures = {}
-	global.dungeons.treasures[surface.index] = 0
-	global.dungeons.item_blacklist = true
-	global.dungeons.original_surface_index = surface.index
-	global.enemy_forces = {}
-	global.enemy_forces[nauvis.index] = game.forces.enemy
-	global.enemy_forces[surface.index] = game.create_force("enemy" .. surface.index)
-	global.biter_health_boost_forces[game.forces.enemy.index] = 1
-	global.biter_health_boost_forces[global.enemy_forces[surface.index].index] = 1
+	dungeontable.tiered = true
+	dungeontable.depth[surface.index] = 0
+	dungeontable.depth[nauvis.index] = 0
+	dungeontable.surface_size[surface.index] = 200
+	dungeontable.treasures[surface.index] = 0
+	dungeontable.item_blacklist = true
+	dungeontable.original_surface_index = surface.index
+	dungeontable.enemy_forces[nauvis.index] = game.forces.enemy
+	dungeontable.enemy_forces[surface.index] = game.create_force("enemy" .. surface.index)
+	forceshp[game.forces.enemy.index] = 1
+	forceshp[dungeontable.enemy_forces[surface.index].index] = 1
+	BiterHealthBooster.set_surface_activity('dungeons_floor0', true)
 
-	global.rocks_yield_ore_base_amount = 50
-	global.rocks_yield_ore_distance_modifier = 0.001
 	game.forces.player.technologies["land-mine"].enabled = false
 	game.forces.player.technologies["landfill"].enabled = false
 	game.forces.player.technologies["cliff-explosives"].enabled = false
@@ -710,14 +733,12 @@ local function on_init()
 	T.sub_caption_color = {r = 150, g = 0, b = 20}
 end
 
-
 local function on_tick()
-	if game.tick % 60 == 0 then
-		if #global.dungeons.transport_surfaces > 0 then
-			for _,surface_index in pairs(global.dungeons.transport_surfaces) do
-				transfer_items(surface_index)
-				transfer_signals(surface_index)
-			end
+	local dungeontable = DungeonsTable.get_dungeontable()
+	if #dungeontable.transport_surfaces > 0 then
+		for _,surface_index in pairs(dungeontable.transport_surfaces) do
+			transfer_items(surface_index)
+			transfer_signals(surface_index)
 		end
 	end
 	--[[
@@ -741,7 +762,7 @@ end
 
 local Event = require 'utils.event'
 Event.on_init(on_init)
-Event.add(defines.events.on_tick, on_tick)
+Event.on_nth_tick(60, on_tick)
 Event.add(defines.events.on_marked_for_deconstruction, on_marked_for_deconstruction)
 Event.add(defines.events.on_player_joined_game, on_player_joined_game)
 Event.add(defines.events.on_player_mined_entity, on_player_mined_entity)
@@ -755,5 +776,3 @@ Event.add(defines.events.on_surface_created, on_surface_created)
 Event.add(defines.events.on_gui_click, on_gui_click)
 Event.add(defines.events.on_player_changed_surface, on_player_changed_surface)
 Event.add(defines.events.on_player_respawned, on_player_respawned)
-
-require "modules.rocks_yield_ore"
