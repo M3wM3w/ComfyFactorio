@@ -54,6 +54,7 @@ end
 
 local function on_nth_tick()
 	Functions[journey.game_state](journey)
+	Functions.mothership_message_queue(journey)
 end
 
 local function on_init()

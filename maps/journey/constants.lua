@@ -1,5 +1,7 @@
 local Public = {}
 
+Public.mothership_teleporter_position = {x = 0, y = 12}
+
 Public.mothership_radius = 28
 
 Public.particle_spawn_vectors = {}
@@ -24,19 +26,19 @@ local area = {
 
 Public.world_selector_areas = {
 	[1] = {
-		left_top = {x = area.left_top.x - 10, y = area.left_top.y},
-		right_bottom = {x = area.left_top.x - 4, y = area.right_bottom.y},
+		left_top = {x = area.left_top.x - 12, y = area.left_top.y},
+		right_bottom = {x = area.left_top.x - 6, y = area.right_bottom.y},
 	},
 	[2] = area,
 	[3] = {
-		left_top = {x = area.right_bottom.x + 4, y = area.left_top.y},
-		right_bottom = {x = area.right_bottom.x + 10, y = area.right_bottom.y},
+		left_top = {x = area.right_bottom.x + 6, y = area.left_top.y},
+		right_bottom = {x = area.right_bottom.x + 12, y = area.right_bottom.y},
 	},
 }
 
 Public.world_selector_colors = {
 	[1] = {r = 200, g = 200, b = 0, a = 255},
-	[2] = {r = 100, g = 100, b = 200, a = 255},
+	[2] = {r = 150, g = 150, b = 255, a = 255},
 	[3] = {r = 200, g = 100, b = 100, a = 255},
 }
 

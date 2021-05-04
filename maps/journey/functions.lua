@@ -1,6 +1,18 @@
 local Public = {}
 local Constants = require 'maps.journey.constants'
 
+function Public.mothership_message_queue(journey)
+	local text = journey.mothership_messages[1]
+	if not text then return end
+	if text ~= "" then
+		text = "[font=default-game][color=200,200,200]" .. text .. "[/color][/font]"
+		text = "[font=heading-1][color=255,155,155]<Mothership> [/color][/font]" .. text
+		game.print(text)
+		--game.forces.player.play_sound{path="utility/armor_insert", volume_modifier = 1}
+	end
+	table.remove(journey.mothership_messages, 1)
+end
+
 function Public.deny_building(event)
     local entity = event.created_entity
     if not entity.valid then
@@ -46,14 +58,15 @@ local function is_mothership(position)
 	end	
 end
 
-function Public.on_mothership_chunk_generated(event)
+function Public.on_mothership_chunk_generated(event)	
 	local left_top = event.area.left_top
 	local surface = event.surface
+	local seed = surface.map_gen_settings.seed
 	local tiles = {}
 	for x = 0, 31, 1 do
 		for y = 0, 31, 1 do
 			local position = {x = left_top.x + x, y = left_top.y + y}
-			if is_mothership(position) then
+			if is_mothership(position) then			
 				table.insert(tiles, {name = "black-refined-concrete", position = position})
 			else
 				table.insert(tiles, {name = "out-of-map", position = position})
@@ -70,6 +83,7 @@ function Public.reset(journey)
 	end
 	
 	journey.mothership_speed = 0.5
+	journey.mothership_messages = {}
 	journey.world_selectors = {}
 	
 	for i = 1, 3, 1 do
@@ -89,23 +103,31 @@ end
 function Public.draw_mothership(journey)
 	local surface = game.surfaces.mothership
 	
+	local positions = {}
 	for x = Constants.mothership_radius * -1, Constants.mothership_radius, 1 do
-		for y = Constants.mothership_radius * -1, 0, 1 do
+		for y = Constants.mothership_radius * -1, Constants.mothership_radius, 1 do
 			local position = {x = x, y = y}
-			
-			if is_mothership(position) and surface.count_tiles_filtered({area = {{position.x - 1, position.y - 1}, {position.x + 2, position.y + 2}}, name = "out-of-map"}) > 0 then
-				local e = surface.create_entity({name = "stone-wall", position = position})
-				e.destructible = false			
-			end			
+			if is_mothership(position) then table.insert(positions, position) end
 		end
 	end
 	
-	local tiles = {}
-	for k, area in pairs(Constants.world_selector_areas) do
-		for _, tile in pairs(surface.find_tiles_filtered({area = area})) do
-			table.insert(tiles, {name = "orange-refined-concrete", position = tile.position})
+	table.shuffle_table(positions)
+	
+	for _, position in pairs(positions) do	
+		if surface.count_tiles_filtered({area = {{position.x - 1, position.y - 1}, {position.x + 2, position.y + 2}}, name = "out-of-map"}) > 0 then
+			local e = surface.create_entity({name = "stone-wall", position = position})
+			e.destructible = false	
 		end
-		
+		if surface.count_tiles_filtered({area = {{position.x - 1, position.y - 1}, {position.x + 2, position.y + 2}}, name = "lab-dark-1"}) < 4 then
+			surface.set_tiles({{name = "lab-dark-1", position = position}}, true)
+		end					
+	end
+
+	for _, tile in pairs(surface.find_tiles_filtered({area = {{Constants.mothership_teleporter_position.x - 2, Constants.mothership_teleporter_position.y - 2}, {Constants.mothership_teleporter_position.x + 2, Constants.mothership_teleporter_position.y + 2}}})) do
+		surface.set_tiles({{name = "lab-dark-1", position = tile.position}}, true)
+	end
+
+	for k, area in pairs(Constants.world_selector_areas) do
 		journey.world_selectors[k].rectangles = {}
 
 		local center = {x = area.left_top.x + Constants.world_selector_width * 0.5, y = area.left_top.y + Constants.world_selector_height * 0.5}
@@ -122,11 +144,31 @@ function Public.draw_mothership(journey)
 			only_in_alt_mode = false
 		}
 		table.insert(journey.world_selectors[k].rectangles, rectangle)
-				
+		
+		local rectangle = rendering.draw_rectangle {
+			width = 8,
+			filled=false,
+			surface = surface,
+			left_top = position,
+			right_bottom = {position.x + Constants.world_selector_width, position.y + Constants.world_selector_height},
+			color = {r = 100, g = 100, b = 100, a = 255},
+			draw_on_ground = true,
+			only_in_alt_mode = false
+		}		
 	end
-	surface.set_tiles(tiles, true)
 	
-	journey.game_state = "mothership"
+	for x = Constants.mothership_radius * -1, Constants.mothership_radius, 1 do
+		for y = Constants.mothership_radius * -1, Constants.mothership_radius, 1 do
+			local position = {x = x, y = y}
+		end
+	end
+
+	for _ = 1, 5, 1 do
+		local e = surface.create_entity({name = "compilatron", position = Constants.mothership_teleporter_position, force = "player"})
+		e.destructible = false
+	end
+
+	journey.game_state = "mothership_world_selection"
 end
 
 function Public.teleport_players_to_mothership(journey)
@@ -134,25 +176,25 @@ function Public.teleport_players_to_mothership(journey)
 	for _, player in pairs(game.connected_players) do
 		if player.surface.name ~= "mothership" then		
 			player.teleport(surface.find_non_colliding_position("character", {x = 0, y = 0}, 32, 0.5), surface)
+			table.insert(journey.mothership_messages, "Welcome home " .. player.name .. "!")
 			return
 		end
 	end
 end
 
 local function get_activation_level(surface, area)
-	local total_player_count = #game.connected_players
-	local player_count_in_area = surface.count_entities_filtered({area = area, name = "character"})
-	local level = math.round(player_count_in_area / total_player_count, 3)
-	level = level * 2
-	if level > 1 then level = 1 end
+	local player_count_in_area = surface.count_entities_filtered({area = area, name = "character"})	
+	local player_count_for_max_activation = #game.connected_players * 0.66	
+	local level = player_count_in_area / player_count_for_max_activation	
+	level = math.round(level, 2)
 	return level
 end
 
 local function animate_selectors(journey)
-	local surface = game.surfaces.mothership
 	for k, world_selector in pairs(journey.world_selectors) do
-		local activation_level = get_activation_level(surface, Constants.world_selector_areas[k])
+		local activation_level = journey.world_selectors[k].activation_level
 		if activation_level < 0.2 then activation_level = 0.2 end
+		if activation_level > 1 then activation_level = 1 end
 		for _, rectangle in pairs(world_selector.rectangles) do
 			local color = Constants.world_selector_colors[k]
 			rendering.set_color(rectangle, {r = color.r * activation_level, g = color.g * activation_level, b = color.b * activation_level, a = 255})
@@ -160,34 +202,109 @@ local function animate_selectors(journey)
 	end
 end
 
-function Public.mothership(journey)
-	local surface = game.surfaces.mothership
-	Public.teleport_players_to_mothership(journey)
-	
-	for c = 1, 16, 1 do
+local function draw_background(journey, surface)
+	local speed = journey.mothership_speed
+	for c = 1, 16 * speed, 1 do
 		local position = Constants.particle_spawn_vectors[math.random(1, Constants.size_of_particle_spawn_vectors)]
-		surface.create_entity({name = "shotgun-pellet", position = position, target = {position[1], position[2] + Constants.mothership_radius * 2}, speed = journey.mothership_speed})
+		surface.create_entity({name = "shotgun-pellet", position = position, target = {position[1], position[2] + Constants.mothership_radius * 2}, speed = speed})
 	end
-	for c = 1, 16, 1 do
+	for c = 1, 16 * speed, 1 do
 		local position = Constants.particle_spawn_vectors[math.random(1, Constants.size_of_particle_spawn_vectors)]
-		surface.create_entity({name = "piercing-shotgun-pellet", position = position, target = {position[1], position[2] + Constants.mothership_radius * 2}, speed = journey.mothership_speed})
+		surface.create_entity({name = "piercing-shotgun-pellet", position = position, target = {position[1], position[2] + Constants.mothership_radius * 2}, speed = speed})
 	end
-	for c = 1, 2, 1 do
+	for c = 1, 2 * speed, 1 do
 		local position = Constants.particle_spawn_vectors[math.random(1, Constants.size_of_particle_spawn_vectors)]
-		surface.create_entity({name = "cannon-projectile", position = position, target = {position[1], position[2] + Constants.mothership_radius * 2}, speed = journey.mothership_speed})
+		surface.create_entity({name = "cannon-projectile", position = position, target = {position[1], position[2] + Constants.mothership_radius * 2}, speed = speed})
 	end
-	for c = 1, 1, 1 do
+	for c = 1, 1 * speed, 1 do
 		local position = Constants.particle_spawn_vectors[math.random(1, Constants.size_of_particle_spawn_vectors)]
-		surface.create_entity({name = "uranium-cannon-projectile", position = position, target = {position[1], position[2] + Constants.mothership_radius * 2}, speed = journey.mothership_speed})
+		surface.create_entity({name = "uranium-cannon-projectile", position = position, target = {position[1], position[2] + Constants.mothership_radius * 2}, speed = speed})
 	end
 	if math.random(1, 32) == 1 then		
 		local position = Constants.particle_spawn_vectors[math.random(1, Constants.size_of_particle_spawn_vectors)]
-		surface.create_entity({name = "explosive-uranium-cannon-projectile", position = position, target = {position[1], position[2] + Constants.mothership_radius * 3}, speed = journey.mothership_speed})	
+		surface.create_entity({name = "explosive-uranium-cannon-projectile", position = position, target = {position[1], position[2] + Constants.mothership_radius * 3}, speed = speed})	
+	end
+end
+
+function Public.mothership_world_selection(journey)
+	local surface = game.surfaces.mothership
+	Public.teleport_players_to_mothership(journey)
+
+	journey.selected_world = false
+	for i = 1, 3, 1 do
+		local activation_level = get_activation_level(surface, Constants.world_selector_areas[i])
+		journey.world_selectors[i].activation_level = activation_level
+		if activation_level > 1 then
+			journey.selected_world = i 
+		end
 	end
 	
-	
+	if journey.selected_world then
+		if not journey.mothership_advancing_to_world then
+			table.insert(journey.mothership_messages, "Advancing to selected world.")
+			--journey.mothership_advancing_to_world = game.tick + math.random(60 * 45, 60 * 75)
+			journey.mothership_advancing_to_world = game.tick + math.random(60 * 5, 60 * 10)
+		else
+			local seconds_left = math.floor((journey.mothership_advancing_to_world - game.tick) / 60)
+			if seconds_left <= 0 then
+				journey.mothership_advancing_to_world = false
+				table.insert(journey.mothership_messages, "Arriving at targeted destination!")
+				journey.game_state = "mothership_arrives_at_world"
+				return
+			end
+			if seconds_left % 10 == 0 then table.insert(journey.mothership_messages, "Estimated arrival in " .. seconds_left .. " seconds.") end
+		end
+		
+		journey.mothership_speed = journey.mothership_speed + 0.1
+		if journey.mothership_speed > 4 then journey.mothership_speed = 4 end
+	else
+		if journey.mothership_advancing_to_world then
+			table.insert(journey.mothership_messages, "Aborting travling sequence.")
+			journey.mothership_advancing_to_world = false
+		end	
+		journey.mothership_speed = journey.mothership_speed - 0.25
+		if journey.mothership_speed < 0.35 then journey.mothership_speed = 0.35 end
+	end
+			
+	draw_background(journey, surface)
 	animate_selectors(journey)
+end
+
+function Public.mothership_arrives_at_world(journey)
+	local surface = game.surfaces.mothership
 	
+	if journey.mothership_speed == 0.15 then
+		journey.mothership_teleporter = surface.create_entity({name = "player-port", position = Constants.mothership_teleporter_position, force = "player"})
+		journey.mothership_teleporter.active = false
+		
+		for _ = 1, 16, 1 do table.insert(journey.mothership_messages, "") end
+		table.insert(journey.mothership_messages, "[img=item/nuclear-fuel]Nuclear fuel depleted ;_;")
+		for _ = 1, 16, 1 do table.insert(journey.mothership_messages, "") end
+		table.insert(journey.mothership_messages, "Refuel via supply rocket required!")
+		for _ = 1, 20, 1 do table.insert(journey.mothership_messages, "") end
+		table.insert(journey.mothership_messages, "[gps=" .. Constants.mothership_teleporter_position.x .. "," .. Constants.mothership_teleporter_position.y .. ",mothership] Teleporter online.")
+		for _ = 1, 20, 1 do table.insert(journey.mothership_messages, "") end
+		table.insert(journey.mothership_messages, "Good luck on your adventure! ^.^")
+	
+		for i = 1, 3, 1 do
+			journey.world_selectors[i].activation_level = 0
+		end
+		animate_selectors(journey)
+			
+		journey.game_state = "world"
+	else
+		journey.mothership_speed = journey.mothership_speed - 0.15
+	end
+	
+	if journey.mothership_speed < 0.15 then 
+		journey.mothership_speed = 0.15
+	end
+		
+	draw_background(journey, surface)
+end
+
+function Public.world(journey)
+	draw_background(journey, game.surfaces.mothership)
 end
 
 function Public.resetsfsf(journey)
