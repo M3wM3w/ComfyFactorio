@@ -87,7 +87,7 @@ function Public.reset(journey)
 	journey.world_selectors = {}
 	
 	for i = 1, 3, 1 do
-		journey.world_selectors[i] = {activation_level = 0}
+		journey.world_selectors[i] = {activation_level = 0, renderings = {}}
 	end
 	
 	journey.game_state = "create_mothership"
@@ -97,6 +97,7 @@ function Public.create_mothership(journey)
 	local surface = game.create_surface("mothership", Constants.mothership_gen_settings)
 	surface.request_to_generate_chunks({x = 0, y = 0}, 6)
 	surface.force_generate_chunk_requests()
+	surface.freeze_daytime = true
 	journey.game_state = "draw_mothership"
 end
 
@@ -168,14 +169,14 @@ function Public.draw_mothership(journey)
 		e.destructible = false
 	end
 
-	journey.game_state = "mothership_world_selection"
+	journey.game_state = "set_world_selectors"
 end
 
 function Public.teleport_players_to_mothership(journey)
 	local surface = game.surfaces.mothership
 	for _, player in pairs(game.connected_players) do
 		if player.surface.name ~= "mothership" then		
-			player.teleport(surface.find_non_colliding_position("character", {x = 0, y = 0}, 32, 0.5), surface)
+			player.teleport(surface.find_non_colliding_position("character", Constants.mothership_teleporter_position, 32, 0.5), surface)
 			table.insert(journey.mothership_messages, "Welcome home " .. player.name .. "!")
 			return
 		end
@@ -226,10 +227,68 @@ local function draw_background(journey, surface)
 	end
 end
 
+function Public.set_world_selectors(journey)
+	local surface = game.surfaces.mothership
+	local modifier_names = {}
+	for k, _ in pairs(Constants.modifiers) do
+		table.insert(modifier_names, k)
+	end		
+	
+	for k, world_selector in pairs(journey.world_selectors) do
+		table.shuffle_table(modifier_names)
+		world_selector.modifiers = {}
+		local modifiers = world_selector.modifiers
+		
+		for i = 1, 4, 1 do
+			local modifier = modifier_names[i]
+			modifiers[i] = {modifier, math.random(Constants.modifiers[modifier][1], Constants.modifiers[modifier][2])}
+		end
+		for i = 5, 6, 1 do
+			local modifier = modifier_names[i]
+			modifiers[i] = {modifier, -1 * math.random(Constants.modifiers[modifier][1], Constants.modifiers[modifier][2])}
+		end	
+		
+		local renderings = world_selector.renderings
+		for k2, modifier in pairs(modifiers) do
+			local position = Constants.world_selector_areas[k].left_top
+			local text = ""
+			if modifier[2] > 0 then text = text .. "+" end
+			text = text .. modifier[2] .. "% "
+			text = text .. Constants.modifiers[modifier[1]][3]
+			
+			local color
+			if k2 < 5 then
+				color = {200, 0, 0, 255}
+			else
+				color = {0, 200, 0, 255}
+			end				
+			
+			renderings[k2] = rendering.draw_text{
+				text = text,
+				surface = surface,
+				target = {position.x + Constants.world_selector_width * 0.5, position.y + k2 * 0.8 - 6},
+				color = color,
+				scale = 1.25,
+				font = "default-large",
+				alignment = "center",
+				scale_with_zoom = false
+			}
+		end	
+	end	
+	journey.game_state = "mothership_world_selection"
+end
+
 function Public.mothership_world_selection(journey)
 	local surface = game.surfaces.mothership
+	
+	local daytime = surface.daytime
+	daytime = daytime - 0.025	
+	if daytime < 0 then daytime = 0 end
+	surface.daytime = daytime
+	
 	Public.teleport_players_to_mothership(journey)
-
+	
+	journey.mothership_teleporter_online = false
 	journey.selected_world = false
 	for i = 1, 3, 1 do
 		local activation_level = get_activation_level(surface, Constants.world_selector_areas[i])
@@ -273,17 +332,19 @@ end
 function Public.mothership_arrives_at_world(journey)
 	local surface = game.surfaces.mothership
 	
+	Public.teleport_players_to_mothership(journey)
+	
 	if journey.mothership_speed == 0.15 then
 		journey.mothership_teleporter = surface.create_entity({name = "player-port", position = Constants.mothership_teleporter_position, force = "player"})
-		journey.mothership_teleporter.active = false
+		table.insert(journey.mothership_messages, "[gps=" .. Constants.mothership_teleporter_position.x .. "," .. Constants.mothership_teleporter_position.y .. ",mothership] Teleporter online.")
+		journey.mothership_teleporter.destructible = false
+		journey.mothership_teleporter.minable = false
 		
 		for _ = 1, 16, 1 do table.insert(journey.mothership_messages, "") end
 		table.insert(journey.mothership_messages, "[img=item/nuclear-fuel]Nuclear fuel depleted ;_;")
 		for _ = 1, 16, 1 do table.insert(journey.mothership_messages, "") end
 		table.insert(journey.mothership_messages, "Refuel via supply rocket required!")
-		for _ = 1, 20, 1 do table.insert(journey.mothership_messages, "") end
-		table.insert(journey.mothership_messages, "[gps=" .. Constants.mothership_teleporter_position.x .. "," .. Constants.mothership_teleporter_position.y .. ",mothership] Teleporter online.")
-		for _ = 1, 20, 1 do table.insert(journey.mothership_messages, "") end
+		for _ = 1, 16, 1 do table.insert(journey.mothership_messages, "") end
 		table.insert(journey.mothership_messages, "Good luck on your adventure! ^.^")
 	
 		for i = 1, 3, 1 do
@@ -291,7 +352,7 @@ function Public.mothership_arrives_at_world(journey)
 		end
 		animate_selectors(journey)
 			
-		journey.game_state = "world"
+		journey.game_state = "create_the_world"
 	else
 		journey.mothership_speed = journey.mothership_speed - 0.15
 	end
@@ -303,6 +364,33 @@ function Public.mothership_arrives_at_world(journey)
 	draw_background(journey, surface)
 end
 
+function Public.create_the_world(journey)
+	local surface = game.surfaces.nauvis
+   -- surface.map_gen_settings = mgs
+    surface.clear(true)
+	surface.request_to_generate_chunks({x = 0, y = 0}, 5)
+	surface.force_generate_chunk_requests()
+	
+	journey.game_state = "place_teleporter_into_world"
+end
+
+function Public.place_teleporter_into_world(journey)
+	local surface = game.surfaces.nauvis
+	journey.nauvis_teleporter = surface.create_entity({name = "player-port", position = Constants.mothership_teleporter_position, force = "player"})
+	journey.nauvis_teleporter.destructible = false
+	journey.nauvis_teleporter.minable = false
+	journey.mothership_teleporter_online = true
+	journey.game_state = "make_it_night"
+end
+
+function Public.make_it_night(journey)
+	local surface = game.surfaces.mothership
+	local daytime = surface.daytime
+	daytime = daytime + 0.02
+	surface.daytime = daytime
+	if daytime > 0.5 then journey.game_state = "world" end
+end
+
 function Public.world(journey)
 	draw_background(journey, game.surfaces.mothership)
 end
@@ -311,8 +399,18 @@ function Public.resetsfsf(journey)
     
 end
 
-function Public.resetsfsf(journey)
-    
+function Public.teleporters(journey, player)
+	local surface = player.surface
+	if surface.count_entities_filtered({position = player.position, name = "player-port"}) == 0 then return end
+	if surface.index == 1 then
+		player.teleport(surface.find_non_colliding_position("character", {Constants.mothership_teleporter_position.x , Constants.mothership_teleporter_position.y - 4}, 32, 0.5), game.surfaces.mothership)
+		return
+	end
+	if not journey.mothership_teleporter_online then player.print("Teleporter offline.") return end
+	if surface.name == "mothership" then
+		player.teleport(surface.find_non_colliding_position("character", {Constants.mothership_teleporter_position.x , Constants.mothership_teleporter_position.y - 4}, 32, 0.5), game.surfaces.nauvis)
+		return
+	end
 end
 
 return Public

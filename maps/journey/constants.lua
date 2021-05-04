@@ -64,6 +64,18 @@ Public.mothership_gen_settings = {
 	},
 }
 
+Public.modifiers = {	
+	["cliff_settings"] = {15, 30, "Cliffs"},
+	["enemy-base"] = {15, 30, "Nests"},
+	["starting_area"] = {-30, -15, "Starting Area"},
+	["water"] = {-30, -15, "Water"},
+	["coal"] = {-30, -15, "Coal"},
+	["stone"] = {-30, -15, "Stone"},
+	["copper-ore"] = {-30, -15, "Copper Ore"},
+	["iron-ore"] = {-30, -15, "Iron Ore"},
+	["uranium-ore"] = {-30, -15, "Uranium Ore"},
+	["crude-oil"] = {-30, -15, "Oil"},
+}
 
 Public.mgs = {
 	["water"] = 1,
@@ -80,7 +92,5 @@ Public.mgs = {
 		["enemy-base"] = {frequency = 1, size = 1, richness = 1}
 	},
 }
-
-
 
 return Public
