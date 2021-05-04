@@ -65,16 +65,20 @@ Public.mothership_gen_settings = {
 }
 
 Public.modifiers = {	
-	["cliff_settings"] = {15, 30, "Cliffs"},
-	["enemy-base"] = {15, 30, "Nests"},
-	["starting_area"] = {-30, -15, "Starting Area"},
-	["water"] = {-30, -15, "Water"},
-	["coal"] = {-30, -15, "Coal"},
-	["stone"] = {-30, -15, "Stone"},
-	["copper-ore"] = {-30, -15, "Copper Ore"},
-	["iron-ore"] = {-30, -15, "Iron Ore"},
-	["uranium-ore"] = {-30, -15, "Uranium Ore"},
-	["crude-oil"] = {-30, -15, "Oil"},
+	["cliff_settings"] = {10, 25, "Cliffs"},
+	["enemy-base"] = {10, 25, "Nests"},
+	["starting_area"] = {-25, -10, "Starting Area"},
+	["water"] = {-25, -10, "Water"},
+	["coal"] = {-25, -10, "Coal"},
+	["stone"] = {-25, -10, "Stone"},
+	["copper-ore"] = {-25, -10, "Copper Ore"},
+	["iron-ore"] = {-25, -10, "Iron Ore"},
+	["uranium-ore"] = {-25, -10, "Uranium Ore"},
+	["trees"] = {-25, -10, "Trees"},
+	["crude-oil"] = {-25, -10, "Oil"},
+	["time_factor"] = {20, 50, "Evolution Time Factor"},
+	["destroy_factor"] = {20, 50, "Evolution Destroy Factor"},
+	["pollution_factor"] = {20, 50, "Evolution Pollution Factor"},
 }
 
 Public.mgs = {

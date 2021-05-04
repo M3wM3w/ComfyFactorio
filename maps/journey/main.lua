@@ -28,7 +28,13 @@ local function on_player_changed_position(event)
 end
 
 local function on_player_respawned(event)
+	Functions.draw_gui(journey)
     local player = game.players[event.player_index]
+end
+
+local function on_player_joined_game(event)
+    local player = game.players[event.player_index]
+	Functions.draw_gui(journey)
 end
 
 local function on_entity_died(event)
@@ -54,10 +60,15 @@ local function on_init()
         table.concat(
         {
             'Launch a stack of nuclear fuel to the mothership to advance to the next world.\n',
+			'The tooltip on the top button will information about the current world.\n',
         }
     )
     T.main_caption_color = {r = 255, g = 125, b = 55}
     T.sub_caption_color = {r = 0, g = 250, b = 150}
+	
+	game.map_settings.enemy_evolution.time_factor = 0.000004
+	game.map_settings.enemy_evolution.destroy_factor = 0.002
+	game.map_settings.enemy_evolution.pollution_factor = 0.0000009
 	
 	Functions.reset(journey)
 end
@@ -68,6 +79,6 @@ Event.on_nth_tick(10, on_nth_tick)
 Event.add(defines.events.on_chunk_generated, on_chunk_generated)
 Event.add(defines.events.on_player_changed_position, on_player_changed_position)
 Event.add(defines.events.on_entity_died, on_entity_died)
-Event.add(defines.events.on_player_created, on_player_created)
+Event.add(defines.events.on_player_joined_game, on_player_joined_game)
 Event.add(defines.events.on_player_respawned, on_player_respawned)
 Event.add(defines.events.on_player_changed_position, on_player_changed_position)

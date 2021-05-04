@@ -46,6 +46,36 @@ function Public.deny_tile_building(surface, tiles)
     end
 end
 
+function Public.draw_gui(journey)
+	local surface = game.surfaces.nauvis
+	local mgs = surface.map_gen_settings	
+	local caption = "World - " .. journey.world_number
+	local tooltip = ""
+	for k, autoplace in pairs(mgs.autoplace_controls) do
+		tooltip = tooltip .. Constants.modifiers[k][3] .. " - " .. math.floor(autoplace.frequency * 100) .. "%\n"
+	end
+	tooltip = tooltip .. "Cliff Interval - " .. math.round(mgs.cliff_settings.cliff_elevation_interval, 2) .. "\n"
+	tooltip = tooltip .. "Water - " .. math.floor(mgs.water * 100) .. "%\n"
+	tooltip = tooltip .. "Starting area - " .. math.floor(mgs.starting_area * 100) .. "%\n"
+	tooltip = tooltip .. "Evolution Time Factor - " .. math.round(game.map_settings.enemy_evolution.time_factor * 25000000, 1) .. "%\n"
+	tooltip = tooltip .. "Evolution Destroy Factor - " .. math.round(game.map_settings.enemy_evolution.destroy_factor * 50000, 1) .. "%\n"
+	tooltip = tooltip .. "Evolution Pollution Factor - " .. math.round(game.map_settings.enemy_evolution.pollution_factor * 111100000, 1) .. "%\n"	
+	
+	for _, player in pairs(game.connected_players) do	
+		if not player.gui.top.journey_button then
+			local button = player.gui.top.add({type = "sprite-button", name = "journey_button", caption = ""})
+			button.style.font = "heading-1"
+			button.style.font_color = {222, 222, 222}
+			button.style.minimal_height = 38
+			button.style.minimal_width = 100
+			button.style.padding = -2
+		end
+		local gui = player.gui.top.journey_button
+		gui.caption = caption
+		gui.tooltip = tooltip
+	end
+end
+
 local function is_mothership(position)
 	if math.abs(position.x) > Constants.mothership_radius then return false end
 	if math.abs(position.y) > Constants.mothership_radius then return false end
@@ -85,6 +115,7 @@ function Public.reset(journey)
 	journey.mothership_speed = 0.5
 	journey.mothership_messages = {}
 	journey.world_selectors = {}
+	journey.world_number = 0
 	
 	for i = 1, 3, 1 do
 		journey.world_selectors[i] = {activation_level = 0, renderings = {}}
@@ -336,7 +367,7 @@ function Public.mothership_arrives_at_world(journey)
 	
 	if journey.mothership_speed == 0.15 then
 		journey.mothership_teleporter = surface.create_entity({name = "player-port", position = Constants.mothership_teleporter_position, force = "player"})
-		table.insert(journey.mothership_messages, "[gps=" .. Constants.mothership_teleporter_position.x .. "," .. Constants.mothership_teleporter_position.y .. ",mothership] Teleporter online.")
+		table.insert(journey.mothership_messages, "[gps=" .. Constants.mothership_teleporter_position.x .. "," .. Constants.mothership_teleporter_position.y .. ",mothership] Teleporter deployed.")
 		journey.mothership_teleporter.destructible = false
 		journey.mothership_teleporter.minable = false
 		
@@ -366,10 +397,50 @@ end
 
 function Public.create_the_world(journey)
 	local surface = game.surfaces.nauvis
-   -- surface.map_gen_settings = mgs
+	local mgs = surface.map_gen_settings
+	
+	mgs.peaceful_mode = false
+	
+	local modifiers = journey.world_selectors[journey.selected_world].modifiers
+	for _, modifier in pairs(modifiers) do
+		local m = (100 + modifier[2]) * 0.01
+		local name = modifier[1]
+		for _, autoplace in pairs({"iron-ore", "copper-ore", "uranium-ore", "coal", "stone", "crude-oil", "stone", "trees", "enemy-base"}) do
+			if name == autoplace then
+				for k, v in pairs(mgs.autoplace_controls[name]) do
+					mgs.autoplace_controls[name][k] = mgs.autoplace_controls[name][k] * m
+				end
+				break
+			end
+		end	
+		if name == "cliff_settings" then
+			--smaller value = more cliffs
+			local m2 = (100 - modifier[2]) * 0.01
+			mgs.cliff_settings.cliff_elevation_interval = mgs.cliff_settings.cliff_elevation_interval * m2
+			mgs.cliff_settings.cliff_elevation_0 = mgs.cliff_settings.cliff_elevation_0 * m2
+		end
+		if name == "water" then			
+			mgs.water = mgs.water * m
+		end
+		if name == "starting_area" then			
+			mgs.water = mgs.water * m					
+		end
+		for _, evo in pairs({"time_factor", "destroy_factor", "pollution_factor"}) do
+			if name == evo then
+				game.map_settings.enemy_evolution[name] = game.map_settings.enemy_evolution[name] * m
+				break
+			end
+		end	
+	end
+
+	surface.map_gen_settings = mgs
     surface.clear(true)
 	surface.request_to_generate_chunks({x = 0, y = 0}, 5)
 	surface.force_generate_chunk_requests()
+
+	journey.world_number = journey.world_number + 1
+	
+	Public.draw_gui(journey)
 	
 	journey.game_state = "place_teleporter_into_world"
 end
@@ -388,11 +459,18 @@ function Public.make_it_night(journey)
 	local daytime = surface.daytime
 	daytime = daytime + 0.02
 	surface.daytime = daytime
-	if daytime > 0.5 then journey.game_state = "world" end
+	if daytime > 0.5 then
+		for k, world_selector in pairs(journey.world_selectors) do
+			for _, ID in pairs(world_selector.renderings) do
+				rendering.destroy(ID)
+			end
+		end
+		journey.game_state = "world" 
+	end
 end
 
 function Public.world(journey)
-	draw_background(journey, game.surfaces.mothership)
+	draw_background(journey, game.surfaces.mothership)	
 end
 
 function Public.resetsfsf(journey)
