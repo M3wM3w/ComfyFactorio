@@ -94,4 +94,20 @@ Public.modifiers = {
 	["technology_price_multiplier"] = {5, 10, "Technology Price"},
 }
 
+Public.build_type_whitelist = {
+	["arithmetic-combinator"] = true,
+	["constant-combinator"] = true,
+	["decider-combinator"] = true,
+	["electric-energy-interface"] = true,
+	["electric-pole"] = true,
+	["gate"] = true,
+	["heat-pipe"] = true,
+	["lamp"] = true,
+	["pipe"] = true,
+	["pipe-to-ground"] = true,
+	["programmable-speaker"] = true,
+	["transport-belt"] = true,	
+	["wall"] = true,
+}
+
 return Public

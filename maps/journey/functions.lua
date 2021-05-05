@@ -53,7 +53,8 @@ end
 function Public.deny_building(event)
     local entity = event.created_entity
     if not entity.valid then return end	
-	if entity.surface.name ~= "mothership" then return end   
+	if entity.surface.name ~= "mothership" then return end
+	if Constants.build_type_whitelist[entity.type] then return end
 	entity.die() 
 end
 
@@ -245,13 +246,23 @@ function Public.draw_mothership(journey)
 			only_in_alt_mode = false
 		}		
 	end
-	
-	for x = Constants.mothership_radius * -1, Constants.mothership_radius, 1 do
-		for y = Constants.mothership_radius * -1, Constants.mothership_radius, 1 do
-			local position = {x = x, y = y}
-		end
-	end
 
+	for k, item_name in pairs({"arithmetic-combinator", "constant-combinator", "decider-combinator", "programmable-speaker", "red-wire", "green-wire", "small-lamp", "substation", "pipe", "gate", "stone-wall", "transport-belt"}) do
+		local e = surface.create_entity({name = "steel-chest", position = {-7 + k, Constants.mothership_radius - 3}, force = "player"})
+		e.insert({name = item_name, count = 1000})
+		e.minable = false
+		e.destructible = false
+	end
+		
+	for m = -1, 1, 2 do
+		local e = surface.create_entity({name = "electric-energy-interface", position = {8 * m, Constants.mothership_radius - 4}, force = "player"})	
+		e.minable = false
+		e.destructible = false
+		local e = surface.create_entity({name = "substation", position = {10 * m, Constants.mothership_radius - 5}, force = "player"})
+		e.minable = false
+		e.destructible = false
+	end
+	
 	for _ = 1, 5, 1 do
 		local e = surface.create_entity({name = "compilatron", position = Constants.mothership_teleporter_position, force = "player"})
 		e.destructible = false
