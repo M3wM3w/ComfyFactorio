@@ -26,6 +26,19 @@ end
 local function on_player_joined_game(event)
     local player = game.players[event.player_index]
 	Functions.draw_gui(journey)
+	
+	if player.surface.name == "mothership" then
+		journey.characters_in_mothership = journey.characters_in_mothership + 1
+	end
+end
+
+local function on_player_left_game(event)
+    local player = game.players[event.player_index]
+	Functions.draw_gui(journey)
+	
+	if player.surface.name == "mothership" then
+		journey.characters_in_mothership = journey.characters_in_mothership - 1
+	end
 end
 
 local function on_player_changed_position(event)
@@ -95,5 +108,6 @@ Event.on_nth_tick(10, on_nth_tick)
 Event.add(defines.events.on_chunk_generated, on_chunk_generated)
 Event.add(defines.events.on_player_changed_position, on_player_changed_position)
 Event.add(defines.events.on_player_joined_game, on_player_joined_game)
+Event.add(defines.events.on_player_left_game, on_player_left_game)
 Event.add(defines.events.on_player_changed_position, on_player_changed_position)
 Event.add(defines.events.on_rocket_launched, on_rocket_launched)

@@ -65,6 +65,7 @@ function Public.draw_gui(journey)
 	tooltip = tooltip .. "Nest Expansion Cooldown - " .. math.round(game.map_settings.enemy_expansion.min_expansion_cooldown / 144, 1) .. "%\n"
 	tooltip = tooltip .. Constants.modifiers["enemy_attack_pollution_consumption_modifier"][3] .. " - " .. math.round(game.map_settings.pollution.enemy_attack_pollution_consumption_modifier * 100, 1) .. "%\n"
 	tooltip = tooltip .. Constants.modifiers["ageing"][3] .. " - " .. math.round(game.map_settings.pollution.ageing * 100, 1) .. "%\n"	
+	tooltip = tooltip .. Constants.modifiers["technology_price_multiplier"][3] .. " - " .. math.round(game.difficulty_settings.technology_price_multiplier * 100, 1) .. "%\n"
 	
 	for _, player in pairs(game.connected_players) do	
 		if not player.gui.top.journey_button then
@@ -528,6 +529,7 @@ function Public.make_it_night(journey)
 	surface.daytime = daytime
 	if daytime > 0.5 then		
 		clear_world_selectors(journey)
+		game.reset_time_played()
 		game.forces.player.reset()
 		game.forces.player.reset_technologies()
 		game.forces.player.reset_technology_effects()
@@ -566,17 +568,29 @@ end
 
 function Public.teleporters(journey, player)
 	local surface = player.surface
+	local base_position = {Constants.mothership_teleporter_position.x , Constants.mothership_teleporter_position.y - 5}
 	if surface.count_entities_filtered({position = player.position, name = "player-port"}) == 0 then return end
 	if surface.index == 1 then
 		drop_player_items(player)
-		player.teleport(surface.find_non_colliding_position("character", {Constants.mothership_teleporter_position.x , Constants.mothership_teleporter_position.y - 4}, 32, 0.5), game.surfaces.mothership)
+		local position = game.surfaces.mothership.find_non_colliding_position("character", base_position, 32, 0.5)
+		if position then
+			player.teleport(position, game.surfaces.mothership)
+		else
+			player.teleport(base_position, game.surfaces.mothership)
+		end
 		journey.characters_in_mothership = journey.characters_in_mothership + 1
 		return
 	end
 	if not journey.mothership_teleporter_online then player.print("Teleporter offline.") return end
 	if surface.name == "mothership" then
 		drop_player_items(player)
-		player.teleport(surface.find_non_colliding_position("character", {Constants.mothership_teleporter_position.x , Constants.mothership_teleporter_position.y - 4}, 32, 0.5), game.surfaces.nauvis)
+		local position = game.surfaces.nauvis.find_non_colliding_position("character", base_position, 32, 0.5)
+		if position then
+			player.teleport(position, game.surfaces.nauvis)
+		else
+			player.teleport(base_position, game.surfaces.nauvis)
+		end
+		
 		journey.characters_in_mothership = journey.characters_in_mothership - 1
 		return
 	end

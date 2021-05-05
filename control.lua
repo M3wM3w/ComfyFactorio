@@ -112,8 +112,8 @@ require 'modules.autostash'
 --require 'maps.choppy'
 --require 'maps.choppy_dx'
 
---![[Launch a satellite in increasingly harder getting worlds.]]--
---require 'maps.journey.main'
+--![[Launch a rockets in increasingly harder getting worlds.]]--
+require 'maps.journey.main'
 
 --![[Minesweeper?]]--
 --require 'maps.minesweeper.main'
