@@ -15,11 +15,9 @@ require 'utils.datastore.jail_data'
 require 'utils.datastore.quickbar_data'
 require 'utils.datastore.message_on_join_data'
 require 'utils.datastore.player_tag_data'
-require 'utils.profiler'
 require 'chatbot'
 require 'commands'
 require 'antigrief'
-require 'modules.corpse_markers'
 require 'modules.floaty_chat'
 require 'modules.show_inventory'
 require 'utils.debug.command'
@@ -88,10 +86,10 @@ require 'modules.autostash'
 --require 'maps.biter_battles.biter_battles'
 
 --![[A map that imitating MF, defending rocket silos instead of trains]]--
--- require 'maps.amap.main'
+--require 'maps.amap.main'
 
 --![[Guide a Train through rough terrain, while defending it from the biters]]--
--- require 'maps.mountain_fortress_v3.main'
+--require 'maps.mountain_fortress_v3.main'
 --require 'maps.mountain_fortress_v2.main'
 --require 'maps.mountain_fortress'
 
@@ -107,9 +105,18 @@ require 'modules.autostash'
 --![[East VS West Survival PVP, where you breed biters with science flasks]]--
 --require 'maps.biter_hatchery.main'
 
+--![[Fight in a world where everyone are prisoners]]
+--require 'maps.planet_prison'
+
 --![[Chop trees to gain resources]]--
 --require 'maps.choppy'
 --require 'maps.choppy_dx'
+
+--![[Launch a satellite in increasingly harder getting worlds.]]--
+--require 'maps.journey.main'
+
+--![[Minesweeper?]]--
+--require 'maps.minesweeper.main'
 
 --![[Infinite random dungeon with RPG]]--
 --require 'maps.dungeons.main'
@@ -149,9 +156,6 @@ require 'modules.autostash'
 --require 'maps.junkyard'
 --require 'maps.territorial_control'
 --require 'maps.junkyard_pvp.main'
-
---![[Minesweeper?]]--
---require 'maps.minesweeper.main'
 
 --![[A green maze]]--
 --require 'maps.hedge_maze'
@@ -204,7 +208,6 @@ require 'modules.autostash'
 --require 'maps.wave_defense'
 --require 'maps.crossing'
 --require 'maps.anarchy'
---require 'maps.planet_prison'
 --require 'maps.blue_beach'
 --require 'maps.nightfall'
 --require 'maps.pitch_black.main'
@@ -237,6 +240,7 @@ require 'modules.autostash'
 
 if _DUMP_ENV then
     require 'utils.dump_env'
+    require 'utils.profiler'
 end
 
 local function on_player_created(event)

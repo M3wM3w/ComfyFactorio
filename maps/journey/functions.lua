@@ -62,6 +62,9 @@ function Public.draw_gui(journey)
 	tooltip = tooltip .. "Evolution Time Factor - " .. math.round(game.map_settings.enemy_evolution.time_factor * 25000000, 1) .. "%\n"
 	tooltip = tooltip .. "Evolution Destroy Factor - " .. math.round(game.map_settings.enemy_evolution.destroy_factor * 50000, 1) .. "%\n"
 	tooltip = tooltip .. "Evolution Pollution Factor - " .. math.round(game.map_settings.enemy_evolution.pollution_factor * 111100000, 1) .. "%\n"	
+	tooltip = tooltip .. "Nest Expansion Cooldown - " .. math.round(game.map_settings.enemy_expansion.min_expansion_cooldown / 144, 1) .. "%\n"
+	tooltip = tooltip .. Constants.modifiers["enemy_attack_pollution_consumption_modifier"][3] .. " - " .. math.round(game.map_settings.pollution.enemy_attack_pollution_consumption_modifier * 100, 1) .. "%\n"
+	tooltip = tooltip .. Constants.modifiers["ageing"][3] .. " - " .. math.round(game.map_settings.pollution.ageing * 100, 1) .. "%\n"	
 	
 	for _, player in pairs(game.connected_players) do	
 		if not player.gui.top.journey_button then
@@ -113,6 +116,19 @@ function Public.hard_reset(journey)
 		game.delete_surface(game.surfaces.mothership)
 	end
 	
+	game.map_settings.enemy_expansion.enabled = true
+	game.map_settings.enemy_expansion.max_expansion_distance = 20
+	game.map_settings.enemy_expansion.settler_group_min_size = 5
+	game.map_settings.enemy_expansion.settler_group_max_size = 50
+	game.map_settings.enemy_expansion.min_expansion_cooldown = 14400
+	game.map_settings.enemy_expansion.max_expansion_cooldown = 216000
+
+	game.map_settings.pollution.enabled = true
+	game.map_settings.pollution.ageing = 1
+	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 1
+
+	game.difficulty_settings.technology_price_multiplier = 1
+
 	game.map_settings.enemy_evolution.time_factor = 0.000004
 	game.map_settings.enemy_evolution.destroy_factor = 0.002
 	game.map_settings.enemy_evolution.pollution_factor = 0.0000009
@@ -147,7 +163,9 @@ function Public.hard_reset(journey)
 	journey.world_selectors = {}
 	for i = 1, 3, 1 do journey.world_selectors[i] = {activation_level = 0, texts = {}} end	
 	journey.mothership_speed = 0.5
+	journey.characters_in_mothership = 0
 	journey.mothership_messages = {}
+	journey.mothership_cargo = {}
 	
 	journey.world_number = 0
 	journey.game_state = "create_mothership"
@@ -229,6 +247,8 @@ function Public.draw_mothership(journey)
 		e.destructible = false
 	end
 
+	Public.draw_gui(journey)
+	
 	journey.game_state = "set_world_selectors"
 end
 
@@ -238,6 +258,7 @@ function Public.teleport_players_to_mothership(journey)
 		if player.surface.name ~= "mothership" then
 			drop_player_items(player)
 			player.teleport(surface.find_non_colliding_position("character", {0,0}, 32, 0.5), surface)
+			journey.characters_in_mothership = journey.characters_in_mothership + 1
 			table.insert(journey.mothership_messages, "Welcome home " .. player.name .. "!")
 			return
 		end
@@ -366,8 +387,7 @@ function Public.mothership_world_selection(journey)
 	if journey.selected_world then
 		if not journey.mothership_advancing_to_world then
 			table.insert(journey.mothership_messages, "Advancing to selected world.")
-			--journey.mothership_advancing_to_world = game.tick + math.random(60 * 45, 60 * 75)
-			journey.mothership_advancing_to_world = game.tick + math.random(60 * 5, 60 * 10)
+			journey.mothership_advancing_to_world = game.tick + math.random(60 * 45, 60 * 75)
 		else
 			local seconds_left = math.floor((journey.mothership_advancing_to_world - game.tick) / 60)
 			if seconds_left <= 0 then
@@ -376,7 +396,7 @@ function Public.mothership_world_selection(journey)
 				journey.game_state = "mothership_arrives_at_world"
 				return
 			end
-			if seconds_left % 10 == 0 then table.insert(journey.mothership_messages, "Estimated arrival in " .. seconds_left .. " seconds.") end
+			if seconds_left % 15 == 0 then table.insert(journey.mothership_messages, "Estimated arrival in " .. seconds_left .. " seconds.") end
 		end
 		
 		journey.mothership_speed = journey.mothership_speed + 0.1
@@ -406,7 +426,7 @@ function Public.mothership_arrives_at_world(journey)
 		journey.mothership_teleporter.minable = false
 		
 		for _ = 1, 16, 1 do table.insert(journey.mothership_messages, "") end
-		table.insert(journey.mothership_messages, "[img=item/nuclear-fuel]Nuclear fuel depleted ;_;")
+		table.insert(journey.mothership_messages, "[img=item/uranium-fuel-cell] Fuel cells depleted ;_;")
 		for _ = 1, 16, 1 do table.insert(journey.mothership_messages, "") end
 		table.insert(journey.mothership_messages, "Refuel via supply rocket required!")
 		for _ = 1, 16, 1 do table.insert(journey.mothership_messages, "") end
@@ -464,6 +484,19 @@ function Public.create_the_world(journey)
 				game.map_settings.enemy_evolution[name] = game.map_settings.enemy_evolution[name] * m
 				break
 			end
+		end
+		if name == "expansion_cooldown" then			
+			game.map_settings.enemy_expansion.min_expansion_cooldown = game.map_settings.enemy_expansion.min_expansion_cooldown * m
+			game.map_settings.enemy_expansion.max_expansion_cooldown = game.map_settings.enemy_expansion.min_expansion_cooldown * m
+		end
+		if name == "technology_price_multiplier" then			
+			game.difficulty_settings.technology_price_multiplier = game.difficulty_settings.technology_price_multiplier * m
+		end
+		if name == "enemy_attack_pollution_consumption_modifier" then			
+			game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = game.map_settings.pollution.enemy_attack_pollution_consumption_modifier * m
+		end
+		if name == "ageing" then			
+			game.map_settings.pollution.ageing = game.map_settings.pollution.ageing * m
 		end	
 	end
 
@@ -493,20 +526,42 @@ function Public.make_it_night(journey)
 	local daytime = surface.daytime
 	daytime = daytime + 0.02
 	surface.daytime = daytime
-	if daytime > 0.5 then
+	if daytime > 0.5 then		
 		clear_world_selectors(journey)
+		game.forces.player.reset()
+		game.forces.player.reset_technologies()
+		game.forces.player.reset_technology_effects()
+		game.forces.enemy.reset_evolution()
 		journey.characters_in_mothership = surface.count_entities_filtered{name = "character"}
+		journey.mothership_cargo["uranium-fuel-cell"] = nil
 		journey.game_state = "world" 
 	end
 end
 
 function Public.world(journey)
+	if journey.mothership_cargo["uranium-fuel-cell"] then
+		if journey.mothership_cargo["uranium-fuel-cell"] >= 50 then
+			table.insert(journey.mothership_messages, "Refuel operation successful!! =^.^=")
+			journey.game_state = "mothership_waiting_for_players"
+		end
+	end
+
 	if journey.characters_in_mothership == 0 then return end
 	draw_background(journey, game.surfaces.mothership)
-end
+end 
 
-function Public.resetsfsf(journey)
-    
+function Public.mothership_waiting_for_players(journey)
+	if journey.characters_in_mothership > #game.connected_players * 0.5 then
+		journey.game_state = "set_world_selectors"
+		return
+	end
+
+	if math.random(1, 2) == 1 then return end
+	local tick = game.tick % 3600
+	if tick == 0 then
+		local messages = Constants.mothership_messages.waiting
+		table.insert(journey.mothership_messages, messages[math.random(1, #messages)])
+	end
 end
 
 function Public.teleporters(journey, player)

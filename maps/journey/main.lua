@@ -35,8 +35,14 @@ end
 
 local function on_rocket_launched(event)
 	local rocket_inventory = event.rocket.get_inventory(defines.inventory.rocket)
-	journey.satellites = journey.satellites + rocket_inventory.get_item_count("satellite")
-	journey.nuclear_fuel = journey.nuclear_fuel + rocket_inventory.get_item_count("nuclear-fuel")
+	local slot = rocket_inventory[1]
+	if slot and slot.valid and slot.valid_for_read then
+		if journey.mothership_cargo[slot.name] then
+			journey.mothership_cargo[slot.name] = journey.mothership_cargo[slot.name] + slot.count
+		else
+			journey.mothership_cargo[slot.name] = slot.count
+		end
+	end
 end
 
 local function on_nth_tick()
@@ -47,19 +53,41 @@ end
 local function on_init()
     local T = Map.Pop_info()
     T.main_caption = 'Journey'
-    T.sub_caption = ''
+    T.sub_caption = 'v 1.0'
     T.text =
         table.concat(
-        {
-            'Launch a stack of nuclear fuel to the mothership to advance to the next world.\n',
-			'The tooltip on the top button will information about the current world.\n',
+        {	
+			'The selectors in the mothership, allow you to select a destination.\n',
+			'Once enough players are on a selector, mothership will start traveling.\n',
+			'Worlds will get more difficult with each jump.\n',
+            'Launch a stack of nuclear fuel cells via rocket cargo, to advance to the next world.\n',
+			'The tooltip on the top button has information about the current world.\n',
+			'If the journey ends, an admin can fully reset the map via command "/reset-journey".\n\n',
+			
+			
+			'How far will this journey lead?\n\n',
         }
     )
-    T.main_caption_color = {r = 255, g = 125, b = 55}
-    T.sub_caption_color = {r = 0, g = 250, b = 150}
-
+    T.main_caption_color = {r = 100, g = 20, b = 255}
+    T.sub_caption_color = {r = 100, g = 100, b = 100}
 	Functions.hard_reset(journey)
 end
+
+commands.add_command(
+    'reset-journey',
+    'Fully resets the journey map.',
+    function()
+		local player = game.player
+        if not (player and player.valid) then
+            return
+        end 
+        if not player.admin then
+            player.print("You are not an admin!")
+            return
+        end
+		Functions.hard_reset(journey)
+	end
+)
 
 local Event = require 'utils.event'
 Event.on_init(on_init)

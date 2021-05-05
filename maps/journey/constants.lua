@@ -42,6 +42,15 @@ Public.world_selector_colors = {
 	[3] = {r = 200, g = 100, b = 100, a = 255},
 }
 
+Public.mothership_messages = {
+	waiting = {
+		"Return to me, so we can continue the journey!",
+		"Don't leave me waiting for so long. Let's continue our journey.",
+		"Please return to me.",
+		"Board me, so we can continue this adventure!",
+	},
+}
+
 Public.mothership_gen_settings = {
 	["water"] = 0,
 	["starting_area"] = 1,
@@ -65,20 +74,24 @@ Public.mothership_gen_settings = {
 }
 
 Public.modifiers = {	
-	["cliff_settings"] = {10, 25, "Cliffs"},
-	["enemy-base"] = {10, 25, "Nests"},
+	["cliff_settings"] = {10, 40, "Cliffs"},
+	["enemy-base"] = {15, 25, "Nests"},
 	["starting_area"] = {-25, -10, "Starting Area"},
-	["water"] = {-25, -10, "Water"},
+	["water"] = {-30, -10, "Water"},
 	["coal"] = {-20, -10, "Coal"},
 	["stone"] = {-20, -10, "Stone"},
 	["copper-ore"] = {-20, -10, "Copper Ore"},
 	["iron-ore"] = {-20, -10, "Iron Ore"},
 	["uranium-ore"] = {-20, -10, "Uranium Ore"},
-	["trees"] = {-25, -10, "Trees"},
+	["trees"] = {-35, -15, "Trees"},
 	["crude-oil"] = {-20, -10, "Oil"},
 	["time_factor"] = {20, 50, "Evolution Time Factor"},
 	["destroy_factor"] = {20, 50, "Evolution Destroy Factor"},
 	["pollution_factor"] = {20, 50, "Evolution Pollution Factor"},
+	["expansion_cooldown"] = {-30, -15, "Nest Expansion Cooldown"},
+	["ageing"] = {-25, -15, "Terrain Pollution Consumption"},
+	["enemy_attack_pollution_consumption_modifier"] = {-25, -15, "Nest Pollution Consumption"},
+	["technology_price_multiplier"] = {5, 10, "Technology Price"},
 }
 
 return Public
