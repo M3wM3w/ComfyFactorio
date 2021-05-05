@@ -69,32 +69,16 @@ Public.modifiers = {
 	["enemy-base"] = {10, 25, "Nests"},
 	["starting_area"] = {-25, -10, "Starting Area"},
 	["water"] = {-25, -10, "Water"},
-	["coal"] = {-25, -10, "Coal"},
-	["stone"] = {-25, -10, "Stone"},
-	["copper-ore"] = {-25, -10, "Copper Ore"},
-	["iron-ore"] = {-25, -10, "Iron Ore"},
-	["uranium-ore"] = {-25, -10, "Uranium Ore"},
+	["coal"] = {-20, -10, "Coal"},
+	["stone"] = {-20, -10, "Stone"},
+	["copper-ore"] = {-20, -10, "Copper Ore"},
+	["iron-ore"] = {-20, -10, "Iron Ore"},
+	["uranium-ore"] = {-20, -10, "Uranium Ore"},
 	["trees"] = {-25, -10, "Trees"},
-	["crude-oil"] = {-25, -10, "Oil"},
+	["crude-oil"] = {-20, -10, "Oil"},
 	["time_factor"] = {20, 50, "Evolution Time Factor"},
 	["destroy_factor"] = {20, 50, "Evolution Destroy Factor"},
 	["pollution_factor"] = {20, 50, "Evolution Pollution Factor"},
-}
-
-Public.mgs = {
-	["water"] = 1,
-	["starting_area"] = 1,
-	["cliff_settings"] = {cliff_elevation_interval = 1, cliff_elevation_1 = 1},
-	autoplace_controls = {
-		["coal"] = {frequency = 1, size = 1, richness = 1},
-		["stone"] = {frequency = 1, size = 1, richness = 1},
-		["copper-ore"] = {frequency = 1, size = 1, richness = 1},
-		["iron-ore"] = {frequency = 1, size = 1, richness = 1},
-		["uranium-ore"] = {frequency = 1, size = 1, richness = 1},
-		["crude-oil"] = {frequency = 1, size = 1, richness = 1},
-		["trees"] = {frequency = 1, size = 1, richness = 1},
-		["enemy-base"] = {frequency = 1, size = 1, richness = 1}
-	},
 }
 
 return Public

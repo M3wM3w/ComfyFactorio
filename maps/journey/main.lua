@@ -23,28 +23,20 @@ local function on_chunk_generated(event)
 	Functions.on_mothership_chunk_generated(event)
 end
 
-local function on_player_changed_position(event)
-    local player = game.players[event.player_index]
-end
-
-local function on_player_respawned(event)
-	Functions.draw_gui(journey)
-    local player = game.players[event.player_index]
-end
-
 local function on_player_joined_game(event)
     local player = game.players[event.player_index]
 	Functions.draw_gui(journey)
 end
 
-local function on_entity_died(event)
-    local entity = event.entity
-    if not entity.valid then return end
-end
-
 local function on_player_changed_position(event)
     local player = game.players[event.player_index]
     Functions.teleporters(journey, player)
+end
+
+local function on_rocket_launched(event)
+	local rocket_inventory = event.rocket.get_inventory(defines.inventory.rocket)
+	journey.satellites = journey.satellites + rocket_inventory.get_item_count("satellite")
+	journey.nuclear_fuel = journey.nuclear_fuel + rocket_inventory.get_item_count("nuclear-fuel")
 end
 
 local function on_nth_tick()
@@ -65,12 +57,8 @@ local function on_init()
     )
     T.main_caption_color = {r = 255, g = 125, b = 55}
     T.sub_caption_color = {r = 0, g = 250, b = 150}
-	
-	game.map_settings.enemy_evolution.time_factor = 0.000004
-	game.map_settings.enemy_evolution.destroy_factor = 0.002
-	game.map_settings.enemy_evolution.pollution_factor = 0.0000009
-	
-	Functions.reset(journey)
+
+	Functions.hard_reset(journey)
 end
 
 local Event = require 'utils.event'
@@ -78,7 +66,6 @@ Event.on_init(on_init)
 Event.on_nth_tick(10, on_nth_tick)
 Event.add(defines.events.on_chunk_generated, on_chunk_generated)
 Event.add(defines.events.on_player_changed_position, on_player_changed_position)
-Event.add(defines.events.on_entity_died, on_entity_died)
 Event.add(defines.events.on_player_joined_game, on_player_joined_game)
-Event.add(defines.events.on_player_respawned, on_player_respawned)
 Event.add(defines.events.on_player_changed_position, on_player_changed_position)
+Event.add(defines.events.on_rocket_launched, on_rocket_launched)

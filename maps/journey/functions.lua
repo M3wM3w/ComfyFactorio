@@ -1,6 +1,42 @@
 local Public = {}
 local Constants = require 'maps.journey.constants'
 
+local function clear_world_selectors(journey)
+	for k, world_selector in pairs(journey.world_selectors) do
+		for _, ID in pairs(world_selector.texts) do
+			rendering.destroy(ID)
+		end
+		journey.world_selectors[k].texts = {}
+		journey.world_selectors[k].activation_level = 0
+	end
+end
+
+local function drop_player_items(player)
+	local character = player.character
+	if not character then return end
+	if not character.valid then return end
+	
+	for i = 1, player.crafting_queue_size, 1 do
+		if player.crafting_queue_size > 0 then
+			player.cancel_crafting{index = 1, count = 99999999}
+		end
+	end
+	
+	local surface = player.surface	
+	for _, define in pairs({defines.inventory.character_main, defines.inventory.character_guns, defines.inventory.character_ammo, defines.inventory.character_armor, defines.inventory.character_vehicle, defines.inventory.character_trash}) do
+		local inventory = character.get_inventory(define)
+		if inventory and inventory.valid then
+			for i = 1, #inventory, 1 do
+				local slot = inventory[i]
+				if slot.valid and slot.valid_for_read then
+					surface.spill_item_stack(player.position, slot, true, nil, false)
+				end		
+			end
+			inventory.clear()
+		end	
+	end	
+end
+
 function Public.mothership_message_queue(journey)
 	local text = journey.mothership_messages[1]
 	if not text then return end
@@ -8,42 +44,8 @@ function Public.mothership_message_queue(journey)
 		text = "[font=default-game][color=200,200,200]" .. text .. "[/color][/font]"
 		text = "[font=heading-1][color=255,155,155]<Mothership> [/color][/font]" .. text
 		game.print(text)
-		--game.forces.player.play_sound{path="utility/armor_insert", volume_modifier = 1}
 	end
 	table.remove(journey.mothership_messages, 1)
-end
-
-function Public.deny_building(event)
-    local entity = event.created_entity
-    if not entity.valid then
-        return
-    end
-
-	if not game.item_prototypes[entity.name] then return end
-	
-	if event.player_index then
-		local player = game.players[event.player_index]
-		if entity.position.x % 2 == 1 and entity.position.y % 2 == 1 and entity.name == 'stone-furnace' then
-			local score_change = mark_mine(entity, player)
-			Map_score.set_score(player, Map_score.get_score(player) + score_change)
-			return
-		end
-		player.insert({name = entity.name, count = 1})
-	else
-		local inventory = event.robot.get_inventory(defines.inventory.robot_cargo)
-		inventory.insert({name = entity.name, count = 1})
-	end
-	entity.destroy() 
-end
-
-
-function Public.deny_tile_building(surface, tiles)
-    for _, placed_tile in pairs(tiles) do
-		local hidden_tile = surface.get_tile(placed_tile.position).hidden_tile
-		if hidden_tile then
-			
-		end
-    end
 end
 
 function Public.draw_gui(journey)
@@ -106,21 +108,48 @@ function Public.on_mothership_chunk_generated(event)
 	surface.set_tiles(tiles, true)
 end
 
-
-function Public.reset(journey)
+function Public.hard_reset(journey)
 	if game.surfaces.mothership and game.surfaces.mothership.valid then
 		game.delete_surface(game.surfaces.mothership)
 	end
 	
-	journey.mothership_speed = 0.5
-	journey.mothership_messages = {}
-	journey.world_selectors = {}
-	journey.world_number = 0
+	game.map_settings.enemy_evolution.time_factor = 0.000004
+	game.map_settings.enemy_evolution.destroy_factor = 0.002
+	game.map_settings.enemy_evolution.pollution_factor = 0.0000009
 	
-	for i = 1, 3, 1 do
-		journey.world_selectors[i] = {activation_level = 0, renderings = {}}
+	local surface = game.surfaces[1]
+    local mgs = surface.map_gen_settings
+    mgs.water = 1
+	mgs.starting_area = 1
+    mgs.cliff_settings = {cliff_elevation_interval = 40, cliff_elevation_0 = 10}
+    mgs.autoplace_controls = {
+		["coal"] = {frequency = 1, size = 1, richness = 1},
+		["stone"] = {frequency = 1, size = 1, richness = 1},
+		["copper-ore"] = {frequency = 1, size = 1, richness = 1},
+		["iron-ore"] = {frequency = 1, size = 1, richness = 1},
+		["uranium-ore"] = {frequency = 1, size = 1, richness = 1},
+		["crude-oil"] = {frequency = 1, size = 1, richness = 1},
+		["trees"] = {frequency = 1, size = 1, richness = 1},
+		["enemy-base"] = {frequency = 1, size = 1, richness = 1},
+    }
+    surface.map_gen_settings = mgs
+    surface.clear(true)
+		
+	if journey.world_selectors and journey.world_selectors[1].border then
+		for k, world_selector in pairs(journey.world_selectors) do
+			for _, ID in pairs(world_selector.rectangles) do
+				rendering.destroy(ID)
+			end
+			rendering.destroy(world_selector.border)
+		end	
 	end
 	
+	journey.world_selectors = {}
+	for i = 1, 3, 1 do journey.world_selectors[i] = {activation_level = 0, texts = {}} end	
+	journey.mothership_speed = 0.5
+	journey.mothership_messages = {}
+	
+	journey.world_number = 0
 	journey.game_state = "create_mothership"
 end
 
@@ -177,7 +206,7 @@ function Public.draw_mothership(journey)
 		}
 		table.insert(journey.world_selectors[k].rectangles, rectangle)
 		
-		local rectangle = rendering.draw_rectangle {
+		journey.world_selectors[k].border = rendering.draw_rectangle {
 			width = 8,
 			filled=false,
 			surface = surface,
@@ -206,8 +235,9 @@ end
 function Public.teleport_players_to_mothership(journey)
 	local surface = game.surfaces.mothership
 	for _, player in pairs(game.connected_players) do
-		if player.surface.name ~= "mothership" then		
-			player.teleport(surface.find_non_colliding_position("character", Constants.mothership_teleporter_position, 32, 0.5), surface)
+		if player.surface.name ~= "mothership" then
+			drop_player_items(player)
+			player.teleport(surface.find_non_colliding_position("character", {0,0}, 32, 0.5), surface)
 			table.insert(journey.mothership_messages, "Welcome home " .. player.name .. "!")
 			return
 		end
@@ -270,16 +300,16 @@ function Public.set_world_selectors(journey)
 		world_selector.modifiers = {}
 		local modifiers = world_selector.modifiers
 		
-		for i = 1, 4, 1 do
+		for i = 1, 6, 1 do
 			local modifier = modifier_names[i]
 			modifiers[i] = {modifier, math.random(Constants.modifiers[modifier][1], Constants.modifiers[modifier][2])}
 		end
-		for i = 5, 6, 1 do
+		for i = 7, 8, 1 do
 			local modifier = modifier_names[i]
 			modifiers[i] = {modifier, -1 * math.random(Constants.modifiers[modifier][1], Constants.modifiers[modifier][2])}
 		end	
 		
-		local renderings = world_selector.renderings
+		local texts = world_selector.texts
 		for k2, modifier in pairs(modifiers) do
 			local position = Constants.world_selector_areas[k].left_top
 			local text = ""
@@ -288,16 +318,16 @@ function Public.set_world_selectors(journey)
 			text = text .. Constants.modifiers[modifier[1]][3]
 			
 			local color
-			if k2 < 5 then
+			if k2 < 7 then
 				color = {200, 0, 0, 255}
 			else
 				color = {0, 200, 0, 255}
 			end				
 			
-			renderings[k2] = rendering.draw_text{
+			texts[k2] = rendering.draw_text{
 				text = text,
 				surface = surface,
-				target = {position.x + Constants.world_selector_width * 0.5, position.y + k2 * 0.8 - 6},
+				target = {position.x + Constants.world_selector_width * 0.5, position.y + k2 * 0.8 - 7.5},
 				color = color,
 				scale = 1.25,
 				font = "default-large",
@@ -310,7 +340,11 @@ function Public.set_world_selectors(journey)
 end
 
 function Public.mothership_world_selection(journey)
-	local surface = game.surfaces.mothership
+	if journey.nauvis_teleporter and journey.nauvis_teleporter.valid then
+		journey.nauvis_teleporter.destroy()
+	end
+
+	local surface = game.surfaces.mothership	
 	
 	local daytime = surface.daytime
 	daytime = daytime - 0.025	
@@ -460,17 +494,15 @@ function Public.make_it_night(journey)
 	daytime = daytime + 0.02
 	surface.daytime = daytime
 	if daytime > 0.5 then
-		for k, world_selector in pairs(journey.world_selectors) do
-			for _, ID in pairs(world_selector.renderings) do
-				rendering.destroy(ID)
-			end
-		end
+		clear_world_selectors(journey)
+		journey.characters_in_mothership = surface.count_entities_filtered{name = "character"}
 		journey.game_state = "world" 
 	end
 end
 
 function Public.world(journey)
-	draw_background(journey, game.surfaces.mothership)	
+	if journey.characters_in_mothership == 0 then return end
+	draw_background(journey, game.surfaces.mothership)
 end
 
 function Public.resetsfsf(journey)
@@ -481,12 +513,16 @@ function Public.teleporters(journey, player)
 	local surface = player.surface
 	if surface.count_entities_filtered({position = player.position, name = "player-port"}) == 0 then return end
 	if surface.index == 1 then
+		drop_player_items(player)
 		player.teleport(surface.find_non_colliding_position("character", {Constants.mothership_teleporter_position.x , Constants.mothership_teleporter_position.y - 4}, 32, 0.5), game.surfaces.mothership)
+		journey.characters_in_mothership = journey.characters_in_mothership + 1
 		return
 	end
 	if not journey.mothership_teleporter_online then player.print("Teleporter offline.") return end
 	if surface.name == "mothership" then
+		drop_player_items(player)
 		player.teleport(surface.find_non_colliding_position("character", {Constants.mothership_teleporter_position.x , Constants.mothership_teleporter_position.y - 4}, 32, 0.5), game.surfaces.nauvis)
+		journey.characters_in_mothership = journey.characters_in_mothership - 1
 		return
 	end
 end
