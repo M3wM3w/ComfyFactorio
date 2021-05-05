@@ -1,7 +1,5 @@
 --[[
 Journey, launch a rocket in increasingly harder getting worlds. - MewMew
-
-	
 ]]--
 
 local Constants = require 'maps.journey.constants'
@@ -26,10 +24,19 @@ end
 local function on_player_joined_game(event)
     local player = game.players[event.player_index]
 	Functions.draw_gui(journey)
-	
+
 	if player.surface.name == "mothership" then
 		journey.characters_in_mothership = journey.characters_in_mothership + 1
 	end
+	
+	if player.force.name ~= "enemy" then return end
+	if player.character and player.character.valid then
+		player.character.destroy()
+		player.set_controller({type = defines.controllers.god})
+		player.create_character()	
+	end
+	player.clear_items_inside()
+	player.force = game.forces.player
 end
 
 local function on_player_left_game(event)

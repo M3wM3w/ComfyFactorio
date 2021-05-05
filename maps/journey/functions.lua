@@ -65,7 +65,7 @@ function Public.draw_gui(journey)
 	for k, autoplace in pairs(mgs.autoplace_controls) do
 		tooltip = tooltip .. Constants.modifiers[k][3] .. " - " .. math.floor(autoplace.frequency * 100) .. "%\n"
 	end
-	tooltip = tooltip .. "Cliff Interval - " .. math.round(mgs.cliff_settings.cliff_elevation_interval, 2) .. "\n"
+	tooltip = tooltip .. "Cliff Interval - " .. math.round(mgs.cliff_settings.cliff_elevation_interval * 2.5, 2) .. "%\n"
 	tooltip = tooltip .. "Water - " .. math.floor(mgs.water * 100) .. "%\n"
 	tooltip = tooltip .. "Starting area - " .. math.floor(mgs.starting_area * 100) .. "%\n"
 	tooltip = tooltip .. "Evolution Time Factor - " .. math.round(game.map_settings.enemy_evolution.time_factor * 25000000, 1) .. "%\n"
@@ -524,10 +524,14 @@ end
 
 function Public.place_teleporter_into_world(journey)
 	local surface = game.surfaces.nauvis
+	for _, player in pairs(game.players) do
+		if not player.connected then
+			player.force = game.forces.enemy
+		end	
+	end
 	journey.nauvis_teleporter = surface.create_entity({name = "player-port", position = Constants.mothership_teleporter_position, force = "player"})
 	journey.nauvis_teleporter.destructible = false
 	journey.nauvis_teleporter.minable = false
-	journey.mothership_teleporter_online = true
 	journey.game_state = "make_it_night"
 end
 
@@ -545,6 +549,7 @@ function Public.make_it_night(journey)
 		game.forces.enemy.reset_evolution()
 		journey.characters_in_mothership = surface.count_entities_filtered{name = "character"}
 		journey.mothership_cargo["uranium-fuel-cell"] = nil
+		journey.mothership_teleporter_online = true
 		journey.game_state = "world" 
 	end
 end
