@@ -16,6 +16,8 @@ local function drop_player_items(player)
 	if not character then return end
 	if not character.valid then return end
 	
+	player.clear_cursor()
+	
 	for i = 1, player.crafting_queue_size, 1 do
 		if player.crafting_queue_size > 0 then
 			player.cancel_crafting{index = 1, count = 99999999}
@@ -34,7 +36,7 @@ local function drop_player_items(player)
 			end
 			inventory.clear()
 		end	
-	end	
+	end
 end
 
 function Public.mothership_message_queue(journey)
@@ -46,6 +48,13 @@ function Public.mothership_message_queue(journey)
 		game.print(text)
 	end
 	table.remove(journey.mothership_messages, 1)
+end
+
+function Public.deny_building(event)
+    local entity = event.created_entity
+    if not entity.valid then return end	
+	if entity.surface.name ~= "mothership" then return end   
+	entity.die() 
 end
 
 function Public.draw_gui(journey)

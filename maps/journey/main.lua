@@ -46,6 +46,14 @@ local function on_player_changed_position(event)
     Functions.teleporters(journey, player)
 end
 
+local function on_built_entity(event)
+    Functions.deny_building(event)
+end
+
+local function on_robot_built_entity(event)
+    Functions.deny_building(event)
+end
+
 local function on_rocket_launched(event)
 	local rocket_inventory = event.rocket.get_inventory(defines.inventory.rocket)
 	local slot = rocket_inventory[1]
@@ -72,7 +80,7 @@ local function on_init()
         {	
 			'The selectors in the mothership, allow you to select a destination.\n',
 			'Once enough players are on a selector, mothership will start traveling.\n',
-			'Worlds will get more difficult with each jump.\n',
+			'Worlds will get more difficult with each jump, stacking the chosen modifiers.\n',
             'Launch a stack of nuclear fuel cells via rocket cargo, to advance to the next world.\n',
 			'The tooltip on the top button has information about the current world.\n',
 			'If the journey ends, an admin can fully reset the map via command "/reset-journey".\n\n',
@@ -99,6 +107,7 @@ commands.add_command(
             return
         end
 		Functions.hard_reset(journey)
+		game.print(player.name .. " has reset the map.")
 	end
 )
 
@@ -111,3 +120,5 @@ Event.add(defines.events.on_player_joined_game, on_player_joined_game)
 Event.add(defines.events.on_player_left_game, on_player_left_game)
 Event.add(defines.events.on_player_changed_position, on_player_changed_position)
 Event.add(defines.events.on_rocket_launched, on_rocket_launched)
+Event.add(defines.events.on_robot_built_entity, on_robot_built_entity)
+Event.add(defines.events.on_built_entity, on_built_entity)
