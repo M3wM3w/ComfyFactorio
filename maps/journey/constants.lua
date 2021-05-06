@@ -74,23 +74,23 @@ Public.mothership_gen_settings = {
 }
 
 Public.modifiers = {	
-	["cliff_settings"] = {10, 40, "Cliffs"},
+	["cliff_settings"] = {20, 40, "Cliffs"},
 	["enemy-base"] = {15, 25, "Nests"},
 	["starting_area"] = {-25, -10, "Starting Area"},
-	["water"] = {-30, -10, "Water"},
+	["water"] = {-30, -15, "Water"},
 	["coal"] = {-20, -10, "Coal"},
 	["stone"] = {-20, -10, "Stone"},
 	["copper-ore"] = {-20, -10, "Copper Ore"},
 	["iron-ore"] = {-20, -10, "Iron Ore"},
 	["uranium-ore"] = {-20, -10, "Uranium Ore"},
-	["trees"] = {-35, -15, "Trees"},
 	["crude-oil"] = {-20, -10, "Oil"},
-	["time_factor"] = {20, 50, "Evolution Time Factor"},
-	["destroy_factor"] = {20, 50, "Evolution Destroy Factor"},
-	["pollution_factor"] = {20, 50, "Evolution Pollution Factor"},
+	["trees"] = {-35, -15, "Trees"},
+	["time_factor"] = {20, 40, "Evolution Time Factor"},
+	["destroy_factor"] = {20, 40, "Evolution Destroy Factor"},
+	["pollution_factor"] = {20, 40, "Evolution Pollution Factor"},
 	["expansion_cooldown"] = {-30, -15, "Nest Expansion Cooldown"},
-	["ageing"] = {-25, -15, "Terrain Pollution Consumption"},
-	["enemy_attack_pollution_consumption_modifier"] = {-25, -15, "Nest Pollution Consumption"},
+	["ageing"] = {-25, -10, "Terrain Pollution Consumption"},
+	["enemy_attack_pollution_consumption_modifier"] = {-25, -10, "Nest Pollution Consumption"},
 	["technology_price_multiplier"] = {5, 10, "Technology Price"},
 }
 

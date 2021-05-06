@@ -29,14 +29,10 @@ local function on_player_joined_game(event)
 		journey.characters_in_mothership = journey.characters_in_mothership + 1
 	end
 	
-	if player.force.name ~= "enemy" then return end
-	if player.character and player.character.valid then
-		player.character.destroy()
-		player.set_controller({type = defines.controllers.god})
-		player.create_character()	
-	end
-	player.clear_items_inside()
-	player.force = game.forces.player
+	if player.force.name == "enemy" then
+		Functions.clear_player(player)
+		player.force = game.forces.player
+	end	
 end
 
 local function on_player_left_game(event)
@@ -81,14 +77,14 @@ end
 local function on_init()
     local T = Map.Pop_info()
     T.main_caption = 'Journey'
-    T.sub_caption = 'v 1.0'
+    T.sub_caption = 'v 1.1'
     T.text =
         table.concat(
         {	
 			'The selectors in the mothership, allow you to select a destination.\n',
 			'Once enough players are on a selector, mothership will start traveling.\n',
 			'Worlds will get more difficult with each jump, stacking the chosen modifiers.\n',
-            'Launch a stack of nuclear fuel cells via rocket cargo, to advance to the next world.\n',
+            'Launch a stack of uranium fuel cells via rocket cargo, to advance to the next world.\n',
 			'The tooltip on the top button has information about the current world.\n',
 			'If the journey ends, an admin can fully reset the map via command "/reset-journey".\n\n',
 			

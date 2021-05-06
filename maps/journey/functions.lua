@@ -24,7 +24,9 @@ local function drop_player_items(player)
 		end
 	end
 	
-	local surface = player.surface	
+	local surface = player.surface
+	local spill_blockage = surface.create_entity{name = "stone-furnace", position = player.position}	
+	
 	for _, define in pairs({defines.inventory.character_main, defines.inventory.character_guns, defines.inventory.character_ammo, defines.inventory.character_armor, defines.inventory.character_vehicle, defines.inventory.character_trash}) do
 		local inventory = character.get_inventory(define)
 		if inventory and inventory.valid then
@@ -37,6 +39,18 @@ local function drop_player_items(player)
 			inventory.clear()
 		end	
 	end
+	
+	spill_blockage.destroy()
+end
+
+function Public.clear_player(player)
+	local character = player.character
+	if not character then return end
+	if not character.valid then return end	
+	player.character.destroy()
+	player.set_controller({type = defines.controllers.god})
+	player.create_character()	
+	player.clear_items_inside()	
 end
 
 function Public.mothership_message_queue(journey)
@@ -205,8 +219,9 @@ function Public.draw_mothership(journey)
 	
 	for _, position in pairs(positions) do	
 		if surface.count_tiles_filtered({area = {{position.x - 1, position.y - 1}, {position.x + 2, position.y + 2}}, name = "out-of-map"}) > 0 then
-			local e = surface.create_entity({name = "stone-wall", position = position})
-			e.destructible = false	
+			local e = surface.create_entity({name = "stone-wall", position = position, force = "player"})
+			e.destructible = false
+			e.minable = false
 		end
 		if surface.count_tiles_filtered({area = {{position.x - 1, position.y - 1}, {position.x + 2, position.y + 2}}, name = "lab-dark-1"}) < 4 then
 			surface.set_tiles({{name = "lab-dark-1", position = position}}, true)
@@ -249,7 +264,8 @@ function Public.draw_mothership(journey)
 
 	for k, item_name in pairs({"arithmetic-combinator", "constant-combinator", "decider-combinator", "programmable-speaker", "red-wire", "green-wire", "small-lamp", "substation", "pipe", "gate", "stone-wall", "transport-belt"}) do
 		local e = surface.create_entity({name = "steel-chest", position = {-7 + k, Constants.mothership_radius - 3}, force = "player"})
-		e.insert({name = item_name, count = 1000})
+		local stack_size = game.item_prototypes[item_name].stack_size
+		e.insert({name = item_name, count = stack_size * 10})
 		e.minable = false
 		e.destructible = false
 	end
@@ -277,7 +293,7 @@ function Public.teleport_players_to_mothership(journey)
 	local surface = game.surfaces.mothership
 	for _, player in pairs(game.connected_players) do
 		if player.surface.name ~= "mothership" then
-			drop_player_items(player)
+			Public.clear_player(player)
 			player.teleport(surface.find_non_colliding_position("character", {0,0}, 32, 0.5), surface)
 			journey.characters_in_mothership = journey.characters_in_mothership + 1
 			table.insert(journey.mothership_messages, "Welcome home " .. player.name .. "!")
@@ -382,8 +398,8 @@ function Public.set_world_selectors(journey)
 end
 
 function Public.mothership_world_selection(journey)
-	if journey.nauvis_teleporter and journey.nauvis_teleporter.valid then
-		journey.nauvis_teleporter.destroy()
+	if journey.mothership_teleporter and journey.mothership_teleporter.valid then
+		journey.mothership_teleporter.destroy()
 	end
 
 	local surface = game.surfaces.mothership	
@@ -473,7 +489,7 @@ end
 function Public.create_the_world(journey)
 	local surface = game.surfaces.nauvis
 	local mgs = surface.map_gen_settings
-	
+	mgs.seed = math.random(1, 4294967295)
 	mgs.peaceful_mode = false
 	
 	local modifiers = journey.world_selectors[journey.selected_world].modifiers
@@ -558,7 +574,7 @@ function Public.make_it_night(journey)
 		game.forces.player.reset_technologies()
 		game.forces.player.reset_technology_effects()
 		game.forces.enemy.reset_evolution()
-		journey.characters_in_mothership = surface.count_entities_filtered{name = "character"}
+		--journey.characters_in_mothership = surface.count_entities_filtered{name = "character"}
 		journey.mothership_cargo["uranium-fuel-cell"] = nil
 		journey.mothership_teleporter_online = true
 		journey.game_state = "world" 
@@ -596,7 +612,11 @@ function Public.teleporters(journey, player)
 	local base_position = {Constants.mothership_teleporter_position.x , Constants.mothership_teleporter_position.y - 5}
 	if surface.count_entities_filtered({position = player.position, name = "player-port"}) == 0 then return end
 	if surface.index == 1 then
-		drop_player_items(player)
+		if journey.game_state == "mothership_waiting_for_players" then
+			Public.clear_player(player)
+		else
+			drop_player_items(player)
+		end	
 		local position = game.surfaces.mothership.find_non_colliding_position("character", base_position, 32, 0.5)
 		if position then
 			player.teleport(position, game.surfaces.mothership)
