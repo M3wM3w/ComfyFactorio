@@ -479,8 +479,7 @@ function Public.mothership_world_selection(journey)
 	if journey.selected_world then
 		if not journey.mothership_advancing_to_world then
 			table.insert(journey.mothership_messages, "Advancing to selected world.")
-			--journey.mothership_advancing_to_world = game.tick + math.random(60 * 45, 60 * 75)
-			journey.mothership_advancing_to_world = game.tick + math.random(6 * 45, 6 * 75)
+			journey.mothership_advancing_to_world = game.tick + math.random(60 * 45, 60 * 75)
 		else
 			local seconds_left = math.floor((journey.mothership_advancing_to_world - game.tick) / 60)
 			if seconds_left <= 0 then
@@ -654,7 +653,8 @@ end
 function Public.dispatch_goods(journey)
 	draw_background(journey, game.surfaces.mothership)
 
-	if journey.characters_in_mothership == #game.connected_players then return end
+	if math.random(1, 16) ~= 1 then return end
+	if journey.characters_in_mothership == #game.connected_players then return end	
 
 	local goods_to_dispatch = journey.goods_to_dispatch
 	local size_of_goods_to_dispatch = #goods_to_dispatch
@@ -732,7 +732,7 @@ function Public.teleporters(journey, player)
 		journey.characters_in_mothership = journey.characters_in_mothership + 1
 		return
 	end
-	if not journey.mothership_teleporter_online then player.print("Teleporter offline.") return end
+	if not journey.mothership_teleporter_online then return end
 	if surface.name == "mothership" then
 		drop_player_items(player)
 		local position = game.surfaces.nauvis.find_non_colliding_position("character", base_position, 32, 0.5)
