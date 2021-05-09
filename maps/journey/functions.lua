@@ -46,7 +46,7 @@ end
 function Public.clear_player(player)
 	local character = player.character
 	if not character then return end
-	if not character.valid then return end	
+	if not character.valid then return end
 	player.character.destroy()
 	player.set_controller({type = defines.controllers.god})
 	player.create_character()	
@@ -89,7 +89,7 @@ function Public.draw_gui(journey)
 	tooltip = tooltip .. "Nest Expansion Cooldown - " .. math.round(game.map_settings.enemy_expansion.min_expansion_cooldown / 144, 1) .. "%\n"
 	tooltip = tooltip .. Constants.modifiers["enemy_attack_pollution_consumption_modifier"][3] .. " - " .. math.round(game.map_settings.pollution.enemy_attack_pollution_consumption_modifier * 100, 1) .. "%\n"
 	tooltip = tooltip .. Constants.modifiers["ageing"][3] .. " - " .. math.round(game.map_settings.pollution.ageing * 100, 1) .. "%\n"	
-	tooltip = tooltip .. Constants.modifiers["technology_price_multiplier"][3] .. " - " .. math.round(game.difficulty_settings.technology_price_multiplier * 100, 1) .. "%\n"
+	tooltip = tooltip .. Constants.modifiers["technology_price_multiplier"][3] .. " - " .. math.round(game.difficulty_settings.technology_price_multiplier * 200, 1) .. "%"
 	
 	for _, player in pairs(game.connected_players) do	
 		if not player.gui.top.journey_button then
@@ -152,7 +152,7 @@ function Public.hard_reset(journey)
 	game.map_settings.pollution.ageing = 1
 	game.map_settings.pollution.enemy_attack_pollution_consumption_modifier = 1
 
-	game.difficulty_settings.technology_price_multiplier = 1
+	game.difficulty_settings.technology_price_multiplier = 0.5
 
 	game.map_settings.enemy_evolution.time_factor = 0.000004
 	game.map_settings.enemy_evolution.destroy_factor = 0.002
@@ -538,24 +538,28 @@ function Public.create_the_world(journey)
 	end
 
 	surface.map_gen_settings = mgs
-    surface.clear(true)
-	surface.request_to_generate_chunks({x = 0, y = 0}, 5)
-	surface.force_generate_chunk_requests()
-
+    surface.clear(false)
+	
 	journey.world_number = journey.world_number + 1
 	
 	Public.draw_gui(journey)
 	
-	journey.game_state = "place_teleporter_into_world"
+	journey.game_state = "wipe_offline_players"
 end
 
-function Public.place_teleporter_into_world(journey)
-	local surface = game.surfaces.nauvis
+function Public.wipe_offline_players(journey)
 	for _, player in pairs(game.players) do
 		if not player.connected then
 			player.force = game.forces.enemy
 		end	
 	end
+	journey.game_state = "place_teleporter_into_world"
+end
+
+function Public.place_teleporter_into_world(journey)
+	local surface = game.surfaces.nauvis
+	surface.request_to_generate_chunks({x = 0, y = 0}, 3)
+	surface.force_generate_chunk_requests()
 	journey.nauvis_teleporter = surface.create_entity({name = "player-port", position = Constants.mothership_teleporter_position, force = "player"})
 	journey.nauvis_teleporter.destructible = false
 	journey.nauvis_teleporter.minable = false
@@ -574,7 +578,6 @@ function Public.make_it_night(journey)
 		game.forces.player.reset_technologies()
 		game.forces.player.reset_technology_effects()
 		game.forces.enemy.reset_evolution()
-		--journey.characters_in_mothership = surface.count_entities_filtered{name = "character"}
 		journey.mothership_cargo["uranium-fuel-cell"] = nil
 		journey.mothership_teleporter_online = true
 		journey.game_state = "world" 
@@ -611,12 +614,8 @@ function Public.teleporters(journey, player)
 	local surface = player.surface
 	local base_position = {Constants.mothership_teleporter_position.x , Constants.mothership_teleporter_position.y - 5}
 	if surface.count_entities_filtered({position = player.position, name = "player-port"}) == 0 then return end
-	if surface.index == 1 then
-		if journey.game_state == "mothership_waiting_for_players" then
-			Public.clear_player(player)
-		else
-			drop_player_items(player)
-		end	
+	if surface.index == 1 then		
+		drop_player_items(player)
 		local position = game.surfaces.mothership.find_non_colliding_position("character", base_position, 32, 0.5)
 		if position then
 			player.teleport(position, game.surfaces.mothership)
