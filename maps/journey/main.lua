@@ -77,7 +77,7 @@ end
 local function on_init()
     local T = Map.Pop_info()
     T.main_caption = 'Journey'
-    T.sub_caption = 'v 1.2'
+    T.sub_caption = 'v 1.3'
     T.text =
         table.concat(
         {	

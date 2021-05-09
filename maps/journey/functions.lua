@@ -91,6 +91,14 @@ function Public.draw_gui(journey)
 	tooltip = tooltip .. Constants.modifiers["ageing"][3] .. " - " .. math.round(game.map_settings.pollution.ageing * 100, 1) .. "%\n"	
 	tooltip = tooltip .. Constants.modifiers["technology_price_multiplier"][3] .. " - " .. math.round(game.difficulty_settings.technology_price_multiplier * 200, 1) .. "%"
 	
+	tooltip = tooltip .. "\n\nCapsules:\n"
+	local c = 0
+	for k, v in pairs(journey.bonus_goods) do
+		tooltip = tooltip .. v .. "x " .. k .. "    "
+		c = c + 1
+		if c % 2 == 0 then tooltip = tooltip .. "\n" end	
+	end
+	
 	for _, player in pairs(game.connected_players) do	
 		if not player.gui.top.journey_button then
 			local button = player.gui.top.add({type = "sprite-button", name = "journey_button", caption = ""})
@@ -191,6 +199,7 @@ function Public.hard_reset(journey)
 	journey.characters_in_mothership = 0
 	journey.mothership_messages = {}
 	journey.mothership_cargo = {}
+	journey.bonus_goods = {}
 	
 	journey.world_number = 0
 	journey.game_state = "create_mothership"
@@ -323,6 +332,7 @@ local function animate_selectors(journey)
 end
 
 local function draw_background(journey, surface)
+	if journey.characters_in_mothership == 0 then return end
 	local speed = journey.mothership_speed
 	for c = 1, 16 * speed, 1 do
 		local position = Constants.particle_spawn_vectors[math.random(1, Constants.size_of_particle_spawn_vectors)]
@@ -351,12 +361,23 @@ function Public.set_world_selectors(journey)
 	local modifier_names = {}
 	for k, _ in pairs(Constants.modifiers) do
 		table.insert(modifier_names, k)
-	end		
+	end
+	
+	local bonus_goods_keys = {}
+	for i = 1, #Constants.starter_goods_pool, 1 do
+		table.insert(bonus_goods_keys, i)
+	end
 	
 	for k, world_selector in pairs(journey.world_selectors) do
+		table.shuffle_table(bonus_goods_keys)
 		table.shuffle_table(modifier_names)
 		world_selector.modifiers = {}
-		local modifiers = world_selector.modifiers
+		world_selector.bonus_goods = {}
+		local position = Constants.world_selector_areas[k].left_top
+		local texts = world_selector.texts				
+		local modifiers = world_selector.modifiers				
+		local bonus_goods = world_selector.bonus_goods
+		local y_modifier = - 8.5
 		
 		for i = 1, 6, 1 do
 			local modifier = modifier_names[i]
@@ -366,10 +387,9 @@ function Public.set_world_selectors(journey)
 			local modifier = modifier_names[i]
 			modifiers[i] = {modifier, -1 * math.random(Constants.modifiers[modifier][1], Constants.modifiers[modifier][2])}
 		end	
-		
-		local texts = world_selector.texts
+	
 		for k2, modifier in pairs(modifiers) do
-			local position = Constants.world_selector_areas[k].left_top
+			y_modifier = y_modifier + 0.8
 			local text = ""
 			if modifier[2] > 0 then text = text .. "+" end
 			text = text .. modifier[2] .. "% "
@@ -385,14 +405,49 @@ function Public.set_world_selectors(journey)
 			texts[k2] = rendering.draw_text{
 				text = text,
 				surface = surface,
-				target = {position.x + Constants.world_selector_width * 0.5, position.y + k2 * 0.8 - 7.5},
+				target = {position.x + Constants.world_selector_width * 0.5, position.y + y_modifier},
 				color = color,
 				scale = 1.25,
 				font = "default-large",
 				alignment = "center",
 				scale_with_zoom = false
 			}
-		end	
+		end
+					
+		for i = 1, 3, 1 do
+			local key = bonus_goods_keys[i]
+			local bonus_good = Constants.starter_goods_pool[key]
+			bonus_goods[i] = {bonus_good[1], math.random(bonus_good[2], bonus_good[3])}
+		end
+				
+		y_modifier = y_modifier + 1
+		local x_modifier = -0.5	
+
+		for k2, good in pairs(world_selector.bonus_goods) do
+			local render_id = rendering.draw_text{
+				text = "+" .. good[2],
+				surface = surface,
+				target = {position.x + x_modifier, position.y + y_modifier},
+				color = {200, 200, 0, 255},
+				scale = 1.25,
+				font = "default-large",
+				alignment = "center",
+				scale_with_zoom = false
+			}
+			table.insert(texts, render_id)
+			if good[2] < 10 then
+				x_modifier = x_modifier + 0.95
+			else
+				x_modifier = x_modifier + 1.20
+			end
+			local render_id = rendering.draw_sprite{
+				sprite  = "item/" .. good[1],
+				surface = surface,
+				target = {position.x + x_modifier, position.y + 0.5 + y_modifier},
+			}
+			table.insert(texts, render_id)		
+			x_modifier = x_modifier + 1.55				
+		end
 	end	
 	journey.game_state = "mothership_world_selection"
 end
@@ -424,7 +479,8 @@ function Public.mothership_world_selection(journey)
 	if journey.selected_world then
 		if not journey.mothership_advancing_to_world then
 			table.insert(journey.mothership_messages, "Advancing to selected world.")
-			journey.mothership_advancing_to_world = game.tick + math.random(60 * 45, 60 * 75)
+			--journey.mothership_advancing_to_world = game.tick + math.random(60 * 45, 60 * 75)
+			journey.mothership_advancing_to_world = game.tick + math.random(6 * 45, 6 * 75)
 		else
 			local seconds_left = math.floor((journey.mothership_advancing_to_world - game.tick) / 60)
 			if seconds_left <= 0 then
@@ -458,7 +514,7 @@ function Public.mothership_arrives_at_world(journey)
 	
 	if journey.mothership_speed == 0.15 then
 		journey.mothership_teleporter = surface.create_entity({name = "player-port", position = Constants.mothership_teleporter_position, force = "player"})
-		table.insert(journey.mothership_messages, "[gps=" .. Constants.mothership_teleporter_position.x .. "," .. Constants.mothership_teleporter_position.y .. ",mothership] Teleporter deployed.")
+		table.insert(journey.mothership_messages, "Teleporter deployed. [gps=" .. Constants.mothership_teleporter_position.x .. "," .. Constants.mothership_teleporter_position.y .. ",mothership]")
 		journey.mothership_teleporter.destructible = false
 		journey.mothership_teleporter.minable = false
 		
@@ -541,6 +597,16 @@ function Public.create_the_world(journey)
     surface.clear(false)
 	
 	journey.world_number = journey.world_number + 1
+
+	for _, good in pairs(journey.world_selectors[journey.selected_world].bonus_goods) do
+		if journey.bonus_goods[good[1]] then
+			journey.bonus_goods[good[1]] = journey.bonus_goods[good[1]] + good[2]
+		else
+			journey.bonus_goods[good[1]] = good[2]
+		end	
+	end
+	journey.goods_to_dispatch = {}
+	for k, v in pairs(journey.bonus_goods) do table.insert(journey.goods_to_dispatch, {k, v}) end
 	
 	Public.draw_gui(journey)
 	
@@ -567,6 +633,7 @@ function Public.place_teleporter_into_world(journey)
 end
 
 function Public.make_it_night(journey)
+	draw_background(journey, game.surfaces.mothership)
 	local surface = game.surfaces.mothership
 	local daytime = surface.daytime
 	daytime = daytime + 0.02
@@ -580,8 +647,50 @@ function Public.make_it_night(journey)
 		game.forces.enemy.reset_evolution()
 		journey.mothership_cargo["uranium-fuel-cell"] = nil
 		journey.mothership_teleporter_online = true
-		journey.game_state = "world" 
+		journey.game_state = "dispatch_goods" 
 	end
+end
+
+function Public.dispatch_goods(journey)
+	draw_background(journey, game.surfaces.mothership)
+
+	if journey.characters_in_mothership == #game.connected_players then return end
+
+	local goods_to_dispatch = journey.goods_to_dispatch
+	local size_of_goods_to_dispatch = #goods_to_dispatch
+	if size_of_goods_to_dispatch == 0 then
+		journey.game_state = "world"
+		return
+	end
+
+	if journey.dispatch_beacon and journey.dispatch_beacon.valid then return end
+	
+	local surface = game.surfaces.nauvis
+	
+	if journey.dispatch_beacon_position then
+		local good = goods_to_dispatch[journey.dispatch_key]	
+		surface.spill_item_stack(journey.dispatch_beacon_position, {name = good[1], count = good[2]}, true, nil, false)
+		table.remove(journey.goods_to_dispatch, journey.dispatch_key)
+		journey.dispatch_beacon = nil
+		journey.dispatch_beacon_position = nil
+		journey.dispatch_key = nil
+		return
+	end
+	
+	local chunk = surface.get_random_chunk()
+	local position = {x = chunk.x * 32 + math.random(0, 31), y = chunk.y * 32 + math.random(0, 31)}
+	position = surface.find_non_colliding_position("rocket-silo", position, 32, 1)
+	if not position then return end
+	
+	journey.dispatch_beacon = surface.create_entity({name = "stone-wall", position = position, force = "neutral"})
+	journey.dispatch_beacon.minable = false
+	journey.dispatch_beacon_position = {x = position.x, y = position.y}
+	journey.dispatch_key = math.random(1, size_of_goods_to_dispatch)
+	
+	local good = goods_to_dispatch[journey.dispatch_key]	
+	table.insert(journey.mothership_messages, "Capsule containing " .. good[2] .. "x [img=item/" .. good[1] .. "] dispatched. [gps=" .. position.x .. "," .. position.y .. ",nauvis]")
+	
+	surface.create_entity({name = "artillery-projectile", position = {x = position.x - 256 + math.random(0, 512), y = position.y - 256}, target = position, speed = 0.2})
 end
 
 function Public.world(journey)
@@ -591,8 +700,6 @@ function Public.world(journey)
 			journey.game_state = "mothership_waiting_for_players"
 		end
 	end
-
-	if journey.characters_in_mothership == 0 then return end
 	draw_background(journey, game.surfaces.mothership)
 end 
 

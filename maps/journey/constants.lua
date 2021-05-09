@@ -94,6 +94,17 @@ Public.modifiers = {
 	["technology_price_multiplier"] = {5, 10, "Technology Price"},
 }
 
+Public.starter_goods_pool = {
+	{"gun-turret", 4, 8},
+	{"stone-wall", 64, 128},
+	{"firearm-magazine", 64, 128},
+	{"iron-plate", 64, 128},
+	{"iron-gear-wheel", 64, 128},
+	{"copper-plate", 64, 128},
+	{"burner-mining-drill", 8, 16},
+	{"car", 1, 2},
+}
+
 Public.build_type_whitelist = {
 	["arithmetic-combinator"] = true,
 	["constant-combinator"] = true,
