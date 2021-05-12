@@ -479,7 +479,7 @@ function Public.mothership_world_selection(journey)
 	if journey.selected_world then
 		if not journey.mothership_advancing_to_world then
 			table.insert(journey.mothership_messages, "Advancing to selected world.")
-			journey.mothership_advancing_to_world = game.tick + math.random(60 * 45, 60 * 75)
+			journey.mothership_advancing_to_world = game.tick + math.random(1 * 45, 1 * 75)
 		else
 			local seconds_left = math.floor((journey.mothership_advancing_to_world - game.tick) / 60)
 			if seconds_left <= 0 then
@@ -671,6 +671,9 @@ function Public.dispatch_goods(journey)
 		local good = goods_to_dispatch[journey.dispatch_key]	
 		surface.spill_item_stack(journey.dispatch_beacon_position, {name = good[1], count = good[2]}, true, nil, false)
 		table.remove(journey.goods_to_dispatch, journey.dispatch_key)
+		
+		game.forces.player.add_chart_tag(surface, {icon = {type = 'item', name = good[1]}, position = journey.dispatch_beacon_position, text = "" .. good[2] .. "x"})
+		
 		journey.dispatch_beacon = nil
 		journey.dispatch_beacon_position = nil
 		journey.dispatch_key = nil
@@ -682,15 +685,21 @@ function Public.dispatch_goods(journey)
 	position = surface.find_non_colliding_position("rocket-silo", position, 32, 1)
 	if not position then return end
 	
+	local radius=10
+	game.forces.player.chart(surface, {lefttop = {x = position.x-radius, y = position.y-radius}, rightbottom = {x = position.x+radius, y = position.y+radius}})
+	
 	journey.dispatch_beacon = surface.create_entity({name = "stone-wall", position = position, force = "neutral"})
 	journey.dispatch_beacon.minable = false
 	journey.dispatch_beacon_position = {x = position.x, y = position.y}
 	journey.dispatch_key = math.random(1, size_of_goods_to_dispatch)
 	
+	
 	local good = goods_to_dispatch[journey.dispatch_key]	
 	table.insert(journey.mothership_messages, "Capsule containing " .. good[2] .. "x [img=item/" .. good[1] .. "] dispatched. [gps=" .. position.x .. "," .. position.y .. ",nauvis]")
 	
+		
 	surface.create_entity({name = "artillery-projectile", position = {x = position.x - 256 + math.random(0, 512), y = position.y - 256}, target = position, speed = 0.2})
+		
 end
 
 function Public.world(journey)
