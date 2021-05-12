@@ -671,6 +671,7 @@ function Public.dispatch_goods(journey)
 		local good = goods_to_dispatch[journey.dispatch_key]	
 		surface.spill_item_stack(journey.dispatch_beacon_position, {name = good[1], count = good[2]}, true, nil, false)
 		table.remove(journey.goods_to_dispatch, journey.dispatch_key)
+		game.forces.player.add_chart_tag(surface, {icon = {type = 'item', name = good[1]}, position = journey.dispatch_beacon_position, text = "" .. good[2] .. "x"})
 		journey.dispatch_beacon = nil
 		journey.dispatch_beacon_position = nil
 		journey.dispatch_key = nil
@@ -681,6 +682,9 @@ function Public.dispatch_goods(journey)
 	local position = {x = chunk.x * 32 + math.random(0, 31), y = chunk.y * 32 + math.random(0, 31)}
 	position = surface.find_non_colliding_position("rocket-silo", position, 32, 1)
 	if not position then return end
+	
+	local radius=10
+	game.forces.player.chart(surface, {lefttop = {x = position.x-radius, y = position.y-radius}, rightbottom = {x = position.x+radius, y = position.y+radius}})
 	
 	journey.dispatch_beacon = surface.create_entity({name = "stone-wall", position = position, force = "neutral"})
 	journey.dispatch_beacon.minable = false
