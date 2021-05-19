@@ -4,6 +4,8 @@ local WD = require 'modules.wave_defense.table'
 local WPT = require 'maps.amap.table'
 local Difficulty = require 'modules.difficulty_vote_by_amount'
 local atry_talbe = require "maps.amap.enemy_arty"
+local enemy_health = require 'maps.amap.enemy_health_booster_v2'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 local function calc_players()
   local players = game.connected_players
   local check_afk_players = WPT.get('check_afk_players')
@@ -45,7 +47,7 @@ local easy = function()
 
     max_threat = max_threat + wave_number * 0.0013
 
-    WD.set_biter_health_boost(wave_number * 0.002+1)
+    WD.set_biter_health_boost(wave_number * 0.0018+1)
     wave_defense_table.threat_gain_multiplier =  max_threat
 
   wave_defense_table.wave_interval = 4200 - player_count * 30
@@ -117,7 +119,7 @@ local hard = function()
   end
 
     max_threat = max_threat + wave_number * 0.0013
-    WD.set_biter_health_boost(wave_number * 0.002+1)
+    WD.set_biter_health_boost(wave_number * 0.0022+1)
     wave_defense_table.threat_gain_multiplier =  max_threat
 
   wave_defense_table.wave_interval = 3900 - player_count * 60
@@ -151,7 +153,8 @@ local set_diff = function()
     hard()
   end
 
-
+local health = BiterHealthBooster.get('biter_health_boost')
+enemy_health.set('biter_health_boost_forces',{[game.forces.enemy.index]=health})
   --med()
   local wave_number = WD.get('wave_number')
   local damage_increase = 0
@@ -168,19 +171,23 @@ local set_diff = function()
     k =1
   end
   k=math.floor(k)
-  damage_increase = wave_number * 0.001*k
-game.forces.enemy.set_ammo_damage_modifier("artillery-shell", damage_increase)
-game.forces.enemy.set_ammo_damage_modifier("rocket", damage_increase)
+  damage_increase = wave_number * 0.001*k*1.2
+  --game.forces.player.get_ammo_damage_modifier("beam")
+--game.forces.enemy.set_ammo_damage_modifier("artillery-shell", damage_increase)
+--game.forces.enemy.set_ammo_damage_modifier("rocket", damage_increase)
   game.forces.enemy.set_ammo_damage_modifier("melee", damage_increase)
   game.forces.enemy.set_ammo_damage_modifier("biological", damage_increase)
 
   local table = atry_talbe.get()
   local radius=math.floor(wave_number*0.15)*k
+if radius >= 350 then
+  radius = 350
+end
 table.radius=350+radius
 local pace=wave_number*0.0002*k+1
-if pace >= 2 then
-  pace = 2
-end
+--if pace >= 2 then
+  pace = 1.5
+--end
 table.pace=pace
 
 end

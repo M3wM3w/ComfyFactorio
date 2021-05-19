@@ -1,15 +1,19 @@
 require 'modules.rpg.main'
 require 'maps.amap.relax'
 require 'maps.amap.diff'
+require 'maps.amap.biter_die'
 local Functions = require 'maps.amap.functions'
 local IC = require 'maps.amap.ic.table'
 local CS = require 'maps.amap.surface'
 local Event = require 'utils.event'
+local ICMinimap = require 'maps.amap.ic.minimap'
+--local HS = require 'maps.amap.highscore'
 local WD = require 'modules.wave_defense.table'
-local wall_health = require 'maps.amap.wall_health_booster'.set_health_modifier
-
-local spider_health =require 'maps.amap.spider_health_booster'.set_health_modifier
-
+local wall_health = require 'maps.amap.wall_health_booster_v2'
+local Balance = require 'maps.amap.balance'
+--local enemy_health = require 'maps.amap.enemy_health_booster'.set_health_modifier
+local spider_health =require 'maps.amap.spider_health_booster_v2'
+local enemy_health = require 'maps.amap.enemy_health_booster_v2'
 local Map = require 'modules.map_info'
 local AntiGrief = require 'antigrief'
 --local Explosives = require 'modules.explosives'
@@ -18,15 +22,24 @@ local Autostash = require 'modules.autostash'
 local BuriedEnemies = require 'maps.amap.buried_enemies'
 local RPG_Settings = require 'modules.rpg.table'
 local RPG_Func = require 'modules.rpg.functions'
-local Commands = require 'commands.misc'
+local BottomFrame = require 'comfy_panel.bottom_frame'
 local Task = require 'utils.task'
 local Token = require 'utils.token'
 local Alert = require 'utils.alert'
 local rock = require 'maps.amap.rock'
 local Loot = require'maps.amap.loot'
-local RPG = require 'modules.rpg.table'
+local Modifiers = require 'player_modifiers'
+local rpg_spells = RPG_Settings.get('rpg_spells')
+ --rpg_spells[1].enabled = false
+  --rpg_spells[17].enabled = true
+  --for k=1,#rpg_spells do
+    rpg_spells[16].enabled = true
+    rpg_spells[17].enabled = true
+  --end
+  local RPG = require 'modules.rpg.table'
 local Difficulty = require 'modules.difficulty_vote_by_amount'
---local arty = require "maps.amap.enemy_arty"
+
+local arty = require "maps.amap.enemy_arty"
 --require 'maps.amap.burden'
 require "modules.spawners_contain_biters"
 require 'maps.amap.biters_yield_coins'
@@ -43,6 +56,7 @@ require 'modules.shotgun_buff'
 require 'modules.no_deconstruction_of_neutral_entities'
 require 'modules.wave_defense.main'
 require 'modules.charging_station'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 
 local init_new_force = function()
   local new_force = game.forces.protectors
@@ -63,14 +77,23 @@ local setting = function()
   game.map_settings.enemy_expansion.max_expansion_distance = 20
   game.map_settings.enemy_expansion.settler_group_min_size = 5
   game.map_settings.enemy_expansion.settler_group_max_size = 50
-
-  global.biter_health_boost_forces[game.forces.player.index] = 1
+  game.forces.enemy.friendly_fire = false
   game.forces.player.set_ammo_damage_modifier("artillery-shell", 0)
   game.forces.player.set_ammo_damage_modifier("melee", 0)
   game.forces.player.set_ammo_damage_modifier("biological", 0)
-  local index = game.forces.player.index
-  wall_health(index,1)
-  spider_health(index,1)
+
+local this = WPT.get()
+local surface = game.surfaces[this.active_surface_index]
+--  local index = game.forces.player.index
+  wall_health.set('biter_health_boost', 1)
+  spider_health.set('biter_health_boost',1)
+  enemy_health.set('biter_health_boost_forces',1)
+  BiterHealthBooster.set('biter_health_boost_forces',{[game.forces.player.index]=1})
+  wall_health.set_active_surface(tostring(surface.name))
+  spider_health.set_active_surface(tostring(surface.name))
+--  spider_health(index,1)
+enemy_health.set_active_surface(tostring(surface.name))
+--enemy_health(game.forces.enemy.index,1)
 end
 
 function Public.reset_map()
@@ -84,15 +107,15 @@ function Public.reset_map()
   Autostash.insert_into_furnace(true)
   Autostash.bottom_button(true)
   BuriedEnemies.reset()
-  Commands.reset()
-  Commands.activate_custom_buttons(true)
-  Commands.bottom_right(false)
-
+  BottomFrame.reset()
+  BottomFrame.activate_custom_buttons(true)
+  BottomFrame.bottom_right(true)
   IC.reset()
   IC.allowed_surface('amap')
 
   game.reset_time_played()
   WPT.reset_table()
+  arty.reset_table()
 
   --记得后面改为失去一半经验！并且修订技能！
   local xp = {}
@@ -118,6 +141,7 @@ function Public.reset_map()
   RPG_Settings.set_surface_name('amap')
   RPG_Settings.enable_health_and_mana_bars(true)
   RPG_Settings.enable_wave_defense(true)
+  RPG_Settings.enable_explosive_bullets(false)
   RPG_Settings.enable_mana(true)
   RPG_Settings.enable_flame_boots(true)
   RPG_Settings.enable_stone_path(true)
@@ -125,7 +149,14 @@ function Public.reset_map()
   RPG_Settings.enable_one_punch_globally(false)
   RPG_Settings.enable_auto_allocate(true)
   RPG_Settings.disable_cooldowns_on_spells()
-
+--  RPG_Settings.enable_title(true)
+AntiGrief.log_tree_harvest(true)
+AntiGrief.whitelist_types('tree', true)
+AntiGrief.enable_capsule_warning(false)
+AntiGrief.enable_capsule_cursor_warning(false)
+AntiGrief.enable_jail(true)
+AntiGrief.damage_entity_threshold(20)
+AntiGrief.explosive_threshold(32)
   --初始化部队
   init_new_force()
   --难度设置
@@ -139,16 +170,25 @@ function Public.reset_map()
 
 
 
+  -- local players = game.connected_players
+  -- for i = 1, #players do
+  --   local player = players[i]
+  --   Commands.insert_all_items(player)
+  -- end
+
+
   local players = game.connected_players
   for i = 1, #players do
-    local player = players[i]
-    Commands.insert_all_items(player)
+      local player = players[i]
+      --BottomFrame.insert_all_items(player)
+      Modifiers.reset_player_modifiers(player)
+      ICMinimap.kill_minimap(player)
   end
 
   --生产火箭发射井
   rock.spawn(surface,{x=0,y=10})
   rock.market(surface)
-
+  --rock.start(surface,{x=0,y=0})
   WD.reset_wave_defense()
   wave_defense_table.surface_index = this.active_surface_index
   --记得修改目标！
@@ -179,13 +219,14 @@ function Public.reset_map()
 
   wave_defense_table.spawn_position = positions
   this.pos = positions
-  this.change = false
-  this.science = 0
+
   --game.print(positions)
   WD.alert_boss_wave(true)
   WD.clear_corpses(false)
   WD.remove_entities(true)
   WD.enable_threat_log(true)
+  WD.increase_damage_per_wave(false)
+  WD.increase_health_per_wave(false)
   WD.set_disable_threat_below_zero(true)
   WD.set_biter_health_boost(1.4)
   --  WD.set().wave_interval = 3300
@@ -196,6 +237,12 @@ function Public.reset_map()
   Functions.disable_tech()
   game.forces.player.set_spawn_position({0, 0}, surface)
 
+  BiterHealthBooster.set_active_surface(tostring(surface.name))
+     BiterHealthBooster.acid_nova(true)
+     BiterHealthBooster.check_on_entity_died(true)
+     BiterHealthBooster.boss_spawns_projectiles(true)
+     BiterHealthBooster.enable_boss_loot(false)
+Balance.init_enemy_weapon_damage()
   Task.start_queue()
   Task.set_queue_speed(16)
 
@@ -205,7 +252,7 @@ function Public.reset_map()
 
   global.worm_distance = 210
   global.average_worm_amount_per_chunk = 5
-
+--HS.get_scores()
   setting()
 end
 
@@ -454,6 +501,12 @@ local timereward = function()
         k=k+1
       end
       this.last = wave_number
+
+      if  this.single then
+        return
+      end
+      WD.set().next_wave = game.tick + 7200* 15/6
+      game.print({'amap.break'})
    end
 
   end
@@ -574,6 +627,10 @@ local change = function()
   end
 end
 local single_rewrad = function()
+  local this = WPT.get()
+  if not this.single then
+    return
+  end
   local game_lost = WPT.get('game_lost')
   if game_lost then
     return
@@ -584,16 +641,18 @@ local single_rewrad = function()
   end
   local rpg_t = RPG.get('rpg_t')
 
-  local this = WPT.get()
+
   local player_count = calc_players()
   if this.single and player_count <= 2 and not this.first then
     for k, p in pairs(game.connected_players) do
       local player = game.connected_players[k]
       rpg_t[player.index].points_to_distribute = rpg_t[player.index].points_to_distribute + 200
       rpg_t[player.index].xp=  rpg_t[player.index].xp+5000
-      player.insert{name='coin', count = 10000}
-      player.insert{name='tank', count = 1}
+      player.insert{name='coin', count = 15000}
+    --  player.insert{name='tank', count = 1}
       game.print({'amap.single'})
+      local surface = game.surfaces[this.active_surface_index]
+      rock.start(surface,{x=0,y=0})
       this.single = false
 
     end
@@ -638,6 +697,7 @@ change()
 end
 
   function on_research_finished(Event)
+    if Event.research.force.index==game.forces.enemy.index then return end
     local this = WPT.get()
     this.science=this.science+1
     local rpg_t = RPG.get('rpg_t')
@@ -671,6 +731,21 @@ end
     end
   end
 
+  local buff_build = function()
+    local rpg_t = RPG.get('rpg_t')
+    for k, p in pairs(game.connected_players) do
+      local player = game.connected_players[k]
+       local x = player.position.x^2
+       local y = player.position.y^2
+       local dis =math.sqrt(x + y)
+
+       if dis <=120 then
+         player.insert{name='coin', count = 3}
+         rpg_t[player.index].xp = rpg_t[player.index].xp+4
+       end
+    end
+  end
+
   local change_dis = function()
     local this = WPT.get()
     this.change_dist=true
@@ -679,7 +754,8 @@ end
   Event.on_init(on_init)
   Event.on_nth_tick(10, on_tick)
   Event.on_nth_tick(7200, single_rewrad)
-  Event.on_nth_tick(60, change_dis)
+  Event.on_nth_tick(120, change_dis)
+  Event.on_nth_tick(600, buff_build)
   --Event.add(defines.events.on_player_joined_game, on_player_joined_game)
   --Event.add(defines.events.on_pre_player_left_game, on_player_left_game)
   Event.add(defines.events.on_research_finished, on_research_finished)

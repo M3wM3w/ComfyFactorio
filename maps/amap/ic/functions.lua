@@ -4,11 +4,10 @@ local Task = require 'utils.task'
 local Token = require 'utils.token'
 local IC_Gui = require 'maps.amap.ic.gui'
 local WPT = require 'maps.amap.table'
-local WD = require 'modules.wave_defense.table'
+
 local Public = {}
 local main_tile_name = 'black-refined-concrete'
-local RPG = require 'modules.rpg.table'
-local Loot = require "maps.amap.loot"
+
 local function validate_entity(entity)
     if not (entity and entity.valid) then
         return false
@@ -28,7 +27,10 @@ end
 local function get_trusted_system(this, player)
     if not this.trust_system[player.index] then
         this.trust_system[player.index] = {
-            [player.name] = true
+            players = {
+                [player.name] = true
+            },
+            allow_anyone = 'right'
         }
     end
 
@@ -49,10 +51,17 @@ local function render_owner_text(renders, player, entity, new_owner)
     if renders[player.index] then
         rendering.destroy(renders[player.index])
     end
+
+    local ce_name = entity.name
+
+    if ce_name == 'kr-advanced-tank' then
+        ce_name = 'Tank'
+    end
+
     if new_owner then
         renders[new_owner.index] =
             rendering.draw_text {
-            text = '## - ' .. new_owner.name .. "'s " .. entity.name .. ' - ##',
+            text = '## - ' .. new_owner.name .. "'s " .. ce_name .. ' - ##',
             surface = entity.surface,
             target = entity,
             target_offset = {0, -2.6},
@@ -65,7 +74,7 @@ local function render_owner_text(renders, player, entity, new_owner)
     else
         renders[player.index] =
             rendering.draw_text {
-            text = '## - ' .. player.name .. "'s " .. entity.name .. ' - ##',
+            text = '## - ' .. player.name .. "'s " .. ce_name .. ' - ##',
             surface = entity.surface,
             target = entity,
             target_offset = {0, -2.6},
@@ -306,8 +315,18 @@ local function kick_players_out_of_vehicles(car)
     end
 end
 
+local function check_if_players_are_in_nauvis(ic)
+    for _, player in pairs(game.connected_players) do
+        local main_surface = game.surfaces[ic.allowed_surface]
+        if player.surface.name == 'nauvis' then
+            player.teleport(main_surface.find_non_colliding_position('character', game.forces.player.get_spawn_position(main_surface), 3, 0, 5), main_surface)
+        end
+    end
+end
+
 local function kick_players_from_surface(ic, car)
     if not validate_entity(car.surface) then
+        check_if_players_are_in_nauvis(ic)
         return log_err('Car surface was not valid.')
     end
     if not car.entity or not car.entity.valid then
@@ -318,8 +337,9 @@ local function kick_players_from_surface(ic, car)
                     e.player.teleport(main_surface.find_non_colliding_position('character', game.forces.player.get_spawn_position(main_surface), 3, 0, 5), main_surface)
                 end
             end
+            check_if_players_are_in_nauvis(ic)
+            return log_err('Car entity was not valid.')
         end
-        return log_err('Car entity was not valid.')
     end
 
     for _, e in pairs(car.surface.find_entities_filtered({area = car.area})) do
@@ -332,6 +352,7 @@ local function kick_players_from_surface(ic, car)
             end
         end
     end
+    check_if_players_are_in_nauvis(ic)
 end
 
 local function kick_player_from_surface(ic, player, target)
@@ -562,23 +583,8 @@ function Public.save_car(ic, event)
     if car.owner == player.index then
         save_surface(ic, entity, player)
         if not ic.players[player.index].notified then
-            player.print(player.name .. ', the ' .. car.name .. ' has been saved', Color.success)
-
+            player.print(player.name .. ', the ' .. car.name .. ' surface has been saved.', Color.success)
             ic.players[player.index].notified = true
-
-			local wave_number = WD.get('wave_number')
-			--game.print(type(wave_number))
-			local a = 100
-
-            if ( wave_number <= a ) then
-			player.print({'amap.usecar'},Color.warning)
-
-			else
-
-			local rpg_t = RPG.get('rpg_t')
-			rpg_t[player.index].points_to_distribute = rpg_t[player.index].points_to_distribute+50
-			player.print({'amap.usecar2'},Color.success)
-			end
         end
     else
         local p = game.players[car.owner]
@@ -648,7 +654,7 @@ function Public.validate_owner(ic, player, entity)
             local p = game.players[car.owner]
             local list = get_trusted_system(ic, p)
             if p and p.valid and p.connected then
-                if list[player.name] then
+                if list.players[player.name] then
                     return
                 end
             end
@@ -700,8 +706,13 @@ function Public.create_car_room(ic, car)
     local surface = car.surface
     local car_areas = ic.car_areas
     local entity_name = car.name
+    local entity_type = car.type
     local area = car_areas[entity_name]
     local tiles = {}
+
+    if not area then
+        area = car_areas[entity_type]
+    end
 
     for x = area.left_top.x, area.right_bottom.x - 1, 1 do
         for y = area.left_top.y + 2, area.right_bottom.y - 3, 1 do
@@ -730,9 +741,10 @@ function Public.create_car_room(ic, car)
 
     construct_doors(ic, car)
     local mgs = surface.map_gen_settings
-      	mgs.width = area.right_bottom.x * 2
-      	mgs.height = area.right_bottom.y * 2
-      	surface.map_gen_settings = mgs
+    mgs.width = area.right_bottom.x * 2
+    mgs.height = area.right_bottom.y * 2
+    surface.map_gen_settings = mgs
+
     local lx, ly, rx, ry = 4, 1, 5, 1
 
     local position1 = {area.left_top.x + lx, area.left_top.y + ly}
@@ -810,6 +822,9 @@ function Public.create_car(ic, event)
 
     local car_areas = ic.car_areas
     local car_area = car_areas[ce.name]
+    if not car_area then
+        car_area = car_areas[ce.type]
+    end
 
     ic.cars[un] = {
         entity = ce,
@@ -819,7 +834,8 @@ function Public.create_car(ic, event)
         },
         doors = {},
         owner = player.index,
-        name = ce.name
+        name = ce.name,
+        type = ce.type
     }
 
     local car = ic.cars[un]
@@ -882,17 +898,21 @@ function Public.use_door_with_entity(ic, player, door)
 
     local owner = game.players[car.owner]
     local list = get_trusted_system(ic, owner)
-    if owner and owner.valid and player.connected then
-        if not list[player.name] and not player.admin then
-            player.driving = false
-            return player.print('You have not been approved by ' .. owner.name .. ' to enter their vehicle.', Color.warning)
+    if owner and owner.valid and owner.index ~= player.index and player.connected then
+        if list.allow_anyone == 'right' then
+            if not list.players[player.name] and not player.admin then
+                player.driving = false
+                return player.print('You have not been approved by ' .. owner.name .. ' to enter their vehicle.', Color.warning)
+            end
         end
     end
 
-    player_data.fallback_surface = car.entity.surface.index
-    player_data.fallback_position = {car.entity.position.x, car.entity.position.y}
+    if validate_entity(car.entity) then
+        player_data.fallback_surface = car.entity.surface.index
+        player_data.fallback_position = {car.entity.position.x, car.entity.position.y}
+    end
 
-    if car.entity.surface.name == player.surface.name then
+    if validate_entity(car.entity) and car.entity.surface.name == player.surface.name then
         local surface = car.surface
         if validate_entity(car.entity) and car.owner == player.index then
             IC_Gui.add_toolbar(player)
@@ -939,17 +959,17 @@ function Public.use_door_with_entity(ic, player, door)
 end
 
 function Public.item_transfer(ic)
-  for _, car in pairs(ic.cars) do
-      if validate_entity(car.entity) then
-          if car.transfer_entities then
-              for k, e in pairs(car.transfer_entities) do
-                  if validate_entity(e) then
-                      transfer_functions[e.name](car, e)
-                  end
-              end
-          end
-      end
-  end
+    for _, car in pairs(ic.cars) do
+        if validate_entity(car.entity) then
+            if car.transfer_entities then
+                for k, e in pairs(car.transfer_entities) do
+                    if validate_entity(e) then
+                        transfer_functions[e.name](car, e)
+                    end
+                end
+            end
+        end
+    end
 end
 
 Public.kick_player_from_surface = kick_player_from_surface

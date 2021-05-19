@@ -17,7 +17,11 @@ Global.register(
     end
 )
 
-local starting_items = {['pistol'] = 1, ['firearm-magazine'] = 16,  ['wood'] = 16}
+local starting_items = {
+  ['pistol'] = 1,
+  ['firearm-magazine'] = 16,
+  ['wood'] = 16
+}
 
 function Public.create_surface()
         local map_gen_settings = {
@@ -28,12 +32,12 @@ function Public.create_surface()
 
     }
 	map_gen_settings.autoplace_controls = {
-			["coal"] = {frequency = "1", size = "1", richness = "1"},
-			["stone"] = {frequency = "1", size = "1", richness = "1"},
-			["copper-ore"] = {frequency = "1", size = "2", richness = "1"},
-			["iron-ore"] = {frequency = "1", size = "2", richness = "1"},
+			["coal"] = {frequency = "1.4", size = "1", richness = "0.7"},
+			["stone"] = {frequency = "1.4", size = "1", richness = "0.7"},
+			["copper-ore"] = {frequency = "1.4", size = "2", richness = "0.7"},
+			["iron-ore"] = {frequency ="1.4", size = "2", richness = "0.7"},
 			["crude-oil"] = {frequency = "2", size = "2", richness = "1"},
-			["trees"] = {frequency = "1", size = "0.5", richness = "0.7"},
+			["trees"] = {frequency = "1", size = "0.7", richness = "0.7"},
 			["enemy-base"] = {frequency = "4", size = "2", richness = "1"},
 			--["starting_area"] = 1.2,
 		}

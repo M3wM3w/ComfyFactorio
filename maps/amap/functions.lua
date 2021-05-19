@@ -671,9 +671,10 @@ function Public.is_creativity_mode_on()
 end
 local function on_player_mined_entity(event)
   local name = event.entity.name
+  local force = event.entity.force
   local entity = event.entity
   local this = WPT.get()
-  if name == 'flamethrower-turret' then
+  if name == 'flamethrower-turret' and force.index == game.forces.player.index then
     this.flame = this.flame - 1
 
      if this.flame <= 0 then
@@ -708,9 +709,10 @@ end
 local on_player_or_robot_built_entity = function(event)
 --change_pos  改变位置
 local name = event.created_entity.name
+local force = event.created_entity.force
 local entity = event.created_entity
 local this = WPT.get()
-if name == 'flamethrower-turret' then
+  if name == 'flamethrower-turret' and force.index == game.forces.player.index then
   if this.flame >= 15 then
     game.print({'amap.too_many'})
     entity.destroy()
@@ -823,6 +825,9 @@ local disable_recipes = function()
     force.recipes['pistol'].enabled = false
     force.recipes['land-mine'].enabled = false
     force.recipes['spidertron-remote'].enabled = false
+    if is_mod_loaded('Krastorio2') then
+      force.recipes['kr-advanced-tank'].enabled = false
+  end
   --  force.recipes['flamethrower-turret'].enabled = false
 end
 
@@ -830,6 +835,12 @@ function Public.disable_tech()
     game.forces.player.technologies['landfill'].enabled = false
     game.forces.player.technologies['spidertron'].enabled = false
     game.forces.player.technologies['spidertron'].researched = false
+   local force = game.forces.player
+    if is_mod_loaded('Krastorio2') then
+        force.technologies['kr-advanced-tank'].enabled = false
+        force.technologies['kr-advanced-tank'].researched = false
+    end
+
     disable_recipes()
 end
 
@@ -841,10 +852,10 @@ end
 local function on_entity_died(event)
 
   local name = event.entity.name
-
+local force = event.entity.force
   local entity = event.entity
   local this = WPT.get()
-  if name == 'flamethrower-turret' then
+  if name == 'flamethrower-turret' and force.index == game.forces.player.index then
     this.flame = this.flame - 1
 
      if this.flame <= 0 then
@@ -885,6 +896,6 @@ Event.add(defines.events.on_robot_mined_entity, on_player_mined_entity)
 --Event.add(defines.events.on_player_changed_position, on_player_changed_position)
 Event.add(defines.events.on_pre_player_left_game, on_pre_player_left_game)
 Event.on_nth_tick(10, tick)
-Event.on_nth_tick(5, do_turret_energy)
+--Event.on_nth_tick(5, do_turret_energy)
 
 return Public

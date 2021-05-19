@@ -41,12 +41,14 @@ function Public.reset()
     this.entity_type = {
         ['car'] = true,
         ['tank'] = true,
+        ['kr-advanced-tank'] = true,
         ['spidertron'] = true,
         ['spider-vehicle'] = true
     }
     this.car_areas = {
         ['car'] = {left_top = {x = -20, y = 0}, right_bottom = {x = 20, y = 20}},
         ['tank'] = {left_top = {x = -30, y = 0}, right_bottom = {x = 30, y = 40}},
+        ['kr-advanced-tank'] = {left_top = {x = -40, y = 0}, right_bottom = {x = 40, y = 60}},
         ['spidertron'] = {left_top = {x = -40, y = 0}, right_bottom = {x = 40, y = 60}},
         ['spider-vehicle'] = {left_top = {x = -40, y = 0}, right_bottom = {x = 40, y = 60}}
     }
@@ -59,6 +61,11 @@ function Public.get(key)
         return this
     end
 end
+
+function Public.get_types()
+    return this.entity_type
+end
+
 function Public.set(key, value)
     if key and (value or value == false) then
         this[key] = value
@@ -69,6 +76,7 @@ function Public.set(key, value)
         return this
     end
 end
+
 function Public.set_car_area(tbl)
     if not tbl then
         return

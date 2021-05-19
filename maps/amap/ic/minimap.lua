@@ -57,25 +57,23 @@ local function get_player_data(player)
     end
 
     ic.minimap[player.index] = {
-        surface = ic.allowed_surface,
         zoom = 0.30,
         map_size = 360,
-        auto_map = true
+        auto = true,
+        state = 'left'
     }
     return ic.minimap[player.index]
 end
 
 function Public.toggle_auto(player)
-    local ic = ICT.get()
-    local switch = player.gui.left.minimap_toggle_frame['switch_auto_map']
-    if not switch or not switch.valid then
-        return
-    end
-
+    local player_data = get_player_data(player)
+    local switch = player.gui.left.minimap_toggle_frame['ic_auto_switch']
     if switch.switch_state == 'left' then
-        ic.minimap[player.index].auto_map = true
+        player_data.auto = true
+        player_data.state = 'left'
     elseif switch.switch_state == 'right' then
-        ic.minimap[player.index].auto_map = false
+        player_data.auto = false
+        player_data.state = 'right'
     end
 end
 
@@ -88,8 +86,6 @@ local function kill_minimap(player)
         frame.destroy()
     end
 end
-
-
 
 local function kill_frame(player)
     if player.gui.left.minimap_toggle_frame then
@@ -122,12 +118,21 @@ local function draw_minimap(player, surface, position)
     local player_data = get_player_data(player)
     local frame = player.gui.left.minimap_toggle_frame
     if not frame then
-        frame =
-            player.gui.left.add(
-            {type = 'frame', direction = 'vertical', name = 'minimap_toggle_frame', caption = 'Minimap'}
-        )
+        frame = player.gui.left.add({type = 'frame', direction = 'vertical', name = 'minimap_toggle_frame', caption = 'Minimap'})
     end
     frame.visible = true
+    if not frame.ic_auto_switch then
+        frame.add(
+            {
+                type = 'switch',
+                name = 'ic_auto_switch',
+                switch_state = player_data.state,
+                allow_none_state = false,
+                left_label_caption = {'gui.map_on'},
+                right_label_caption = {'gui.map_off'}
+            }
+        )
+    end
     local element = frame['minimap_frame']
     if not element then
         element =
@@ -166,11 +171,12 @@ end
 function Public.update_minimap()
     local ic = ICT.get()
     for k, player in pairs(game.connected_players) do
-        if Functions.get_player_surface(ic, player) and player.gui.left.minimap_toggle_frame then
+        local player_data = get_player_data(player)
+        if Functions.get_player_surface(ic, player) and player.gui.left.minimap_toggle_frame and player_data.auto then
             kill_frame(player)
             draw_minimap(player)
-          else
-          kill_minimap(player)
+        else
+            kill_minimap(player)
         end
     end
 end
@@ -230,10 +236,13 @@ function Public.changed_surface(event)
     end
     local wd = player.gui.top['wave_defense']
     local diff = player.gui.top['difficulty_gui']
+    local player_data = get_player_data(player)
 
     if Functions.get_player_surface(ic, player) then
         Public.toggle_button(player)
-        Public.minimap(player, surface)
+        if player_data.auto then
+            Public.minimap(player, surface)
+        end
         if wd and wd.visible then
             wd.visible = false
         end

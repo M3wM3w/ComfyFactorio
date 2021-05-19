@@ -1,9 +1,10 @@
 local Event = require 'utils.event'
 local Global = require 'utils.global'
 local BiterRolls = require 'modules.wave_defense.biter_rolls'
-local BiterHealthBooster = require 'modules.biter_health_booster'
+local BiterHealthBooster = require 'modules.biter_health_booster_v2'
 local WD = require 'modules.wave_defense.table'
 local WPT = require 'maps.amap.table'
+local Diff = require 'modules.difficulty_vote_by_amount'
 
 local traps = {}
 
@@ -67,7 +68,7 @@ local function spawn_biters(data)
     local h = floor(abs(position.y))
     local wave_number = WD.get('wave_number')
     local max_biters = WPT.get('biters')
-    
+    local d = Diff.get()
 
     if max_biters.amount >= max_biters.limit then
         return
@@ -82,9 +83,14 @@ local function spawn_biters(data)
 
     local function trigger_health()
         local m = 0.0015
-        
-         m = m * 1.05
-        
+        if d.difficulty_vote_index then
+            if not d.strength_modifier then
+                m = m * 1.05
+            else
+                m = m * d.strength_modifier
+            end
+        end
+
         local boosted_health = 1.25
 
         if wave_number <= 10 then
@@ -115,7 +121,7 @@ local function spawn_biters(data)
         max_biters.amount = max_biters.amount + 1
     end
 
-    if random(1, 32) == 1 then
+    if random(1, 45) == 1 then
         local sum = trigger_health()
         max_biters.amount = max_biters.amount + 1
         BiterHealthBooster.add_boss_unit(unit, sum, 0.38)

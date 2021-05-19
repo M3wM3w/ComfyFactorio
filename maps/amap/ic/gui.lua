@@ -27,6 +27,9 @@ local raise_event = script.raise_event
 local add_toolbar
 local remove_toolbar
 
+local record = 0
+
+
 local function increment(t, k)
     t[k] = true
 end
