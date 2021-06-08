@@ -1,4 +1,4 @@
---[[
+ --[[
 Journey, launch a rocket in increasingly harder getting worlds. - MewMew
 ]]--
 
@@ -81,13 +81,13 @@ local function on_init()
     T.text =
         table.concat(
         {	
-			'The selectors in the mothership, allow you to select a destination.\n',
-			'Once enough players are on a selector, mothership will start traveling.\n',
-			'A teleporter will be deployed, after reaching the target.\n',
-			'It is however, only capable of transfering the subjects body, anything besides will be left on the ground.\n\n',
+			'The selectors in the mothership allow you to select a destination.\n',
+			'Once enough players are on a selector, mothership will start travelling.\n',
+			'A teleporter will be deployed after reaching the target.\n',
+			'It is however only capable of transferring the subject''s body, anything besides will be left on the ground.\n\n',
 			
-			'Worlds will get more difficult with each jump, adding the chosen modifiers.\n',				
-            'Launch a stack of uranium fuel cells via rocket cargo, to advance to the next world.\n',
+			'Worlds will get more difficult with each jump, adding the chosen modifiers.\n',
+            'Launch a stack of uranium fuel cells via rocket cargo to advance to the next world.\n',
 			'The tooltip on the top button has information about the current world.\n',
 			'If the journey ends, an admin can fully reset the map via command "/reset-journey".\n\n',
 					
