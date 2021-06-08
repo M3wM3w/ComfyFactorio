@@ -495,7 +495,7 @@ function Public.mothership_world_selection(journey)
 		if journey.mothership_speed > 4 then journey.mothership_speed = 4 end
 	else
 		if journey.mothership_advancing_to_world then
-			table.insert(journey.mothership_messages, "Aborting travling sequence.")
+			table.insert(journey.mothership_messages, "Aborting travelling sequence.")
 			journey.mothership_advancing_to_world = false
 		end	
 		journey.mothership_speed = journey.mothership_speed - 0.25
